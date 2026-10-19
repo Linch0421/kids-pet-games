@@ -1,0 +1,25 @@
+{
+  "name": "快樂學習樂園 - Corie & Duncan",
+  "short_name": "快樂樂園",
+  "description": "專為 5 歲小女孩設計的英文、注音、數學與時鐘互動遊戲 App",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff5f9",
+  "theme_color": "#fff5f9",
+  "icons": [
+    {
+      "src": "assets/corie.png",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/corie.png",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

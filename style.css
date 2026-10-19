@@ -25,16 +25,24 @@
   margin: 0;
   padding: 0;
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  font-family: "PingFang TC", "Microsoft JhengHei", "Rounded Mplus 1c", "Nunito", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", "Rounded Mplus 1c", sans-serif;
   background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
   color: var(--text-dark);
   min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
   position: relative;
+  /* 🍎 iPhone 瀏海與底部動態島安全距離適配 */
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
 /* 背景飄浮雲朵與星星 */
@@ -70,30 +78,33 @@ body {
   z-index: 10;
   max-width: 1140px;
   margin: 0 auto;
-  padding: 14px 20px;
+  padding: 12px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
 }
 
 .brand-title {
-  font-size: 1.45rem;
+  font-size: 1.35rem;
   font-weight: 800;
   color: #6b4c9a;
   letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
 .nav-btn {
   background: #ffffff;
   border: 3px solid #f0d9ff;
   border-radius: 999px;
-  padding: 8px 18px;
-  font-size: 1.1rem;
-  font-weight: 700;
+  padding: 7px 14px;
+  font-size: 1rem;
+  font-weight: 800;
   color: #6b4c9a;
   cursor: pointer;
   box-shadow: 0 4px 0 #e2c2f9;
   transition: transform 0.15s;
+  white-space: nowrap;
 }
 
 .nav-btn:active {
@@ -103,18 +114,39 @@ body {
 .top-right-controls {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+}
+
+.install-pill-btn {
+  background: linear-gradient(135deg, #ec4899, #8b5cf6);
+  color: #ffffff;
+  border: none;
+  border-radius: 999px;
+  padding: 7px 13px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #6d28d9;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+/* 當已經加入 iPhone 主畫面以全螢幕 App 啟動時，自動隱藏安裝提示按鈕 */
+@media all and (display-mode: standalone) {
+  .install-pill-btn {
+    display: none !important;
+  }
 }
 
 .star-counter {
   background: #fff9db;
   border: 3px solid #ffd43b;
   border-radius: 999px;
-  padding: 6px 16px;
+  padding: 5px 14px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 1.3rem;
+  gap: 5px;
+  font-size: 1.2rem;
   font-weight: 900;
   color: #d97706;
   box-shadow: 0 4px 0 #fcc419;
@@ -124,11 +156,12 @@ body {
   background: #ffffff;
   border: 3px solid #e2e8f0;
   border-radius: 50%;
-  width: 44px;
-  height: 44px;
-  font-size: 1.3rem;
+  width: 42px;
+  height: 42px;
+  font-size: 1.2rem;
   cursor: pointer;
   box-shadow: 0 4px 0 #cbd5e1;
+  flex-shrink: 0;
 }
 
 .hidden {
@@ -141,7 +174,7 @@ body {
   z-index: 5;
   max-width: 1140px;
   margin: 0 auto;
-  padding: 8px 18px 40px;
+  padding: 6px 14px 36px;
 }
 
 .screen {
@@ -161,36 +194,31 @@ body {
 /* 首頁卡片 */
 .hero-card {
   background: rgba(255, 255, 255, 0.92);
-  border-radius: 32px;
-  padding: 28px 22px;
+  border-radius: 30px;
+  padding: 24px 18px;
   box-shadow: var(--card-shadow);
   border: 4px solid #ffffff;
   text-align: center;
 }
 
 .characters-showcase {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 160px));
   justify-content: center;
-  gap: 18px;
-  flex-wrap: wrap;
+  gap: 14px;
   margin-bottom: 18px;
 }
 
 .pet-avatar-card {
-  width: 158px;
-  padding: 14px 10px;
-  border-radius: 26px;
+  padding: 12px 8px;
+  border-radius: 24px;
   cursor: pointer;
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
 }
 
-.pet-avatar-card:hover {
-  transform: translateY(-6px) scale(1.04);
-}
-
 .pet-avatar-card:active {
-  transform: scale(0.96);
+  transform: scale(0.95);
 }
 
 .corie-theme {
@@ -218,9 +246,9 @@ body {
 }
 
 .avatar-img-wrap {
-  width: 106px;
-  height: 106px;
-  margin: 0 auto 8px;
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 6px;
   border-radius: 50%;
   background: #ffffff;
   overflow: hidden;
@@ -238,30 +266,31 @@ body {
 }
 
 .avatar-fallback {
-  font-size: 3.8rem;
+  font-size: 3.4rem;
   align-items: center;
   justify-content: center;
 }
 
 .pet-name-badge {
-  font-size: 1.22rem;
+  font-size: 1.15rem;
   font-weight: 900;
   margin-bottom: 4px;
 }
 
 .speech-mini {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
   color: #555;
   background: rgba(255, 255, 255, 0.88);
   border-radius: 99px;
-  padding: 3px 10px;
+  padding: 3px 8px;
 }
 
 .welcome-heading {
-  font-size: 1.7rem;
+  font-size: 1.55rem;
   font-weight: 900;
   margin-bottom: 6px;
+  line-height: 1.35;
 }
 
 .highlight-corie { color: var(--corie-primary); }
@@ -270,62 +299,62 @@ body {
 .highlight-tieniu { color: var(--tieniu-primary); }
 
 .welcome-sub {
-  font-size: 1.08rem;
+  font-size: 1rem;
   color: #6e627d;
-  margin-bottom: 22px;
+  margin-bottom: 20px;
   font-weight: 600;
 }
 
 /* 遊戲選擇四大卡 */
 .game-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
   gap: 18px;
-  margin-bottom: 28px;
+  margin-bottom: 26px;
 }
 
 .game-mode-card {
-  border-radius: 28px;
-  padding: 20px 15px;
+  border-radius: 26px;
+  padding: 18px 14px;
   text-align: center;
   border: 4px solid transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
   font-family: inherit;
 }
 
 .english-card {
   background: linear-gradient(145deg, #e8f4ff 0%, #d4ebff 100%);
   border-color: #7cc0ff;
-  box-shadow: 0 10px 0 #7cc0ff;
+  box-shadow: 0 8px 0 #7cc0ff;
 }
 
 .zhuyin-card {
   background: linear-gradient(145deg, #f3e8ff 0%, #e9d5ff 100%);
   border-color: #c084fc;
-  box-shadow: 0 10px 0 #c084fc;
+  box-shadow: 0 8px 0 #c084fc;
 }
 
 .math-card {
   background: linear-gradient(145deg, #fff0e5 0%, #ffe0cc 100%);
   border-color: #ffad75;
-  box-shadow: 0 10px 0 #ffad75;
+  box-shadow: 0 8px 0 #ffad75;
 }
 
 .clock-card {
   background: linear-gradient(145deg, #e6fffa 0%, #ccfbf1 100%);
   border-color: #34d399;
-  box-shadow: 0 10px 0 #34d399;
+  box-shadow: 0 8px 0 #34d399;
 }
 
 .card-badge {
   background: #ffffff;
-  padding: 5px 14px;
+  padding: 4px 12px;
   border-radius: 999px;
   font-weight: 900;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: #555;
 }
 
@@ -334,30 +363,25 @@ body {
 }
 
 .card-character img {
-  width: 80px;
-  height: 80px;
+  width: 76px;
+  height: 76px;
   border-radius: 50%;
   object-fit: cover;
   background: #fff;
   border: 3px solid #fff;
-  transition: transform 0.2s;
-}
-
-.card-character:hover img {
-  transform: scale(1.08);
 }
 
 .game-mode-card h2 {
-  font-size: 1.38rem;
+  font-size: 1.32rem;
   font-weight: 900;
   color: var(--text-dark);
 }
 
 .game-mode-card p {
-  font-size: 0.94rem;
+  font-size: 0.92rem;
   color: #5c5368;
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 1.38;
 }
 
 /* 難度分級按鈕組 */
@@ -372,17 +396,12 @@ body {
 .lvl-btn {
   width: 100%;
   padding: 11px 12px;
-  border-radius: 18px;
+  border-radius: 16px;
   border: none;
-  font-size: 1.02rem;
+  font-size: 1rem;
   font-weight: 900;
   cursor: pointer;
   font-family: inherit;
-  transition: transform 0.15s;
-}
-
-.lvl-btn:hover {
-  transform: translateY(-2px);
 }
 
 .lvl-btn:active {
@@ -412,17 +431,17 @@ body {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 6px;
+  margin-bottom: 12px;
   background: #f8fafc;
-  padding: 10px 14px;
-  border-radius: 18px;
+  padding: 8px 12px;
+  border-radius: 16px;
   border: 2px solid #e2e8f0;
 }
 
 .bar-label {
   font-weight: 800;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: #64748b;
 }
 
@@ -430,9 +449,9 @@ body {
   border: 2px solid #cbd5e1;
   background: #ffffff;
   color: #475569;
-  padding: 6px 14px;
+  padding: 5px 12px;
   border-radius: 999px;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 800;
   cursor: pointer;
   font-family: inherit;
@@ -449,7 +468,7 @@ body {
   background: #fdf8ff;
   border: 3px dashed #d8b4fe;
   border-radius: 24px;
-  padding: 18px;
+  padding: 16px;
 }
 
 .shelf-header-row {
@@ -458,50 +477,49 @@ body {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .shelf-title {
   font-weight: 900;
   color: #7e22ce;
-  font-size: 1.08rem;
+  font-size: 1rem;
 }
 
 .shelf-progress {
   background: #f3e8ff;
   color: #6b21a8;
   font-weight: 900;
-  font-size: 0.95rem;
-  padding: 4px 14px;
+  font-size: 0.9rem;
+  padding: 4px 12px;
   border-radius: 999px;
   border: 2px solid #d8b4fe;
 }
 
 .sticker-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(54px, 1fr));
-  gap: 10px;
-  max-height: 320px;
+  grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+  gap: 8px;
+  max-height: 280px;
   overflow-y: auto;
-  padding: 6px;
+  padding: 4px;
 }
 
 .sticker-slot {
-  height: 54px;
-  border-radius: 15px;
+  height: 50px;
+  border-radius: 14px;
   background: #ffffff;
   border: 2px solid #e9d5ff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.85rem;
-  transition: transform 0.18s;
+  font-size: 1.75rem;
 }
 
 .sticker-slot.locked {
   filter: grayscale(1);
   opacity: 0.32;
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: #94a3b8;
   font-weight: 800;
 }
@@ -513,15 +531,11 @@ body {
   border-color: #fde047;
 }
 
-.sticker-slot.unlocked:hover {
-  transform: scale(1.18) rotate(6deg);
-}
-
 /* 遊戲關卡通用面板 */
 .game-board {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 32px;
-  padding: 22px 22px 32px;
+  border-radius: 28px;
+  padding: 18px 16px 26px;
   box-shadow: var(--card-shadow);
   border: 4px solid #ffffff;
 }
@@ -529,20 +543,20 @@ body {
 .progress-bar-wrap {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 .round-indicator {
   font-weight: 900;
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: #6b4c9a;
   white-space: nowrap;
 }
 
 .progress-track {
   flex: 1;
-  height: 18px;
+  height: 16px;
   background: #f1f5f9;
   border-radius: 999px;
   overflow: hidden;
@@ -572,17 +586,17 @@ body {
 .host-area {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   background: #f8fafc;
-  border-radius: 24px;
-  padding: 14px 18px;
-  margin-bottom: 18px;
+  border-radius: 22px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
   border: 3px solid #e2e8f0;
 }
 
 .host-avatar {
-  width: 80px;
-  height: 80px;
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
   background: #ffffff;
   flex-shrink: 0;
@@ -609,13 +623,13 @@ body {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
+  gap: 6px;
 }
 
 .bubble-text {
-  font-size: 1.28rem;
+  font-size: 1.15rem;
   font-weight: 800;
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 .sound-replay-btn {
@@ -623,8 +637,8 @@ body {
   border: 2px solid #93c5fd;
   color: #1d4ed8;
   border-radius: 999px;
-  padding: 6px 16px;
-  font-size: 0.98rem;
+  padding: 5px 14px;
+  font-size: 0.92rem;
   font-weight: 800;
   cursor: pointer;
 }
@@ -651,28 +665,23 @@ body {
 .target-letter-stage {
   background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
   border: 4px solid #93c5fd;
-  border-radius: 28px;
-  padding: 16px 22px;
+  border-radius: 26px;
+  padding: 14px 18px;
   text-align: center;
-  max-width: 420px;
-  margin: 0 auto 20px;
+  max-width: 400px;
+  margin: 0 auto 18px;
   cursor: pointer;
-  box-shadow: 0 8px 0 #93c5fd;
-  transition: transform 0.15s;
+  box-shadow: 0 7px 0 #93c5fd;
 }
 
 .target-letter-stage.zhuyin-stage {
   background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
   border-color: #c084fc;
-  box-shadow: 0 8px 0 #c084fc;
-}
-
-.target-letter-stage:active {
-  transform: translateY(4px);
+  box-shadow: 0 7px 0 #c084fc;
 }
 
 .big-letter {
-  font-size: 3.8rem;
+  font-size: 3.4rem;
   font-weight: 900;
   color: #1e40af;
   line-height: 1.15;
@@ -680,22 +689,22 @@ body {
 
 .big-letter.zhuyin-big {
   color: #6b21a8;
-  font-size: 4.2rem;
+  font-size: 3.8rem;
 }
 
 .target-subword {
-  font-size: 1.75rem;
+  font-size: 1.55rem;
   font-weight: 900;
   color: #0f172a;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   margin-top: 4px;
 }
 
 .target-hint {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: #3b82f6;
   font-weight: 700;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 .zhuyin-stage .target-hint {
@@ -706,22 +715,22 @@ body {
 .spelling-slots {
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .spell-slot {
-  min-width: 62px;
-  height: 66px;
-  padding: 0 12px;
-  border-radius: 16px;
+  min-width: 56px;
+  height: 60px;
+  padding: 0 10px;
+  border-radius: 15px;
   border: 3px dashed #93c5fd;
   background: #f8fafc;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
+  font-size: 1.85rem;
   font-weight: 900;
   color: #1e3a8a;
 }
@@ -732,32 +741,41 @@ body {
   background: #dbeafe;
 }
 
-/* 選項網格 */
+/* 選項網格（電腦 4 欄，iPhone 手機自動 2x2 雙欄不需捲動！） */
 .options-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 680px) {
+  .characters-showcase {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .options-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .brand-title {
+    font-size: 1.12rem;
+  }
 }
 
 .option-card {
   background: #ffffff;
   border: 4px solid #cbd5e1;
-  border-radius: 26px;
-  padding: 18px 12px;
+  border-radius: 22px;
+  padding: 14px 10px;
   cursor: pointer;
-  box-shadow: 0 8px 0 #cbd5e1;
-  transition: transform 0.18s, border-color 0.18s, background 0.18s;
+  box-shadow: 0 6px 0 #cbd5e1;
+  transition: transform 0.15s, border-color 0.15s, background 0.15s;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   font-family: inherit;
-}
-
-.option-card:hover {
-  transform: translateY(-4px);
-  border-color: #94a3b8;
 }
 
 .option-card:active {
@@ -767,14 +785,14 @@ body {
 .option-card.correct {
   background: #dcfce7;
   border-color: #22c55e;
-  box-shadow: 0 8px 0 #22c55e;
+  box-shadow: 0 6px 0 #22c55e;
   animation: bounceCheer 0.5s ease;
 }
 
 .option-card.wrong {
   background: #fee2e2;
   border-color: #f87171;
-  box-shadow: 0 8px 0 #f87171;
+  box-shadow: 0 6px 0 #f87171;
   animation: shakeGentle 0.4s ease;
 }
 
@@ -785,18 +803,18 @@ body {
 }
 
 .option-emoji {
-  font-size: 3.8rem;
+  font-size: 3.2rem;
   line-height: 1.1;
 }
 
 .option-word {
-  font-size: 1.55rem;
+  font-size: 1.35rem;
   font-weight: 900;
   color: var(--text-dark);
 }
 
 .option-zh {
-  font-size: 1.05rem;
+  font-size: 0.96rem;
   color: #64748b;
   font-weight: 700;
 }
@@ -807,12 +825,12 @@ body {
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
   background: #fffaf5;
   border: 4px solid #fed7aa;
-  border-radius: 28px;
-  padding: 20px 14px;
-  margin-bottom: 14px;
+  border-radius: 24px;
+  padding: 16px 12px;
+  margin-bottom: 12px;
 }
 
 .math-group {
@@ -822,21 +840,21 @@ body {
   gap: 8px;
   background: #ffffff;
   border: 3px dashed #fdba74;
-  border-radius: 22px;
-  padding: 12px 14px;
-  min-width: 96px;
-  min-height: 82px;
-  max-width: 280px;
+  border-radius: 20px;
+  padding: 10px 12px;
+  min-width: 86px;
+  min-height: 74px;
+  max-width: 260px;
   align-items: center;
 }
 
 .countable-item {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.35rem;
+  font-size: 2.15rem;
   cursor: pointer;
   transition: transform 0.15s;
   border-radius: 14px;
@@ -845,14 +863,14 @@ body {
 }
 
 .countable-item img {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
 }
 
 .countable-item.counted {
-  transform: scale(1.16);
+  transform: scale(1.15);
   background: #fef08a;
   box-shadow: 0 0 0 3px #facc15;
 }
@@ -867,7 +885,7 @@ body {
   content: "✖";
   position: absolute;
   color: #ef4444;
-  font-size: 2.2rem;
+  font-size: 2rem;
   font-weight: 900;
 }
 
@@ -875,27 +893,27 @@ body {
   border: 3px dashed #a855f7;
   background: #faf5ff;
   color: #9333ea;
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 900;
 }
 
 .math-operator {
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: 900;
   color: #ea580c;
 }
 
 .math-question-box {
-  min-width: 74px;
-  height: 74px;
-  padding: 0 14px;
-  border-radius: 22px;
+  min-width: 66px;
+  height: 66px;
+  padding: 0 12px;
+  border-radius: 20px;
   background: #ffedd5;
   border: 4px solid #fb923c;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: 900;
   color: #ea580c;
 }
@@ -905,18 +923,18 @@ body {
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  gap: 14px;
-  font-size: 2.3rem;
+  gap: 12px;
+  font-size: 2.1rem;
   font-weight: 900;
   color: #9a3412;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .question-mark-pill {
   display: inline-block;
-  min-width: 58px;
-  padding: 2px 14px;
-  border-radius: 16px;
+  min-width: 54px;
+  padding: 2px 12px;
+  border-radius: 14px;
   background: #fef08a;
   border: 3px solid #f59e0b;
   color: #b45309;
@@ -924,9 +942,9 @@ body {
 }
 
 .math-options .num-btn {
-  font-size: 2.5rem;
+  font-size: 2.3rem;
   font-weight: 900;
-  padding: 16px;
+  padding: 14px;
   color: #7c2d12;
 }
 
@@ -935,15 +953,15 @@ body {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
 .legend-pill {
-  padding: 6px 16px;
+  padding: 5px 14px;
   border-radius: 999px;
   font-weight: 900;
-  font-size: 1rem;
+  font-size: 0.92rem;
 }
 
 .hour-pill {
@@ -962,13 +980,13 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 .analog-clock-svg {
-  width: 265px;
-  height: 265px;
+  width: 245px;
+  height: 245px;
   filter: drop-shadow(0 8px 16px rgba(16, 185, 129, 0.16));
 }
 
@@ -977,18 +995,18 @@ body {
   border: 2px solid #6ee7b7;
   color: #065f46;
   font-weight: 900;
-  font-size: 1.12rem;
-  padding: 6px 20px;
+  font-size: 1.05rem;
+  padding: 5px 18px;
   border-radius: 999px;
 }
 
 .clock-digital-time {
-  font-size: 2.2rem;
+  font-size: 1.95rem;
   font-weight: 900;
   color: #0f766e;
   background: #f0fdfa;
-  padding: 4px 18px;
-  border-radius: 16px;
+  padding: 4px 14px;
+  border-radius: 14px;
   border: 2px solid #99f6e4;
 }
 
@@ -996,55 +1014,96 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 .set-btn-group {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .dial-btn {
-  padding: 12px 20px;
-  border-radius: 18px;
-  font-size: 1.15rem;
+  padding: 11px 16px;
+  border-radius: 16px;
+  font-size: 1.05rem;
   font-weight: 900;
   border: none;
   cursor: pointer;
   font-family: inherit;
-  transition: transform 0.12s;
-}
-
-.dial-btn:active {
-  transform: translateY(3px);
 }
 
 .hour-dial-btn {
   background: #ef4444;
   color: #ffffff;
-  box-shadow: 0 5px 0 #b91c1c;
+  box-shadow: 0 4px 0 #b91c1c;
 }
 
 .min-dial-btn {
   background: #3b82f6;
   color: #ffffff;
-  box-shadow: 0 5px 0 #1d4ed8;
+  box-shadow: 0 4px 0 #1d4ed8;
 }
 
 .submit-clock-btn {
-  padding: 14px 36px;
+  padding: 13px 32px;
   border-radius: 999px;
   background: #10b981;
   color: #ffffff;
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 900;
   border: none;
   cursor: pointer;
-  box-shadow: 0 6px 0 #047857;
+  box-shadow: 0 5px 0 #047857;
   font-family: inherit;
+}
+
+/* 📲 iPhone 安裝教學彈窗 */
+.install-steps-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.install-steps-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fdf4ff;
+  border: 2px solid #f0abfc;
+  border-radius: 16px;
+  padding: 12px 14px;
+  font-size: 0.96rem;
+  line-height: 1.45;
+}
+
+.step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #d946ef;
+  color: #ffffff;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.url-code {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 3px 8px;
+  background: #ffffff;
+  border-radius: 8px;
+  color: #be185d;
+  font-weight: 800;
+  font-size: 0.85rem;
+  word-break: break-all;
 }
 
 @keyframes bounceCheer {
@@ -1061,16 +1120,16 @@ body {
 /* 過關慶祝卡 */
 .celebrate-card {
   background: #ffffff;
-  border-radius: 32px;
-  padding: 32px 24px;
+  border-radius: 30px;
+  padding: 28px 20px;
   text-align: center;
   box-shadow: var(--card-shadow);
 }
 
 .celebrate-banner {
-  max-width: 340px;
-  margin: 0 auto 18px;
-  border-radius: 24px;
+  max-width: 320px;
+  margin: 0 auto 16px;
+  border-radius: 22px;
   overflow: hidden;
   border: 4px solid #fde047;
 }
@@ -1081,42 +1140,42 @@ body {
 }
 
 .celebrate-fallback {
-  font-size: 4rem;
-  padding: 24px;
+  font-size: 3.6rem;
+  padding: 20px;
   justify-content: center;
 }
 
 .celebrate-title {
-  font-size: 2.2rem;
+  font-size: 2rem;
   color: #d946ef;
   font-weight: 900;
   margin-bottom: 8px;
 }
 
 .celebrate-desc {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: #555;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .reward-stars-row {
-  font-size: 3.2rem;
-  margin-bottom: 24px;
+  font-size: 3rem;
+  margin-bottom: 22px;
   animation: bounceCheer 1s infinite;
 }
 
 .celebrate-actions {
   display: flex;
   justify-content: center;
-  gap: 16px;
+  gap: 14px;
   flex-wrap: wrap;
 }
 
 .big-action-btn {
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 900;
-  padding: 14px 30px;
+  padding: 13px 26px;
   border-radius: 999px;
   border: none;
   cursor: pointer;
@@ -1126,13 +1185,13 @@ body {
 .primary-btn {
   background: var(--pink-accent);
   color: #fff;
-  box-shadow: 0 6px 0 #be185d;
+  box-shadow: 0 5px 0 #be185d;
 }
 
 .secondary-btn {
   background: #e2e8f0;
   color: #334155;
-  box-shadow: 0 6px 0 #94a3b8;
+  box-shadow: 0 5px 0 #94a3b8;
 }
 
 /* 灑花特效 */
@@ -1173,23 +1232,23 @@ body {
 .modal-card {
   background: #ffffff;
   border-radius: 26px;
-  padding: 24px;
+  padding: 22px;
   max-width: 480px;
   width: 100%;
-  max-height: 92vh;
+  max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
 }
 
 .modal-card h3 {
-  font-size: 1.4rem;
+  font-size: 1.35rem;
   margin-bottom: 6px;
 }
 
 .modal-hint {
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   color: #64748b;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   line-height: 1.45;
 }
 
@@ -1197,15 +1256,15 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-bottom: 14px;
+  margin-bottom: 13px;
   font-weight: 700;
-  font-size: 0.96rem;
+  font-size: 0.94rem;
 }
 
 .form-field input[type="text"],
 .form-field select {
   padding: 9px 12px;
-  font-size: 1.05rem;
+  font-size: 1rem;
   border: 2px solid #cbd5e1;
   border-radius: 12px;
   font-family: inherit;
@@ -1226,24 +1285,20 @@ body {
 
 .speed-chip {
   flex: 1;
-  min-width: 82px;
-  padding: 6px 10px;
+  min-width: 76px;
+  padding: 6px 8px;
   border-radius: 999px;
   border: 2px solid #ddd6fe;
   background: #f5f3ff;
   color: #6d28d9;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 800;
   cursor: pointer;
   font-family: inherit;
 }
 
-.speed-chip:hover {
-  background: #ede9fe;
-}
-
 .test-voice-row {
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .test-btn {

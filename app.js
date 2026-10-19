@@ -352,6 +352,10 @@ if ('speechSynthesis' in window) {
   window.speechSynthesis.onvoiceschanged = loadVoices;
 }
 
+function isAppleMobileDevice() {
+  return /iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+}
+
 function scoreVoice(v, targetLangPrefix) {
   const lang = (v.lang || '').toLowerCase();
   const name = (v.name || '').toLowerCase();
@@ -359,11 +363,14 @@ function scoreVoice(v, targetLangPrefix) {
 
   if (targetLangPrefix === 'zh') {
     if (!lang.includes('zh') && !lang.includes('cmn')) return -999;
-    if (lang.includes('tw') || lang.includes('hant')) score += 60;
+    if (lang.includes('tw') || lang.includes('hant')) {
+      score += 60;
+      if (isAppleMobileDevice()) score += 130;
+    }
     if (name.includes('hsiaochen') || name.includes('曉臻')) score += 200;
     if (name.includes('hsiaoyu') || name.includes('曉雨')) score += 190;
     if (name.includes('natural') || name.includes('online')) score += 150;
-    if (name.includes('meijia') || name.includes('美佳') || name.includes('premium') || name.includes('enhanced')) score += 130;
+    if (name.includes('meijia') || name.includes('美佳') || name.includes('siri') || name.includes('premium') || name.includes('enhanced')) score += 130;
     if (name.includes('google')) score += 70;
     if (name.includes('desktop') || name.includes('hanhan') || name.includes('yating')) score -= 80;
   } else {
@@ -372,7 +379,7 @@ function scoreVoice(v, targetLangPrefix) {
     if (name.includes('ana')) score += 200;
     if (name.includes('jenny') || name.includes('aria') || name.includes('emma') || name.includes('ava')) score += 185;
     if (name.includes('natural') || name.includes('online')) score += 150;
-    if (name.includes('samantha') || name.includes('allison')) score += 120;
+    if (name.includes('samantha') || name.includes('allison') || name.includes('siri')) score += 120;
     if (name.includes('google us english')) score += 90;
     if (name.includes('desktop') || name.includes('david') || name.includes('zira')) score -= 60;
   }
@@ -508,12 +515,32 @@ async function speakSequence(items) {
 }
 
 // ============================================================================
-// 🏠 畫面切換與初始化
+// 🏠 畫面切換與初始化（含 iPhone PWA 離線快取與音效解鎖）
 // ============================================================================
+let iosAudioUnlocked = false;
+function unlockIOSAudioOnce() {
+  if (iosAudioUnlocked) return;
+  iosAudioUnlocked = true;
+  try {
+    const ctx = getAudioCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+  } catch (e) {}
+  if ('speechSynthesis' in window) {
+    loadVoices();
+  }
+}
+
 function initApp() {
   applyPetNames();
   updateStarsUI();
   updateSpeedLabel(PET_CONFIG.speechRate);
+
+  window.addEventListener('touchstart', unlockIOSAudioOnce, { once: true, passive: true });
+  window.addEventListener('click', unlockIOSAudioOnce, { once: true, passive: true });
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js?v=6').catch(() => {});
+  }
 }
 
 function applyPetNames() {
@@ -2213,4 +2240,15 @@ function saveSettings() {
   playSuccessJingle();
 }
 
+function openInstallModal() {
+  const modal = document.getElementById('install-modal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeInstallModal() {
+  const modal = document.getElementById('install-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
 window.addEventListener('DOMContentLoaded', initApp);
+
