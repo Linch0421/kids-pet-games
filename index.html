@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="referrer" content="no-referrer" />
   <title>Corie & Duncan 的快樂學習樂園</title>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -216,11 +217,11 @@
   <!-- 滿版灑花特效畫布 -->
   <div id="confetti-container" aria-hidden="true"></div>
 
-  <!-- 家長設定彈窗（可改名字 + 調整語音速度與自然人聲） -->
+  <!-- 家長設定彈窗（可改名字 + 調整語音模式與速度） -->
   <div id="settings-modal" class="modal-backdrop hidden">
     <div class="modal-card">
-      <h3>⚙️ 角色名字與語音設定</h3>
-      <p class="modal-hint">可隨時修改橘貓與邊牧的名字，並調整發音速度或切換最自然的語音引擎！</p>
+      <h3>⚙️ 角色名字與真人語音設定</h3>
+      <p class="modal-hint">若使用 Chrome 覺得內建中文像機器人，請選「☁️ 雲端自然女聲」或改用 Edge 瀏覽器（內建微軟曉臻真人語音）！</p>
 
       <label class="form-field">
         <span>🐱 橘貓的名字：</span>
@@ -233,22 +234,31 @@
       </label>
 
       <label class="form-field">
-        <span>🐢 語音說話速度：<strong id="speed-label-val">慢速溫柔 (0.75x)</strong></span>
-        <input type="range" id="input-speech-rate" min="0.55" max="1.05" step="0.05" value="0.75" oninput="updateSpeedLabel(this.value)" />
+        <span>🎙️ 語音發音引擎模式：</span>
+        <select id="select-tts-mode">
+          <option value="auto">✨ 智慧最佳模式（Edge 用曉臻真人 / Chrome 用雲端自然音）</option>
+          <option value="cloud">☁️ 強制使用雲端自然女聲（適合 Chrome / 手機）</option>
+          <option value="native">💻 使用裝置內建語音（適合 Edge / iPad）</option>
+        </select>
       </label>
 
       <label class="form-field">
-        <span>🗣️ 中文語音聲線（建議選 Natural / Google）：</span>
+        <span>🐢 語音說話節奏：<strong id="speed-label-val">溫柔適中 (0.90x)</strong></span>
+        <input type="range" id="input-speech-rate" min="0.75" max="1.05" step="0.05" value="0.90" oninput="updateSpeedLabel(this.value)" />
+      </label>
+
+      <label class="form-field">
+        <span>🗣️ 內建中文聲線（當使用內建語音時）：</span>
         <select id="select-zh-voice"></select>
       </label>
 
       <label class="form-field">
-        <span>🔤 英文語音聲線（建議選 Natural / Google）：</span>
+        <span>🔤 內建英文聲線（當使用內建語音時）：</span>
         <select id="select-en-voice"></select>
       </label>
 
       <div class="test-voice-row">
-        <button type="button" class="modal-btn test-btn" onclick="testVoicePreview()">🔊 試聽目前語音效果</button>
+        <button type="button" class="modal-btn test-btn" onclick="testVoicePreview()">🔊 點此試聽目前中文＆英文聲音</button>
       </div>
 
       <div class="modal-actions">

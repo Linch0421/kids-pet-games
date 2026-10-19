@@ -4,12 +4,13 @@
 const PET_CONFIG = {
   corieName: localStorage.getItem('pet_corie_name') || 'Corie',
   duncanName: localStorage.getItem('pet_duncan_name') || 'Duncan',
-  speechRate: parseFloat(localStorage.getItem('pet_speech_rate') || '0.75'),
+  ttsMode: localStorage.getItem('pet_tts_mode') || 'auto', // 'auto' | 'cloud' | 'native'
+  speechRate: parseFloat(localStorage.getItem('pet_speech_rate') || '0.90'),
   zhVoiceURI: localStorage.getItem('pet_zh_voice') || '',
   enVoiceURI: localStorage.getItem('pet_en_voice') || '',
 };
 
-// 獎勵貼紙庫（每 3 顆星解鎖一個，擴充到 20 張）
+// 獎勵貼紙庫（每 3 顆星解鎖一個，共 20 張）
 const STICKERS = [
   '🎀', '🦄', '🍓', '👑', '🍭', '🧸', '🌈', '🏰', '🦋', '🍦',
   '🐬', '🎨', '🎠', '🧁', '🌺', '🐳', '🍉', '🧚', '💎', '🚀',
@@ -144,16 +145,15 @@ const ENGLISH_BANK = [
   { letter: 'Z', word: 'Zoo', zh: '動物園', emoji: '🎪' },
 ];
 
-// 短單字清單（專門給 Lv.3 字母拼字接龍使用，長度 3~5 個字母）
 const SPELLING_WORDS = ENGLISH_BANK.filter(
   (item) => /^[A-Za-z]{3,5}$/.test(item.word)
 );
 
 // 遊戲狀態
 let totalStars = parseInt(localStorage.getItem('kids_total_stars') || '0', 10);
-let currentGame = null; // 'english' | 'math'
-let englishLevel = 1;   // 1 | 2 | 3
-let mathLevel = 1;      // 1 | 2 | 3
+let currentGame = null;
+let englishLevel = 1;
+let mathLevel = 1;
 let currentRound = 0;
 const TOTAL_ROUNDS = 8;
 let isLocked = false;
@@ -162,7 +162,7 @@ let currentMathQ = null;
 let usedEnglishWords = new Set();
 
 // ============================================================================
-// 🔊 自然語音與柔和音效系統（解決機械音與語速過快問題）
+// 🔊 雙引擎真人級語音系統（Edge Neural 真人曉臻 + 雲端自然女聲串流）
 // ============================================================================
 const audioCtx = typeof window !== 'undefined' && (window.AudioContext || window.webkitAudioContext)
   ? new (window.AudioContext || window.webkitAudioContext)()
@@ -197,14 +197,17 @@ function playTryAgainSound() {
   playTone(250, 0.22, 'sine', 150);
 }
 
-// 智慧挑選最自然的語音（優先挑選 Microsoft Natural / Online 與 Google 語音，並保持 pitch = 1.0 避免機械變調）
 let cachedVoices = [];
-let speechTimerIds = [];
+let activeAudioEl = null;
+let speechCancelToken = 0;
 
 function loadVoices() {
   if (!('speechSynthesis' in window)) return;
-  cachedVoices = window.speechSynthesis.getVoices();
-  populateVoiceSelectors();
+  const latest = window.speechSynthesis.getVoices();
+  if (latest && latest.length) {
+    cachedVoices = latest;
+    populateVoiceSelectors();
+  }
 }
 
 if ('speechSynthesis' in window) {
@@ -219,29 +222,32 @@ function scoreVoice(v, targetLangPrefix) {
 
   if (targetLangPrefix === 'zh') {
     if (!lang.includes('zh') && !lang.includes('cmn')) return -999;
-    if (lang.includes('tw') || lang.includes('hant')) score += 50;
-    // Microsoft Edge / Windows 11 最自然的台灣中文女聲：HsiaoChen / HsiaoYu
-    if (name.includes('hsiaochen') || name.includes('曉臻')) score += 120;
-    if (name.includes('hsiaoyu') || name.includes('曉雨')) score += 110;
-    if (name.includes('natural') || name.includes('online')) score += 100;
-    if (name.includes('google')) score += 80;
-    if (name.includes('yating') || name.includes('hanhan')) score += 15;
+    if (lang.includes('tw') || lang.includes('hant')) score += 60;
+    // 微軟神經網路真人女聲（曉臻 / 曉雨）與 Apple 高品質女聲（Meijia）給最高分
+    if (name.includes('hsiaochen') || name.includes('曉臻')) score += 200;
+    if (name.includes('hsiaoyu') || name.includes('曉雨')) score += 190;
+    if (name.includes('natural') || name.includes('online')) score += 150;
+    if (name.includes('meijia') || name.includes('美佳') || name.includes('premium') || name.includes('enhanced')) score += 130;
+    if (name.includes('google')) score += 70;
+    // 嚴格扣分 Windows 舊版離線機械音 (Hanhan / Yating / Zhiwei Desktop)
+    if (name.includes('desktop') || name.includes('hanhan') || name.includes('yating')) score -= 80;
   } else {
     if (!lang.startsWith('en')) return -999;
-    if (lang.includes('us')) score += 40;
-    // Microsoft Natural 兒童/溫柔女聲：Ana, Jenny, Aria, Sonia
-    if (name.includes('ana')) score += 130;
-    if (name.includes('jenny') || name.includes('aria') || name.includes('emma')) score += 115;
-    if (name.includes('natural') || name.includes('online')) score += 100;
-    if (name.includes('google us english') || name.includes('samantha')) score += 85;
-    if (name.includes('zira')) score += 20;
+    if (lang.includes('us')) score += 50;
+    if (name.includes('ana')) score += 200;
+    if (name.includes('jenny') || name.includes('aria') || name.includes('emma') || name.includes('ava')) score += 185;
+    if (name.includes('natural') || name.includes('online')) score += 150;
+    if (name.includes('samantha') || name.includes('allison')) score += 120;
+    if (name.includes('google us english')) score += 90;
+    if (name.includes('desktop') || name.includes('david') || name.includes('zira')) score -= 60;
   }
   return score;
 }
 
 function getBestVoice(langType) {
-  if (!cachedVoices.length && 'speechSynthesis' in window) {
-    cachedVoices = window.speechSynthesis.getVoices();
+  if ('speechSynthesis' in window) {
+    const fresh = window.speechSynthesis.getVoices();
+    if (fresh && fresh.length) cachedVoices = fresh;
   }
   if (!cachedVoices.length) return null;
 
@@ -263,45 +269,119 @@ function getBestVoice(langType) {
   return best;
 }
 
+// 判斷目前裝置是否有高品質的「真人級內建中文語音」（例如 Edge 的 Natural 曉臻，或 iPad 的 Meijia）
+function hasHighQualityNativeChineseVoice() {
+  const bestZh = getBestVoice('zh');
+  if (!bestZh) return false;
+  const s = scoreVoice(bestZh, 'zh');
+  // 分數 >= 160 代表是 Microsoft Natural Online 或 Apple Enhanced 真人語音
+  return s >= 160;
+}
+
 function clearPendingSpeech() {
-  speechTimerIds.forEach((id) => clearTimeout(id));
-  speechTimerIds = [];
+  speechCancelToken += 1;
+  if (activeAudioEl) {
+    try {
+      activeAudioEl.pause();
+      activeAudioEl.src = '';
+    } catch (e) {}
+    activeAudioEl = null;
+  }
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
   }
 }
 
 /**
- * 溫柔慢速語音序列播放：
- * - 固定 pitch = 1.0（消除調高音調造成的機器人金屬失真感）
- * - 支援段落之間插入真實停頓 pauseMs（讓句子之間有自然呼吸感）
+ * 透過雲端自然語音串流播放單一句子（失敗時無縫降級回內建語音）
  */
-function speakSequence(items) {
-  if (!('speechSynthesis' in window)) return;
-  clearPendingSpeech();
+function playCloudTTSItem(item, token) {
+  return new Promise((resolve) => {
+    if (token !== speechCancelToken) return resolve();
 
-  let cumulativeDelay = 60;
-  items.forEach((item) => {
-    const timerId = setTimeout(() => {
-      const isEn = (item.lang || '').toLowerCase().startsWith('en');
-      const utter = new SpeechSynthesisUtterance(item.text);
-      const voice = getBestVoice(isEn ? 'en' : 'zh');
-      if (voice) utter.voice = voice;
-      utter.lang = item.lang || (isEn ? 'en-US' : 'zh-TW');
+    const isEn = (item.lang || '').toLowerCase().startsWith('en');
+    const tl = isEn ? 'en' : 'zh-TW';
+    // ttsspeed=0.80 讓雲端直接生成慢速自然語音，不經過瀏覽器機械變速器
+    const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&client=gtx&tl=${tl}&ttsspeed=0.8&q=${encodeURIComponent(item.text)}`;
 
-      // 英文單字再放慢一點點，讓 5 歲小朋友聽清楚每個音節
-      const baseRate = PET_CONFIG.speechRate || 0.75;
-      utter.rate = item.rate || (isEn ? Math.max(0.55, baseRate - 0.05) : baseRate);
-      utter.pitch = 1.0; // 原音不變調，最自然
+    const audio = new Audio();
+    activeAudioEl = audio;
+    audio.preload = 'auto';
+    // 稍微放慢一點點但維持在 0.92 以上避免電音失真
+    audio.playbackRate = Math.max(0.88, Math.min(1.05, PET_CONFIG.speechRate || 0.92));
 
-      window.speechSynthesis.speak(utter);
-    }, cumulativeDelay);
+    let settled = false;
+    const finish = (ok) => {
+      if (settled) return;
+      settled = true;
+      if (!ok && token === speechCancelToken) {
+        playNativeTTSItem(item, token).then(resolve);
+      } else {
+        setTimeout(resolve, item.pauseAfter || 320);
+      }
+    };
 
-    speechTimerIds.push(timerId);
-    // 預估每段語音時間 + 自然呼吸停頓
-    const estDuration = Math.max(900, (item.text.length || 4) * 210);
-    cumulativeDelay += (item.pauseAfter || estDuration);
+    audio.onended = () => finish(true);
+    audio.onerror = () => finish(false);
+    audio.src = url;
+    audio.play().catch(() => finish(false));
   });
+}
+
+/**
+ * 透過瀏覽器內建語音播放單一句子（維持 rate >= 0.85 消除 WSOLA 機械顫音）
+ */
+function playNativeTTSItem(item, token) {
+  return new Promise((resolve) => {
+    if (token !== speechCancelToken || !('speechSynthesis' in window)) return resolve();
+
+    const isEn = (item.lang || '').toLowerCase().startsWith('en');
+    const utter = new SpeechSynthesisUtterance(item.text);
+    const voice = getBestVoice(isEn ? 'en' : 'zh');
+    if (voice) utter.voice = voice;
+    utter.lang = item.lang || (isEn ? 'en-US' : 'zh-TW');
+
+    // 重要：中文語速低於 0.85 在 Chrome/Windows 會產生嚴重的時間拉伸機器人電音！
+    // 因此將基底語速控制在 0.86 ~ 0.96，改用短句與逗號停頓來放慢節奏
+    const userRate = PET_CONFIG.speechRate || 0.90;
+    utter.rate = item.rate || (isEn ? Math.max(0.78, userRate - 0.06) : Math.max(0.86, userRate));
+    utter.pitch = 1.0;
+
+    let done = false;
+    const complete = () => {
+      if (done) return;
+      done = true;
+      setTimeout(resolve, item.pauseAfter || 300);
+    };
+
+    utter.onend = complete;
+    utter.onerror = complete;
+    // 安全逾時保護
+    setTimeout(complete, Math.max(2500, item.text.length * 380));
+
+    window.speechSynthesis.speak(utter);
+  });
+}
+
+/**
+ * 依序播放語音段落（自動選擇最佳真人引擎）
+ */
+async function speakSequence(items) {
+  clearPendingSpeech();
+  const myToken = speechCancelToken;
+
+  const useCloud =
+    PET_CONFIG.ttsMode === 'cloud' ||
+    (PET_CONFIG.ttsMode === 'auto' && !hasHighQualityNativeChineseVoice() && !PET_CONFIG.zhVoiceURI);
+
+  for (const item of items) {
+    if (myToken !== speechCancelToken) break;
+    if (useCloud) {
+      await playCloudTTSItem(item, myToken);
+    } else {
+      await playNativeTTSItem(item, myToken);
+    }
+  }
 }
 
 // ============================================================================
@@ -366,11 +446,13 @@ function petSpeak(which) {
   playSuccessJingle();
   if (which === 'corie') {
     speakSequence([
-      { text: `嗨，我是橘貓 ${PET_CONFIG.corieName}，我們一起來玩數學冒險吧！`, lang: 'zh-TW' },
+      { text: `嗨，我是橘貓 ${PET_CONFIG.corieName}，`, lang: 'zh-TW', pauseAfter: 250 },
+      { text: '我們一起來玩數學冒險吧！', lang: 'zh-TW' },
     ]);
   } else {
     speakSequence([
-      { text: `哈囉，我是 ${PET_CONFIG.duncanName}，我們一起來認識英文單字吧！`, lang: 'zh-TW' },
+      { text: `哈囉，我是 ${PET_CONFIG.duncanName}，`, lang: 'zh-TW', pauseAfter: 250 },
+      { text: '我們一起來認識英文單字吧！', lang: 'zh-TW' },
     ]);
   }
 }
@@ -429,14 +511,12 @@ function nextEnglishRound() {
   if (englishLevel === 1) {
     setupEnglishLevel1();
   } else if (englishLevel === 2) {
-    // Lv.2 隨機出「聽音選圖（不顯示英文提示）」或「首字母填空 (_pple)」
     if (Math.random() < 0.5) {
       setupEnglishListeningBlind();
     } else {
       setupEnglishMissingFirstLetter();
     }
   } else {
-    // Lv.3 隨機出「大小寫字母配對」或「單字拼拼樂」
     if (Math.random() < 0.45) {
       setupEnglishCaseMatch();
     } else {
@@ -478,7 +558,7 @@ function setupEnglishLevel1() {
   repeatEnglishPrompt();
 }
 
-// 🌟 Lv.2-A：純聽音辨圖（舞台只顯示 🎧 喇叭，卡片只顯示圖案，考驗真正聽力！）
+// 🌟 Lv.2-A：純聽音辨圖
 function setupEnglishListeningBlind() {
   const target = pickUnusedWord();
   const distractors = ENGLISH_BANK
@@ -510,7 +590,7 @@ function setupEnglishListeningBlind() {
   repeatEnglishPrompt();
 }
 
-// 🌟 Lv.2-B：首字母填空挑戰（例如 🍎 _pple，選出開頭是哪個字母）
+// 🌟 Lv.2-B：首字母填空挑戰
 function setupEnglishMissingFirstLetter() {
   const target = pickUnusedWord();
   const allLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
@@ -548,7 +628,7 @@ function setupEnglishMissingFirstLetter() {
   repeatEnglishPrompt();
 }
 
-// 🏆 Lv.3-A：大小寫字母配對挑戰（認識容易搞混的大小寫，如 B/b, D/d, G/g, Q/q, R/r, E/e）
+// 🏆 Lv.3-A：大小寫字母配對挑戰
 function setupEnglishCaseMatch() {
   const target = pickUnusedWord();
   const askLower = Math.random() < 0.5;
@@ -585,13 +665,12 @@ function setupEnglishCaseMatch() {
   repeatEnglishPrompt();
 }
 
-// 🏆 Lv.3-B：單字拼拼樂（依序點擊字母拼出完整英文單字）
+// 🏆 Lv.3-B：單字拼拼樂
 function setupEnglishSpelling() {
   const target = pickUnusedWord(SPELLING_WORDS);
   const upperWord = target.word.toUpperCase();
   const letters = upperWord.split('');
 
-  // 加入 1~2 個干擾字母增加挑戰性
   const extraPool = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter((c) => !letters.includes(c));
   const extraLetter = extraPool[Math.floor(Math.random() * extraPool.length)];
   const scrambled = [...letters, extraLetter].sort(() => Math.random() - 0.5);
@@ -646,7 +725,7 @@ function handleSpellingLetterClick(ltr, btnEl) {
     }
     q.currentIndex += 1;
     playTone(500 + q.currentIndex * 80, 0.12, 'triangle');
-    speakSequence([{ text: ltr.toLowerCase(), lang: 'en-US', rate: 0.78 }]);
+    speakSequence([{ text: ltr.toLowerCase(), lang: 'en-US' }]);
 
     if (q.currentIndex === q.upperWord.length) {
       isLocked = true;
@@ -656,8 +735,8 @@ function handleSpellingLetterClick(ltr, btnEl) {
         totalStars += 1;
         updateStarsUI();
         speakSequence([
-          { text: q.target.word, lang: 'en-US', pauseAfter: 1100 },
-          { text: `太厲害了！你成功拼出 ${q.target.zh} 了！`, lang: 'zh-TW' },
+          { text: q.target.word, lang: 'en-US', pauseAfter: 450 },
+          { text: `太厲害了，你成功拼出，${q.target.zh}，了喔！`, lang: 'zh-TW' },
         ]);
         advanceOrFinishEnglish();
       }, 500);
@@ -666,7 +745,7 @@ function handleSpellingLetterClick(ltr, btnEl) {
     btnEl.classList.add('wrong');
     playTryAgainSound();
     speakSequence([
-      { text: `下一個字母是 ${expected} 喔，再找找看！`, lang: 'zh-TW' },
+      { text: `下一個字母是，${expected}，再找找看喔！`, lang: 'zh-TW' },
     ]);
     setTimeout(() => btnEl.classList.remove('wrong'), 600);
   }
@@ -678,30 +757,30 @@ function repeatEnglishPrompt() {
 
   if (mode === 'listen') {
     speakSequence([
-      { text: target.word, lang: 'en-US', pauseAfter: 1200 },
-      { text: target.word, lang: 'en-US', pauseAfter: 1200 },
-      { text: '請問這是哪一個圖案呢？', lang: 'zh-TW' },
+      { text: target.word, lang: 'en-US', pauseAfter: 550 },
+      { text: target.word, lang: 'en-US', pauseAfter: 450 },
+      { text: '請問，這是哪一個圖案呢？', lang: 'zh-TW' },
     ]);
   } else if (mode === 'missing_letter') {
     speakSequence([
-      { text: target.word, lang: 'en-US', pauseAfter: 1200 },
-      { text: `${target.zh} 的第一個字母是什麼呢？`, lang: 'zh-TW' },
+      { text: target.word, lang: 'en-US', pauseAfter: 450 },
+      { text: `${target.zh}，的第一個字母是什麼呢？`, lang: 'zh-TW' },
     ]);
   } else if (mode === 'case_match') {
     speakSequence([
-      { text: target.letter, lang: 'en-US', pauseAfter: 1000 },
-      { text: `請找出字母 ${target.letter} 的好朋友`, lang: 'zh-TW' },
+      { text: target.letter, lang: 'en-US', pauseAfter: 450 },
+      { text: `請找出字母，${target.letter}，的好朋友`, lang: 'zh-TW' },
     ]);
   } else if (mode === 'spelling') {
     speakSequence([
-      { text: target.word, lang: 'en-US', pauseAfter: 1200 },
-      { text: `我們一起把 ${target.zh} 拼出來吧`, lang: 'zh-TW' },
+      { text: target.word, lang: 'en-US', pauseAfter: 450 },
+      { text: `我們一起把，${target.zh}，拼出來吧！`, lang: 'zh-TW' },
     ]);
   } else {
     speakSequence([
-      { text: target.letter, lang: 'en-US', pauseAfter: 950 },
-      { text: target.word, lang: 'en-US', pauseAfter: 1200 },
-      { text: `請找出 ${target.zh}`, lang: 'zh-TW' },
+      { text: target.letter, lang: 'en-US', pauseAfter: 400 },
+      { text: target.word, lang: 'en-US', pauseAfter: 450 },
+      { text: `請找出，${target.zh}`, lang: 'zh-TW' },
     ]);
   }
 }
@@ -719,8 +798,8 @@ function verifyEnglishChoice(isCorrect, chosenItem, btnEl) {
     updateStarsUI();
 
     speakSequence([
-      { text: target.word, lang: 'en-US', pauseAfter: 1100 },
-      { text: `答對了！是 ${target.zh}！好棒喔！`, lang: 'zh-TW' },
+      { text: target.word, lang: 'en-US', pauseAfter: 400 },
+      { text: `答對了，是${target.zh}，你好棒喔！`, lang: 'zh-TW' },
     ]);
 
     advanceOrFinishEnglish();
@@ -728,8 +807,8 @@ function verifyEnglishChoice(isCorrect, chosenItem, btnEl) {
     btnEl.classList.add('wrong');
     playTryAgainSound();
     speakSequence([
-      { text: chosenItem.word, lang: 'en-US', pauseAfter: 1000 },
-      { text: `這是 ${chosenItem.zh}，我們再試一次喔！`, lang: 'zh-TW' },
+      { text: chosenItem.word, lang: 'en-US', pauseAfter: 380 },
+      { text: `這是，${chosenItem.zh}，我們再試一次喔！`, lang: 'zh-TW' },
     ]);
     setTimeout(() => btnEl.classList.remove('wrong'), 650);
   }
@@ -743,7 +822,7 @@ function advanceOrFinishEnglish() {
     } else {
       finishGame();
     }
-  }, 2100);
+  }, 2300);
 }
 
 // ============================================================================
@@ -790,24 +869,21 @@ function nextMathRound() {
   const theme = MATH_ITEMS[Math.floor(Math.random() * MATH_ITEMS.length)];
 
   if (mathLevel === 1) {
-    // 🌱 Lv.1：10 以內視覺化加法 (55%) 與 吃點心減法 (45%)
     if (Math.random() < 0.55) {
       setupMathAddition(1, 5, 1, 5, theme);
     } else {
       setupMathSubtraction(3, 9, theme);
     }
   } else if (mathLevel === 2) {
-    // 🌟 Lv.2：20 以內進階加減法 (65%) 與 比大小 (35%)
     const roll = Math.random();
     if (roll < 0.4) {
-      setupMathAddition(5, 9, 4, 8, theme); // 湊十加法 9~17
+      setupMathAddition(5, 9, 4, 8, theme);
     } else if (roll < 0.7) {
-      setupMathSubtraction(8, 15, theme);   // 15 以內減法
+      setupMathSubtraction(8, 15, theme);
     } else {
-      setupMathComparison(theme);           // 比大小 > = <
+      setupMathComparison(theme);
     }
   } else {
-    // 🏆 Lv.3：未知數填空 A + ? = C (55%) 與 三數連加 A + B + C (45%)
     if (Math.random() < 0.55) {
       setupMathMissingAddend(theme);
     } else {
@@ -826,7 +902,10 @@ function setupMathAddition(minA, maxA, minB, maxB, theme) {
     mode: 'add',
     a, b, answer,
     countSoFar: 0,
-    spokenPrompt: `${a} 加 ${b} 等於多少呢？可以點點看圖案幫你數喔！`,
+    spokenChunks: [
+      { text: `${a}，加 ${b}，等於多少呢？`, lang: 'zh-TW', pauseAfter: 300 },
+      { text: '可以點點看圖案，幫你數喔！', lang: 'zh-TW' },
+    ],
   };
 
   document.getElementById('math-prompt-text').innerHTML =
@@ -852,7 +931,7 @@ function setupMathAddition(minA, maxA, minB, maxB, theme) {
   repeatMathPrompt();
 }
 
-// 題型 2：視覺化減法（Corie 吃掉了幾顆點心，被打叉的圖案代表減掉）
+// 題型 2：視覺化減法
 function setupMathSubtraction(minTotal, maxTotal, theme) {
   const total = randInt(minTotal, maxTotal);
   const minus = randInt(1, Math.min(6, total - 1));
@@ -862,7 +941,10 @@ function setupMathSubtraction(minTotal, maxTotal, theme) {
     mode: 'sub',
     total, minus, answer,
     countSoFar: 0,
-    spokenPrompt: `原本有 ${total} 個，${PET_CONFIG.corieName} 拿走了 ${minus} 個，還剩下幾個呢？`,
+    spokenChunks: [
+      { text: `原本有 ${total} 個，`, lang: 'zh-TW', pauseAfter: 250 },
+      { text: `拿走了 ${minus} 個，還剩下幾個呢？`, lang: 'zh-TW' },
+    ],
   };
 
   document.getElementById('math-prompt-text').innerHTML =
@@ -897,11 +979,11 @@ function setupMathSubtraction(minTotal, maxTotal, theme) {
   repeatMathPrompt();
 }
 
-// 題型 3：比大小挑戰（左邊 vs 右邊，選出 >、=、<）
+// 題型 3：比大小挑戰
 function setupMathComparison(theme) {
   const leftVal = randInt(2, 10);
   let rightVal = randInt(2, 10);
-  if (Math.random() < 0.25) rightVal = leftVal; // 25% 機率相等
+  if (Math.random() < 0.25) rightVal = leftVal;
 
   const answer = leftVal > rightVal ? '>' : (leftVal < rightVal ? '<' : '=');
 
@@ -909,7 +991,10 @@ function setupMathComparison(theme) {
     mode: 'compare',
     leftVal, rightVal, answer,
     countSoFar: 0,
-    spokenPrompt: `左邊有 ${leftVal} 個，右邊有 ${rightVal} 個，哪一邊比較多，還是一樣多呢？`,
+    spokenChunks: [
+      { text: `左邊有 ${leftVal} 個，右邊有 ${rightVal} 個，`, lang: 'zh-TW', pauseAfter: 280 },
+      { text: '哪一邊比較多，還是一樣多呢？', lang: 'zh-TW' },
+    ],
   };
 
   document.getElementById('math-prompt-text').innerHTML =
@@ -950,17 +1035,20 @@ function setupMathComparison(theme) {
   repeatMathPrompt();
 }
 
-// 題型 4：未知數填空挑戰（例如 4 + [ ? ] = 9，視覺化顯示虛線框讓孩子點數）
+// 題型 4：未知數填空挑戰
 function setupMathMissingAddend(theme) {
   const a = randInt(2, 6);
-  const answer = randInt(2, 6); // 缺少的數字
+  const answer = randInt(2, 6);
   const total = a + answer;
 
   currentMathQ = {
     mode: 'missing',
     a, answer, total,
     countSoFar: 0,
-    spokenPrompt: `已經有 ${a} 個了，還要再加幾個才會變成 ${total} 個呢？可以點虛線框框數數看喔！`,
+    spokenChunks: [
+      { text: `已經有 ${a} 個了，`, lang: 'zh-TW', pauseAfter: 250 },
+      { text: `還要再加幾個，才會變成 ${total} 個呢？`, lang: 'zh-TW' },
+    ],
   };
 
   document.getElementById('math-prompt-text').innerHTML =
@@ -998,7 +1086,7 @@ function setupMathMissingAddend(theme) {
   repeatMathPrompt();
 }
 
-// 題型 5：三數連加冒險（A + B + C = ?）
+// 題型 5：三數連加冒險
 function setupMathTripleAddition(theme) {
   const a = randInt(1, 4);
   const b = randInt(1, 4);
@@ -1009,7 +1097,10 @@ function setupMathTripleAddition(theme) {
     mode: 'triple',
     a, b, c, answer,
     countSoFar: 0,
-    spokenPrompt: `超級挑戰！${a} 加 ${b} 再加 ${c}，總共是多少呢？`,
+    spokenChunks: [
+      { text: `超級挑戰！${a} 加 ${b}，再加 ${c}，`, lang: 'zh-TW', pauseAfter: 280 },
+      { text: '合起來總共是多少呢？', lang: 'zh-TW' },
+    ],
   };
 
   document.getElementById('math-prompt-text').innerHTML =
@@ -1066,16 +1157,14 @@ function triggerCountClick(itemEl) {
   if (!itemEl.classList.contains('counted')) {
     itemEl.classList.add('counted');
     currentMathQ.countSoFar += 1;
-  } else {
-    // 允許重複點聽聲音
   }
   playTone(400 + currentMathQ.countSoFar * 50, 0.12, 'triangle');
-  speakSequence([{ text: String(currentMathQ.countSoFar), lang: 'zh-TW', rate: 0.9 }]);
+  speakSequence([{ text: String(currentMathQ.countSoFar), lang: 'zh-TW' }]);
 }
 
 function renderMathNumberOptions(correctNum, totalOptions = 4) {
   const optionSet = new Set([correctNum]);
-  let offsetPool = [-3, -2, -1, 1, 2, 3, 4];
+  const offsetPool = [-3, -2, -1, 1, 2, 3, 4];
   while (optionSet.size < totalOptions) {
     const delta = offsetPool[Math.floor(Math.random() * offsetPool.length)];
     const candidate = Math.max(0, correctNum + delta);
@@ -1095,10 +1184,8 @@ function renderMathNumberOptions(correctNum, totalOptions = 4) {
 }
 
 function repeatMathPrompt() {
-  if (!currentMathQ) return;
-  speakSequence([
-    { text: currentMathQ.spokenPrompt, lang: 'zh-TW' },
-  ]);
+  if (!currentMathQ || !currentMathQ.spokenChunks) return;
+  speakSequence(currentMathQ.spokenChunks);
 }
 
 function verifyMathAnswer(chosenVal, btnEl) {
@@ -1119,8 +1206,9 @@ function verifyMathAnswer(chosenVal, btnEl) {
     totalStars += 1;
     updateStarsUI();
 
+    const ansText = answer === '>' ? '左邊比較多' : answer === '<' ? '右邊比較多' : answer === '=' ? '兩邊一樣多' : String(answer);
     speakSequence([
-      { text: `答對了！答案就是 ${answer === '>' ? '左邊比較多' : answer === '<' ? '右邊比較多' : answer === '=' ? '一樣多' : answer}！你好棒喔！`, lang: 'zh-TW' },
+      { text: `答對了，答案就是 ${ansText}，你好棒喔！`, lang: 'zh-TW' },
     ]);
 
     setTimeout(() => {
@@ -1130,12 +1218,12 @@ function verifyMathAnswer(chosenVal, btnEl) {
       } else {
         finishGame();
       }
-    }, 2000);
+    }, 2200);
   } else {
     btnEl.classList.add('wrong');
     playTryAgainSound();
     speakSequence([
-      { text: '差一點點，可以點點看上面的圖案再數一次喔！', lang: 'zh-TW' },
+      { text: '差一點點，可以點點看上面的圖案，再數一次喔！', lang: 'zh-TW' },
     ]);
     setTimeout(() => btnEl.classList.remove('wrong'), 650);
   }
@@ -1155,7 +1243,10 @@ function finishGame() {
 
   const msg = `${PET_CONFIG.corieName} 和 ${PET_CONFIG.duncanName} 替你拍拍手！你完成了 ${TOTAL_ROUNDS} 道挑戰，獲得滿滿的星星！`;
   document.getElementById('celebrate-message').textContent = msg;
-  speakSequence([{ text: `太棒了！全部過關！${msg}`, lang: 'zh-TW' }]);
+  speakSequence([
+    { text: '太棒了，全部過關！', lang: 'zh-TW', pauseAfter: 300 },
+    { text: msg, lang: 'zh-TW' },
+  ]);
 
   const againBtn = document.getElementById('btn-play-again');
   againBtn.onclick = () => {
@@ -1179,7 +1270,7 @@ function spawnConfetti(count = 25) {
 }
 
 // ============================================================================
-// ⚙️ 家長設定（名字、語速滑桿、自然語音引擎選擇與試聽）
+// ⚙️ 家長設定（名字、雙語音引擎切換、語速與試聽）
 // ============================================================================
 function populateVoiceSelectors() {
   const zhSelect = document.getElementById('select-zh-voice');
@@ -1187,11 +1278,11 @@ function populateVoiceSelectors() {
   if (!zhSelect || !enSelect || !cachedVoices.length) return;
 
   const zhVoices = cachedVoices
-    .filter((v) => scoreVoice(v, 'zh') > -100)
+    .filter((v) => scoreVoice(v, 'zh') > -500)
     .sort((a, b) => scoreVoice(b, 'zh') - scoreVoice(a, 'zh'));
 
   const enVoices = cachedVoices
-    .filter((v) => scoreVoice(v, 'en') > -100)
+    .filter((v) => scoreVoice(v, 'en') > -500)
     .sort((a, b) => scoreVoice(b, 'en') - scoreVoice(a, 'en'));
 
   zhSelect.innerHTML = '<option value="">✨ 自動挑選最自然中文語音</option>';
@@ -1215,11 +1306,10 @@ function populateVoiceSelectors() {
 
 function updateSpeedLabel(val) {
   const num = parseFloat(val);
-  let desc = '慢速溫柔';
-  if (num <= 0.65) desc = '超慢速清楚教學';
-  else if (num <= 0.8) desc = '慢速溫柔（適合 5 歲）';
-  else if (num <= 0.95) desc = '適中自然';
-  else desc = '正常語速';
+  let desc = '溫柔適中';
+  if (num <= 0.8) desc = '慢速清晰';
+  else if (num <= 0.92) desc = '溫柔適中（推薦）';
+  else desc = '自然輕快';
   const lbl = document.getElementById('speed-label-val');
   if (lbl) lbl.textContent = `${desc} (${num.toFixed(2)}x)`;
 }
@@ -1228,6 +1318,7 @@ function openSettingsModal() {
   loadVoices();
   document.getElementById('input-corie-name').value = PET_CONFIG.corieName;
   document.getElementById('input-duncan-name').value = PET_CONFIG.duncanName;
+  document.getElementById('select-tts-mode').value = PET_CONFIG.ttsMode;
   document.getElementById('input-speech-rate').value = PET_CONFIG.speechRate;
   updateSpeedLabel(PET_CONFIG.speechRate);
   document.getElementById('settings-modal').classList.remove('hidden');
@@ -1238,35 +1329,36 @@ function closeSettingsModal() {
 }
 
 function testVoicePreview() {
-  const tempRate = parseFloat(document.getElementById('input-speech-rate').value || '0.75');
-  const tempZh = document.getElementById('select-zh-voice').value;
-  const tempEn = document.getElementById('select-en-voice').value;
-
-  PET_CONFIG.speechRate = tempRate;
-  PET_CONFIG.zhVoiceURI = tempZh;
-  PET_CONFIG.enVoiceURI = tempEn;
+  PET_CONFIG.ttsMode = document.getElementById('select-tts-mode').value;
+  PET_CONFIG.speechRate = parseFloat(document.getElementById('input-speech-rate').value || '0.90');
+  PET_CONFIG.zhVoiceURI = document.getElementById('select-zh-voice').value;
+  PET_CONFIG.enVoiceURI = document.getElementById('select-en-voice').value;
 
   speakSequence([
-    { text: 'Apple. Strawberry.', lang: 'en-US', pauseAfter: 1300 },
-    { text: `嗨！我是 ${PET_CONFIG.corieName}，現在的說話速度聽起來清楚嗎？`, lang: 'zh-TW' },
+    { text: 'Apple. Strawberry.', lang: 'en-US', pauseAfter: 450 },
+    { text: `嗨，我是橘貓 ${PET_CONFIG.corieName}，`, lang: 'zh-TW', pauseAfter: 280 },
+    { text: '現在的聲音，聽起來自然嗎？', lang: 'zh-TW' },
   ]);
 }
 
 function saveSettings() {
   const newCorie = document.getElementById('input-corie-name').value.trim() || 'Corie';
   const newDuncan = document.getElementById('input-duncan-name').value.trim() || 'Duncan';
-  const newRate = parseFloat(document.getElementById('input-speech-rate').value || '0.75');
+  const newMode = document.getElementById('select-tts-mode').value || 'auto';
+  const newRate = parseFloat(document.getElementById('input-speech-rate').value || '0.90');
   const newZh = document.getElementById('select-zh-voice').value;
   const newEn = document.getElementById('select-en-voice').value;
 
   PET_CONFIG.corieName = newCorie;
   PET_CONFIG.duncanName = newDuncan;
+  PET_CONFIG.ttsMode = newMode;
   PET_CONFIG.speechRate = newRate;
   PET_CONFIG.zhVoiceURI = newZh;
   PET_CONFIG.enVoiceURI = newEn;
 
   localStorage.setItem('pet_corie_name', newCorie);
   localStorage.setItem('pet_duncan_name', newDuncan);
+  localStorage.setItem('pet_tts_mode', newMode);
   localStorage.setItem('pet_speech_rate', String(newRate));
   localStorage.setItem('pet_zh_voice', newZh);
   localStorage.setItem('pet_en_voice', newEn);
