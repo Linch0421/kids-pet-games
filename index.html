@@ -62,31 +62,39 @@
           跟 <span class="highlight-corie" data-pet-name="corie">Corie</span> 和
           <span class="highlight-duncan" data-pet-name="duncan">Duncan</span> 一起探險！
         </h1>
-        <p class="welcome-sub">選一個遊戲開始收集閃亮星星吧 ✨</p>
+        <p class="welcome-sub">A~Z 百大單字庫 ＆ 多元加減法大冒險 ✨</p>
 
         <!-- 遊戲選擇大按鈕 -->
         <div class="game-cards-grid">
-          <button class="game-mode-card english-card" onclick="startEnglishGame()">
-            <div class="card-badge">ABC 英文</div>
-            <div class="card-character">
+          <div class="game-mode-card english-card">
+            <div class="card-badge">ABC 英文（104 單字庫）</div>
+            <div class="card-character" onclick="startEnglishGame(1)">
               <img src="assets/duncan.png" alt="Duncan" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
               <span style="display:none; font-size:3.5rem;">🐶</span>
             </div>
-            <h2><span data-pet-name="duncan">Duncan</span> 的字母尋寶</h2>
-            <p>聽聲音、認字母、找可愛單字圖卡！</p>
-            <span class="play-pill">▶ 開始玩</span>
-          </button>
+            <h2><span data-pet-name="duncan">Duncan</span> 的英文探險</h2>
+            <p>A~Z 認識單字、聽音找圖、首字母填空、拼字接龍！</p>
+            <div class="level-select-group">
+              <button class="lvl-btn lvl-1" onclick="startEnglishGame(1)">🌱 幼幼認字</button>
+              <button class="lvl-btn lvl-2" onclick="startEnglishGame(2)">🌟 聽音＆填空</button>
+              <button class="lvl-btn lvl-3" onclick="startEnglishGame(3)">🏆 大小寫＆拼字</button>
+            </div>
+          </div>
 
-          <button class="game-mode-card math-card" onclick="startMathGame()">
-            <div class="card-badge">123 數學</div>
-            <div class="card-character">
+          <div class="game-mode-card math-card">
+            <div class="card-badge">123 數學（加減法＆邏輯）</div>
+            <div class="card-character" onclick="startMathGame(1)">
               <img src="assets/corie.png" alt="Corie" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
               <span style="display:none; font-size:3.5rem;">🐱</span>
             </div>
-            <h2><span data-pet-name="corie">Corie</span> 的加法冒險</h2>
-            <p>數一數小動物與點心，加起來有幾個？</p>
-            <span class="play-pill">▶ 開始玩</span>
-          </button>
+            <h2><span data-pet-name="corie">Corie</span> 的數學冒險</h2>
+            <p>視覺化加法、吃點心減法、20 以內湊十、填空與比大小！</p>
+            <div class="level-select-group">
+              <button class="lvl-btn lvl-1" onclick="startMathGame(1)">🌱 10以內加減</button>
+              <button class="lvl-btn lvl-2" onclick="startMathGame(2)">🌟 20以內＆比大小</button>
+              <button class="lvl-btn lvl-3" onclick="startMathGame(3)">🏆 填空＆連加挑戰</button>
+            </div>
+          </div>
         </div>
 
         <!-- 貼紙獎勵簿預覽 -->
@@ -97,13 +105,21 @@
       </div>
     </section>
 
-    <!-- ==================== 2. 英文遊戲：Duncan 的字母尋寶 ==================== -->
+    <!-- ==================== 2. 英文遊戲：Duncan 的英文探險 ==================== -->
     <section id="screen-english" class="screen">
       <div class="game-board english-board">
+        <!-- 難度切換列 -->
+        <div class="in-game-level-bar">
+          <span class="bar-label">難度模式：</span>
+          <button class="chip-btn" id="en-lvl-chip-1" onclick="switchEnglishLevel(1)">🌱 Lv.1 認字</button>
+          <button class="chip-btn" id="en-lvl-chip-2" onclick="switchEnglishLevel(2)">🌟 Lv.2 聽音＆填空</button>
+          <button class="chip-btn" id="en-lvl-chip-3" onclick="switchEnglishLevel(3)">🏆 Lv.3 大小寫＆拼字</button>
+        </div>
+
         <div class="progress-bar-wrap">
-          <div class="round-indicator" id="en-round-text">第 1 / 5 題</div>
+          <div class="round-indicator" id="en-round-text">第 1 / 8 題</div>
           <div class="progress-track">
-            <div class="progress-fill" id="en-progress-fill" style="width: 20%"></div>
+            <div class="progress-fill" id="en-progress-fill" style="width: 12.5%"></div>
           </div>
         </div>
 
@@ -113,31 +129,43 @@
             <div class="avatar-fallback" style="display:none;">🐶</div>
           </div>
           <div class="host-bubble">
-            <div class="bubble-text" id="en-prompt-text">請找出開頭是 <b>A</b> 的單字！</div>
+            <div class="bubble-text" id="en-prompt-text">請找出正確的單字！</div>
             <button class="sound-replay-btn" onclick="repeatEnglishPrompt()">
-              🔊 再聽一次發音
+              🔊 慢速再聽一次
             </button>
           </div>
         </div>
 
-        <!-- 題目目標大字母展示 -->
-        <div class="target-letter-stage" onclick="repeatEnglishPrompt()">
+        <!-- 題目展示舞台 -->
+        <div class="target-letter-stage" id="en-stage-box" onclick="repeatEnglishPrompt()">
           <div class="big-letter" id="en-target-letter">A a</div>
-          <div class="target-hint" id="en-target-hint">🔊 點擊聽發音</div>
+          <div class="target-subword" id="en-target-subword"></div>
+          <div class="target-hint" id="en-target-hint">🔊 點擊聽慢速清晰發音</div>
         </div>
+
+        <!-- 拼字模式專用槽位（Lv.3 拼字題顯示） -->
+        <div id="en-spelling-slots" class="spelling-slots hidden"></div>
 
         <!-- 選項卡片區 -->
         <div class="options-grid english-options" id="en-options-container"></div>
       </div>
     </section>
 
-    <!-- ==================== 3. 數學遊戲：Corie 的加法冒險 ==================== -->
+    <!-- ==================== 3. 數學遊戲：Corie 的數學冒險 ==================== -->
     <section id="screen-math" class="screen">
       <div class="game-board math-board">
+        <!-- 難度切換列 -->
+        <div class="in-game-level-bar">
+          <span class="bar-label">難度模式：</span>
+          <button class="chip-btn" id="math-lvl-chip-1" onclick="switchMathLevel(1)">🌱 Lv.1 加減基礎</button>
+          <button class="chip-btn" id="math-lvl-chip-2" onclick="switchMathLevel(2)">🌟 Lv.2 20以內＆比大小</button>
+          <button class="chip-btn" id="math-lvl-chip-3" onclick="switchMathLevel(3)">🏆 Lv.3 填空＆連加</button>
+        </div>
+
         <div class="progress-bar-wrap">
-          <div class="round-indicator" id="math-round-text">第 1 / 5 題</div>
+          <div class="round-indicator" id="math-round-text">第 1 / 8 題</div>
           <div class="progress-track">
-            <div class="progress-fill math-fill" id="math-progress-fill" style="width: 20%"></div>
+            <div class="progress-fill math-fill" id="math-progress-fill" style="width: 12.5%"></div>
           </div>
         </div>
 
@@ -147,30 +175,18 @@
             <div class="avatar-fallback" style="display:none;">🐱</div>
           </div>
           <div class="host-bubble">
-            <div class="bubble-text" id="math-prompt-text">幫我們數一數，合起來總共有幾個呢？</div>
+            <div class="bubble-text" id="math-prompt-text">幫我們數一數，答案是多少呢？</div>
             <button class="sound-replay-btn math-replay" onclick="repeatMathPrompt()">
-              🔊 聽題目
+              🔊 聽題目說明
             </button>
           </div>
         </div>
 
-        <!-- 視覺化加法算式舞台 -->
-        <div class="math-visual-stage">
-          <div class="math-group" id="math-group-left"></div>
-          <div class="math-operator">+</div>
-          <div class="math-group" id="math-group-right"></div>
-          <div class="math-operator">=</div>
-          <div class="math-question-box" id="math-answer-slot">?</div>
-        </div>
+        <!-- 視覺化算式舞台 -->
+        <div class="math-visual-stage" id="math-visual-stage"></div>
 
         <!-- 數字算式對照 -->
-        <div class="math-equation-numbers">
-          <span id="math-num-left">2</span>
-          <span>+</span>
-          <span id="math-num-right">1</span>
-          <span>=</span>
-          <span id="math-num-result" class="question-mark">?</span>
-        </div>
+        <div class="math-equation-numbers" id="math-equation-bar"></div>
 
         <!-- 數字按鈕選項 -->
         <div class="options-grid math-options" id="math-options-container"></div>
@@ -190,7 +206,7 @@
         </p>
         <div class="reward-stars-row">⭐ ⭐ ⭐</div>
         <div class="celebrate-actions">
-          <button class="big-action-btn primary-btn" id="btn-play-again">🔄 再玩一次</button>
+          <button class="big-action-btn primary-btn" id="btn-play-again">🔄 再挑戰一次</button>
           <button class="big-action-btn secondary-btn" onclick="showScreen('home')">🏠 回快樂大廳</button>
         </div>
       </div>
@@ -200,19 +216,41 @@
   <!-- 滿版灑花特效畫布 -->
   <div id="confetti-container" aria-hidden="true"></div>
 
-  <!-- 家長設定彈窗（可隨時改貓咪與邊牧的名字） -->
+  <!-- 家長設定彈窗（可改名字 + 調整語音速度與自然人聲） -->
   <div id="settings-modal" class="modal-backdrop hidden">
     <div class="modal-card">
-      <h3>⚙️ 角色名字設定</h3>
-      <p class="modal-hint">你可以隨時修改橘貓與黑白邊牧的名字，全站題目跟語音都會自動更新喔！</p>
+      <h3>⚙️ 角色名字與語音設定</h3>
+      <p class="modal-hint">可隨時修改橘貓與邊牧的名字，並調整發音速度或切換最自然的語音引擎！</p>
+
       <label class="form-field">
         <span>🐱 橘貓的名字：</span>
         <input type="text" id="input-corie-name" value="Corie" maxlength="20" />
       </label>
+
       <label class="form-field">
         <span>🐶 黑白邊牧的名字：</span>
         <input type="text" id="input-duncan-name" value="Duncan" maxlength="20" />
       </label>
+
+      <label class="form-field">
+        <span>🐢 語音說話速度：<strong id="speed-label-val">慢速溫柔 (0.75x)</strong></span>
+        <input type="range" id="input-speech-rate" min="0.55" max="1.05" step="0.05" value="0.75" oninput="updateSpeedLabel(this.value)" />
+      </label>
+
+      <label class="form-field">
+        <span>🗣️ 中文語音聲線（建議選 Natural / Google）：</span>
+        <select id="select-zh-voice"></select>
+      </label>
+
+      <label class="form-field">
+        <span>🔤 英文語音聲線（建議選 Natural / Google）：</span>
+        <select id="select-en-voice"></select>
+      </label>
+
+      <div class="test-voice-row">
+        <button type="button" class="modal-btn test-btn" onclick="testVoicePreview()">🔊 試聽目前語音效果</button>
+      </div>
+
       <div class="modal-actions">
         <button class="modal-btn cancel-btn" onclick="closeSettingsModal()">取消</button>
         <button class="modal-btn save-btn" onclick="saveSettings()">💾 儲存設定</button>
