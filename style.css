@@ -7,6 +7,9 @@
   --duncan-primary: #4a90e2;
   --duncan-light: #eaf4ff;
   --duncan-border: #91c2ff;
+  --shannon-primary: #10b981;
+  --shannon-light: #e6fffa;
+  --shannon-border: #5eead4;
   --pink-accent: #ff6b9d;
   --purple-accent: #9b6bff;
   --success-green: #38c172;
@@ -62,7 +65,7 @@ body {
 .top-bar {
   position: relative;
   z-index: 10;
-  max-width: 980px;
+  max-width: 1060px;
   margin: 0 auto;
   padding: 14px 20px;
   display: flex;
@@ -133,7 +136,7 @@ body {
 .main-container {
   position: relative;
   z-index: 5;
-  max-width: 960px;
+  max-width: 1060px;
   margin: 0 auto;
   padding: 8px 18px 40px;
 }
@@ -156,7 +159,7 @@ body {
 .hero-card {
   background: rgba(255, 255, 255, 0.92);
   border-radius: 32px;
-  padding: 28px 24px;
+  padding: 28px 22px;
   box-shadow: var(--card-shadow);
   border: 4px solid #ffffff;
   text-align: center;
@@ -165,13 +168,13 @@ body {
 .characters-showcase {
   display: flex;
   justify-content: center;
-  gap: 28px;
+  gap: 22px;
   flex-wrap: wrap;
   margin-bottom: 18px;
 }
 
 .pet-avatar-card {
-  width: 175px;
+  width: 168px;
   padding: 14px 12px;
   border-radius: 26px;
   cursor: pointer;
@@ -199,9 +202,15 @@ body {
   box-shadow: 0 6px 0 var(--duncan-border);
 }
 
+.shannon-theme {
+  background: var(--shannon-light);
+  border: 4px solid var(--shannon-border);
+  box-shadow: 0 6px 0 var(--shannon-border);
+}
+
 .avatar-img-wrap {
-  width: 118px;
-  height: 118px;
+  width: 112px;
+  height: 112px;
   margin: 0 auto 8px;
   border-radius: 50%;
   background: #ffffff;
@@ -220,59 +229,60 @@ body {
 }
 
 .avatar-fallback {
-  font-size: 4.2rem;
+  font-size: 4rem;
   align-items: center;
   justify-content: center;
 }
 
 .pet-name-badge {
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   font-weight: 900;
   margin-bottom: 4px;
 }
 
 .speech-mini {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 700;
-  color: #666;
-  background: rgba(255, 255, 255, 0.85);
+  color: #555;
+  background: rgba(255, 255, 255, 0.88);
   border-radius: 99px;
   padding: 3px 10px;
 }
 
 .welcome-heading {
-  font-size: 1.85rem;
+  font-size: 1.75rem;
   font-weight: 900;
   margin-bottom: 6px;
 }
 
 .highlight-corie { color: var(--corie-primary); }
 .highlight-duncan { color: var(--duncan-primary); }
+.highlight-shannon { color: var(--shannon-primary); }
 
 .welcome-sub {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   color: #6e627d;
-  margin-bottom: 24px;
+  margin-bottom: 22px;
   font-weight: 600;
 }
 
-/* 遊戲選擇雙大卡 */
+/* 遊戲選擇三大卡 */
 .game-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 22px;
-  margin-bottom: 26px;
+  grid-template-columns: repeat(auto-fit, minmax(275px, 1fr));
+  gap: 20px;
+  margin-bottom: 28px;
 }
 
 .game-mode-card {
   border-radius: 28px;
-  padding: 22px 18px;
+  padding: 20px 16px;
   text-align: center;
   border: 4px solid transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   font-family: inherit;
 }
 
@@ -288,12 +298,18 @@ body {
   box-shadow: 0 10px 0 #ffad75;
 }
 
+.clock-card {
+  background: linear-gradient(145deg, #e6fffa 0%, #ccfbf1 100%);
+  border-color: #34d399;
+  box-shadow: 0 10px 0 #34d399;
+}
+
 .card-badge {
   background: #ffffff;
-  padding: 5px 16px;
+  padding: 5px 14px;
   border-radius: 999px;
   font-weight: 900;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   color: #555;
 }
 
@@ -302,8 +318,8 @@ body {
 }
 
 .card-character img {
-  width: 84px;
-  height: 84px;
+  width: 82px;
+  height: 82px;
   border-radius: 50%;
   object-fit: cover;
   background: #fff;
@@ -316,13 +332,13 @@ body {
 }
 
 .game-mode-card h2 {
-  font-size: 1.5rem;
+  font-size: 1.42rem;
   font-weight: 900;
   color: var(--text-dark);
 }
 
 .game-mode-card p {
-  font-size: 1rem;
+  font-size: 0.96rem;
   color: #5c5368;
   font-weight: 600;
   line-height: 1.4;
@@ -333,16 +349,16 @@ body {
   display: flex;
   flex-direction: column;
   width: 100%;
-  gap: 10px;
-  margin-top: 6px;
+  gap: 9px;
+  margin-top: 4px;
 }
 
 .lvl-btn {
   width: 100%;
-  padding: 12px 16px;
+  padding: 11px 14px;
   border-radius: 18px;
   border: none;
-  font-size: 1.12rem;
+  font-size: 1.05rem;
   font-weight: 900;
   cursor: pointer;
   font-family: inherit;
@@ -412,50 +428,73 @@ body {
   border-color: #4f46e5;
 }
 
-/* 貼紙獎勵櫃 */
+/* 120 張貼紙獎勵櫃 */
 .sticker-shelf {
   background: #fdf8ff;
   border: 3px dashed #d8b4fe;
-  border-radius: 22px;
-  padding: 16px;
+  border-radius: 24px;
+  padding: 18px;
+}
+
+.shelf-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
 }
 
 .shelf-title {
-  font-weight: 800;
+  font-weight: 900;
   color: #7e22ce;
-  margin-bottom: 12px;
-  font-size: 1.05rem;
+  font-size: 1.08rem;
+}
+
+.shelf-progress {
+  background: #f3e8ff;
+  color: #6b21a8;
+  font-weight: 900;
+  font-size: 0.95rem;
+  padding: 4px 14px;
+  border-radius: 999px;
+  border: 2px solid #d8b4fe;
 }
 
 .sticker-list {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(54px, 1fr));
+  gap: 10px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 6px;
 }
 
 .sticker-slot {
-  width: 58px;
-  height: 58px;
-  border-radius: 16px;
+  height: 54px;
+  border-radius: 15px;
   background: #ffffff;
   border: 2px solid #e9d5ff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
-  transition: transform 0.2s;
+  font-size: 1.85rem;
+  transition: transform 0.18s;
 }
 
 .sticker-slot.locked {
   filter: grayscale(1);
-  opacity: 0.35;
-  font-size: 1.4rem;
+  opacity: 0.32;
+  font-size: 1.1rem;
+  color: #94a3b8;
+  font-weight: 800;
 }
 
 .sticker-slot.unlocked {
   box-shadow: 0 4px 10px rgba(168, 85, 247, 0.2);
   cursor: pointer;
+  background: #fffbeb;
+  border-color: #fde047;
 }
 
 .sticker-slot.unlocked:hover {
@@ -505,6 +544,10 @@ body {
   background: linear-gradient(90deg, #fb923c, #f97316);
 }
 
+.progress-fill.clock-fill {
+  background: linear-gradient(90deg, #34d399, #10b981);
+}
+
 /* 關主對話框 */
 .host-area {
   display: flex;
@@ -531,9 +574,8 @@ body {
   justify-content: center;
 }
 
-.corie-host {
-  border-color: var(--corie-border);
-}
+.corie-host { border-color: var(--corie-border); }
+.shannon-host { border-color: var(--shannon-border); }
 
 .host-avatar img {
   width: 100%;
@@ -550,7 +592,7 @@ body {
 }
 
 .bubble-text {
-  font-size: 1.3rem;
+  font-size: 1.28rem;
   font-weight: 800;
   line-height: 1.45;
 }
@@ -570,6 +612,12 @@ body {
   background: #fff7ed;
   border-color: #fdba74;
   color: #c2410c;
+}
+
+.sound-replay-btn.clock-replay {
+  background: #ecfdf5;
+  border-color: #6ee7b7;
+  color: #047857;
 }
 
 /* 英文舞台：大字母卡 */
@@ -766,7 +814,6 @@ body {
   box-shadow: 0 0 0 3px #facc15;
 }
 
-/* 減法被吃掉/拿走的視覺效果 */
 .countable-item.crossed-out {
   opacity: 0.38;
   filter: grayscale(0.6);
@@ -781,7 +828,6 @@ body {
   font-weight: 900;
 }
 
-/* 填空題虛線提示框 */
 .countable-item.mystery-slot {
   border: 3px dashed #a855f7;
   background: #faf5ff;
@@ -839,6 +885,123 @@ body {
   font-weight: 900;
   padding: 16px;
   color: #7c2d12;
+}
+
+/* ==================== ⏰ 時鐘遊戲專用樣式 ==================== */
+.clock-legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.legend-pill {
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: 1rem;
+}
+
+.hour-pill {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 2px solid #fca5a5;
+}
+
+.minute-pill {
+  background: #dbeafe;
+  color: #2563eb;
+  border: 2px solid #93c5fd;
+}
+
+.clock-stage-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.analog-clock-svg {
+  width: 265px;
+  height: 265px;
+  filter: drop-shadow(0 8px 16px rgba(16, 185, 129, 0.16));
+}
+
+.clock-activity-badge {
+  background: #ecfdf5;
+  border: 2px solid #6ee7b7;
+  color: #065f46;
+  font-weight: 900;
+  font-size: 1.12rem;
+  padding: 6px 20px;
+  border-radius: 999px;
+}
+
+.clock-digital-time {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #0f766e;
+  background: #f0fdfa;
+  padding: 4px 18px;
+  border-radius: 16px;
+  border: 2px solid #99f6e4;
+}
+
+.clock-set-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.set-btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.dial-btn {
+  padding: 12px 20px;
+  border-radius: 18px;
+  font-size: 1.15rem;
+  font-weight: 900;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform 0.12s;
+}
+
+.dial-btn:active {
+  transform: translateY(3px);
+}
+
+.hour-dial-btn {
+  background: #ef4444;
+  color: #ffffff;
+  box-shadow: 0 5px 0 #b91c1c;
+}
+
+.min-dial-btn {
+  background: #3b82f6;
+  color: #ffffff;
+  box-shadow: 0 5px 0 #1d4ed8;
+}
+
+.submit-clock-btn {
+  padding: 14px 36px;
+  border-radius: 999px;
+  background: #10b981;
+  color: #ffffff;
+  font-size: 1.35rem;
+  font-weight: 900;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 6px 0 #047857;
+  font-family: inherit;
 }
 
 @keyframes bounceCheer {
