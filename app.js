@@ -5,8 +5,9 @@ const PET_CONFIG = {
   corieName: localStorage.getItem('pet_corie_name') || 'Corie',
   duncanName: localStorage.getItem('pet_duncan_name') || 'Duncan',
   shannonName: localStorage.getItem('pet_shannon_name') || 'Shannon',
+  tieniuName: localStorage.getItem('pet_tieniu_name') || '鐵牛',
   ttsMode: localStorage.getItem('pet_tts_mode') || 'auto', // 'auto' | 'cloud' | 'native'
-  speechRate: parseFloat(localStorage.getItem('pet_speech_rate') || '0.90'),
+  speechRate: parseFloat(localStorage.getItem('pet_speech_rate') || '1.00'),
   zhVoiceURI: localStorage.getItem('pet_zh_voice') || '',
   enVoiceURI: localStorage.getItem('pet_en_voice') || '',
 };
@@ -80,11 +81,101 @@ const STICKERS = [
   { emoji: '🎸', name: '搖滾吉他' }, { emoji: '🎺', name: '黃金小喇叭' },
   { emoji: '🥁', name: '咚咚小鼓' }, { emoji: '🪁', name: '飛高高風箏' },
   { emoji: '🪀', name: '炫彩溜溜球' }, { emoji: '🧩', name: '聰明拼圖' },
-  { emoji: '⏰', name: '滴答小鬧鐘' }, { emoji: '🏆', name: '冠軍大獎盃' },
+  { emoji: '🤖', name: '機器人鐵牛' }, { emoji: '🏆', name: '冠軍大獎盃' },
 ];
 
 // ============================================================================
-// 📚 A ~ Z 完整 104 個幼兒高頻單字庫
+// 🤖 台灣標準 37 個注音符號順序與標準幼稚園讀音對照表
+// ============================================================================
+const ZHUYIN_ORDER = [
+  'ㄅ', 'ㄆ', 'ㄇ', 'ㄈ', 'ㄉ', 'ㄊ', 'ㄋ', 'ㄌ',
+  'ㄍ', 'ㄎ', 'ㄏ', 'ㄐ', 'ㄑ', 'ㄒ',
+  'ㄓ', 'ㄔ', 'ㄕ', 'ㄖ', 'ㄗ', 'ㄘ', 'ㄙ',
+  'ㄧ', 'ㄨ', 'ㄩ',
+  'ㄚ', 'ㄛ', 'ㄜ', 'ㄝ', 'ㄞ', 'ㄟ', 'ㄠ', 'ㄡ', 'ㄢ', 'ㄣ', 'ㄤ', 'ㄥ', 'ㄦ',
+];
+
+const ZHUYIN_SOUND_MAP = {
+  'ㄅ': '玻', 'ㄆ': '坡', 'ㄇ': '摸', 'ㄈ': '佛',
+  'ㄉ': '得', 'ㄊ': '特', 'ㄋ': '呢', 'ㄌ': '勒',
+  'ㄍ': '哥', 'ㄎ': '科', 'ㄏ': '喝',
+  'ㄐ': '基', 'ㄑ': '欺', 'ㄒ': '希',
+  'ㄓ': '知', 'ㄔ': '吃', 'ㄕ': '詩', 'ㄖ': '日',
+  'ㄗ': '資', 'ㄘ': '雌', 'ㄙ': '思',
+  'ㄧ': '衣', 'ㄨ': '屋', 'ㄩ': '迂',
+  'ㄚ': '阿', 'ㄛ': '喔', 'ㄜ': '鵝', 'ㄝ': '耶',
+  'ㄞ': '哀', 'ㄟ': '杯子的欸', 'ㄠ': '熬', 'ㄡ': '歐',
+  'ㄢ': '安', 'ㄣ': '恩', 'ㄤ': '骯', 'ㄥ': '鞥', 'ㄦ': '兒',
+};
+
+// 37 個注音符號豐富題庫（包含聲母、介音、韻母與可拼讀語詞）
+const ZHUYIN_BANK = [
+  { sym: 'ㄅ', sound: '玻', word: '包子', bopomofo: 'ㄅㄠ ㄗ˙', emoji: '🥟', parts: ['ㄅ', 'ㄠ'] },
+  { sym: 'ㄅ', sound: '玻', word: '香蕉', bopomofo: 'ㄅㄚ ㄐㄧㄠ', emoji: '🍌', parts: ['ㄅ', 'ㄚ'] },
+  { sym: 'ㄆ', sound: '坡', word: '蘋果', bopomofo: 'ㄆㄧㄥˊ ㄍㄨㄛˇ', emoji: '🍎', parts: ['ㄆ', 'ㄧ', 'ㄥˊ'] },
+  { sym: 'ㄆ', sound: '坡', word: '葡萄', bopomofo: 'ㄆㄨˊ ㄊㄠˊ', emoji: '🍇', parts: ['ㄆ', 'ㄨˊ'] },
+  { sym: 'ㄇ', sound: '摸', word: '貓咪', bopomofo: 'ㄇㄠ ㄇㄧ', emoji: '🐱', parts: ['ㄇ', 'ㄠ'] },
+  { sym: 'ㄇ', sound: '摸', word: '帽子', bopomofo: 'ㄇㄠˋ ㄗ˙', emoji: '👒', parts: ['ㄇ', 'ㄠˋ'] },
+  { sym: 'ㄈ', sound: '佛', word: '飛機', bopomofo: 'ㄈㄟ ㄐㄧ', emoji: '✈️', parts: ['ㄈ', 'ㄟ'] },
+  { sym: 'ㄈ', sound: '佛', word: '風箏', bopomofo: 'ㄈㄥ ㄓㄥ', emoji: '🪁', parts: ['ㄈ', 'ㄥ'] },
+  { sym: 'ㄉ', sound: '得', word: '蛋糕', bopomofo: 'ㄉㄢˋ ㄍㄠ', emoji: '🎂', parts: ['ㄉ', 'ㄢˋ'] },
+  { sym: 'ㄉ', sound: '得', word: '大象', bopomofo: 'ㄉㄚˋ ㄒㄧㄤˋ', emoji: '🐘', parts: ['ㄉ', 'ㄚˋ'] },
+  { sym: 'ㄊ', sound: '特', word: '兔子', bopomofo: 'ㄊㄨˋ ㄗ˙', emoji: '🐰', parts: ['ㄊ', 'ㄨˋ'] },
+  { sym: 'ㄊ', sound: '特', word: '太陽', bopomofo: 'ㄊㄞˋ ㄧㄤˊ', emoji: '☀️', parts: ['ㄊ', 'ㄞˋ'] },
+  { sym: 'ㄋ', sound: '呢', word: '牛奶', bopomofo: 'ㄋㄧㄡˊ ㄋㄞˇ', emoji: '🥛', parts: ['ㄋ', 'ㄧ', 'ㄡˊ'] },
+  { sym: 'ㄋ', sound: '呢', word: '小鳥', bopomofo: 'ㄋㄧㄠˇ', emoji: '🐦', parts: ['ㄋ', 'ㄧ', 'ㄠˇ'] },
+  { sym: 'ㄌ', sound: '勒', word: '老虎', bopomofo: 'ㄌㄠˇ ㄏㄨˇ', emoji: '🐯', parts: ['ㄌ', 'ㄠˇ'] },
+  { sym: 'ㄌ', sound: '勒', word: '恐龍', bopomofo: 'ㄌㄨㄥˊ', emoji: '🦖', parts: ['ㄌ', 'ㄨ', 'ㄥˊ'] },
+  { sym: 'ㄍ', sound: '哥', word: '狗狗', bopomofo: 'ㄍㄡˇ ㄍㄡ˙', emoji: '🐶', parts: ['ㄍ', 'ㄡˇ'] },
+  { sym: 'ㄍ', sound: '哥', word: '骨頭', bopomofo: 'ㄍㄨˇ ㄊㄡˊ', emoji: '🦴', parts: ['ㄍ', 'ㄨˇ'] },
+  { sym: 'ㄎ', sound: '科', word: '恐龍', bopomofo: 'ㄎㄨㄥˇ ㄌㄨㄥˊ', emoji: '🦕', parts: ['ㄎ', 'ㄨ', 'ㄥˇ'] },
+  { sym: 'ㄎ', sound: '科', word: '卡片', bopomofo: 'ㄎㄚˇ ㄆㄧㄢˋ', emoji: '🎴', parts: ['ㄎ', 'ㄚˇ'] },
+  { sym: 'ㄏ', sound: '喝', word: '猴子', bopomofo: 'ㄏㄡˊ ㄗ˙', emoji: '🐵', parts: ['ㄏ', 'ㄡˊ'] },
+  { sym: 'ㄏ', sound: '喝', word: '花朵', bopomofo: 'ㄏㄨㄚ ㄉㄨㄛˇ', emoji: '🌸', parts: ['ㄏ', 'ㄨ', 'ㄚ'] },
+  { sym: 'ㄐ', sound: '基', word: '小雞', bopomofo: 'ㄐㄧ', emoji: '🐤', parts: ['ㄐ', 'ㄧ'] },
+  { sym: 'ㄐ', sound: '基', word: '橘子', bopomofo: 'ㄐㄩˊ ㄗ˙', emoji: '🍊', parts: ['ㄐ', 'ㄩˊ'] },
+  { sym: 'ㄑ', sound: '欺', word: '氣球', bopomofo: 'ㄑㄧˋ ㄑㄧㄡˊ', emoji: '🎈', parts: ['ㄑ', 'ㄧˋ'] },
+  { sym: 'ㄑ', sound: '欺', word: '企鵝', bopomofo: 'ㄑㄧˋ ㄜˊ', emoji: '🐧', parts: ['ㄑ', 'ㄧˋ'] },
+  { sym: 'ㄒ', sound: '希', word: '西瓜', bopomofo: 'ㄒㄧ ㄍㄨㄚ', emoji: '🍉', parts: ['ㄒ', 'ㄧ'] },
+  { sym: 'ㄒ', sound: '希', word: '星星', bopomofo: 'ㄒㄧㄥ ㄒㄧㄥ', emoji: '⭐', parts: ['ㄒ', 'ㄧ', 'ㄥ'] },
+  { sym: 'ㄓ', sound: '知', word: '小豬', bopomofo: 'ㄓㄨ', emoji: '🐷', parts: ['ㄓ', 'ㄨ'] },
+  { sym: 'ㄓ', sound: '知', word: '蜘蛛', bopomofo: 'ㄓ ㄓㄨ', emoji: '🕷️', parts: ['ㄓ', 'ㄨ'] },
+  { sym: 'ㄔ', sound: '吃', word: '車子', bopomofo: 'ㄔㄜ ㄗ˙', emoji: '🚗', parts: ['ㄔ', 'ㄜ'] },
+  { sym: 'ㄔ', sound: '吃', word: '長頸鹿', bopomofo: 'ㄔㄤˊ ㄐㄧㄥˇ ㄌㄨˋ', emoji: '🦒', parts: ['ㄔ', 'ㄤˊ'] },
+  { sym: 'ㄕ', sound: '詩', word: '獅子', bopomofo: 'ㄕ ㄗ˙', emoji: '🦁', parts: ['ㄕ', 'ㄗ˙'] },
+  { sym: 'ㄕ', sound: '詩', word: '大樹', bopomofo: 'ㄕㄨˋ', emoji: '🌳', parts: ['ㄕ', 'ㄨˋ'] },
+  { sym: 'ㄖ', sound: '日', word: '熱狗', bopomofo: 'ㄖㄜˋ ㄍㄡˇ', emoji: '🌭', parts: ['ㄖ', 'ㄜˋ'] },
+  { sym: 'ㄗ', sound: '資', word: '斑馬', bopomofo: 'ㄗㄠˇ 餐', emoji: '🦓', parts: ['ㄗ', 'ㄠˇ'] },
+  { sym: 'ㄘ', sound: '雌', word: '草莓', bopomofo: 'ㄘㄠˇ ㄇㄟˊ', emoji: '🍓', parts: ['ㄘ', 'ㄠˇ'] },
+  { sym: 'ㄘ', sound: '雌', word: '彩虹', bopomofo: 'ㄘㄞˇ ㄏㄨㄥˊ', emoji: '🌈', parts: ['ㄘ', 'ㄞˇ'] },
+  { sym: 'ㄙ', sound: '思', word: '松鼠', bopomofo: 'ㄙㄨㄥ ㄕㄨˇ', emoji: '🐿️', parts: ['ㄙ', 'ㄨ', 'ㄥ'] },
+  { sym: 'ㄙ', sound: '思', word: '雨傘', bopomofo: 'ㄙㄢˇ', emoji: '☂️', parts: ['ㄙ', 'ㄢˇ'] },
+  { sym: 'ㄧ', sound: '衣', word: '衣服', bopomofo: 'ㄧ ㄈㄨˊ', emoji: '👗', parts: ['ㄧ', 'ㄈ', 'ㄨˊ'] },
+  { sym: 'ㄧ', sound: '衣', word: '鴨子', bopomofo: 'ㄧㄚ ㄗ˙', emoji: '🦆', parts: ['ㄧ', 'ㄚ'] },
+  { sym: 'ㄨ', sound: '屋', word: '烏龜', bopomofo: 'ㄨ ㄍㄨㄟ', emoji: '🐢', parts: ['ㄨ', 'ㄍ', 'ㄨ', 'ㄟ'] },
+  { sym: 'ㄨ', sound: '屋', word: '屋子', bopomofo: 'ㄨ ㄗ˙', emoji: '🏠', parts: ['ㄨ', 'ㄗ˙'] },
+  { sym: 'ㄩ', sound: '迂', word: '小魚', bopomofo: 'ㄩˊ', emoji: '🐟', parts: ['ㄩˊ'] },
+  { sym: 'ㄩ', sound: '迂', word: '玉米', bopomofo: 'ㄩˋ ㄇㄧˇ', emoji: '🌽', parts: ['ㄩˋ', 'ㄇ', 'ㄧˇ'] },
+  { sym: 'ㄚ', sound: '阿', word: 'ㄚ頭（小女孩）', bopomofo: 'ㄚ ㄊㄡˊ', emoji: '👧', parts: ['ㄚ', 'ㄊ', 'ㄡˊ'] },
+  { sym: 'ㄛ', sound: '喔', word: '公雞喔喔啼', bopomofo: 'ㄛ ㄛ', emoji: '🐓', parts: ['ㄛ'] },
+  { sym: 'ㄜ', sound: '鵝', word: '白鵝', bopomofo: 'ㄜˊ', emoji: '🦢', parts: ['ㄜˊ'] },
+  { sym: 'ㄝ', sound: '耶', word: '比耶勝利', bopomofo: 'ㄝ', emoji: '✌️', parts: ['ㄝ'] },
+  { sym: 'ㄞ', sound: '哀', word: '愛心', bopomofo: 'ㄞˋ ㄒㄧㄣ', emoji: '❤️', parts: ['ㄞˋ'] },
+  { sym: 'ㄟ', sound: '欸', word: '飛碟', bopomofo: 'ㄈㄟ ㄉㄧㄝˊ', emoji: '🛸', parts: ['ㄈ', 'ㄟ'] },
+  { sym: 'ㄠ', sound: '熬', word: '外套（襖）', bopomofo: 'ㄠˇ', emoji: '🧥', parts: ['ㄠˇ'] },
+  { sym: 'ㄡ', sound: '歐', word: '海鷗', bopomofo: 'ㄏㄞˇ ㄡ', emoji: '🕊️', parts: ['ㄏ', 'ㄞˇ', 'ㄡ'] },
+  { sym: 'ㄢ', sound: '安', word: '安全帽', bopomofo: 'ㄢ ㄑㄩㄢˊ ㄇㄠˋ', emoji: '⛑️', parts: ['ㄢ'] },
+  { sym: 'ㄣ', sound: '恩', word: '按門鈴（摁）', bopomofo: 'ㄣˋ', emoji: '🔔', parts: ['ㄣˋ'] },
+  { sym: 'ㄤ', sound: '骯', word: '汪汪小狗', bopomofo: 'ㄨㄤ ㄨㄤ', emoji: '🐕', parts: ['ㄨ', 'ㄤ'] },
+  { sym: 'ㄥ', sound: '鞥', word: '蜜蜂嗡嗡', bopomofo: 'ㄨㄥ ㄨㄥ', emoji: '🐝', parts: ['ㄨ', 'ㄥ'] },
+  { sym: 'ㄦ', sound: '兒', word: '耳朵', bopomofo: 'ㄦˇ ㄉㄨㄛ˙', emoji: '👂', parts: ['ㄦˇ'] },
+];
+
+// 適合 Lv.3 注音拼音組合的雙部件/三部件詞庫
+const ZHUYIN_SPELL_WORDS = ZHUYIN_BANK.filter((item) => item.parts && item.parts.length >= 2 && item.parts.length <= 3);
+
+// ============================================================================
+// 📚 A ~ Z 完整 104 個幼兒高頻英文單字庫
 // ============================================================================
 const ENGLISH_BANK = [
   { letter: 'A', word: 'Apple', zh: '蘋果', emoji: '🍎' },
@@ -192,20 +283,23 @@ const SPELLING_WORDS = ENGLISH_BANK.filter(
 
 // 遊戲狀態
 let totalStars = parseInt(localStorage.getItem('kids_total_stars') || '0', 10);
-let currentGame = null; // 'english' | 'math' | 'clock'
+let currentGame = null; // 'english' | 'zhuyin' | 'math' | 'clock'
 let englishLevel = 1;
+let zhuyinLevel = 1;
 let mathLevel = 1;
 let clockLevel = 1;
 let currentRound = 0;
 const TOTAL_ROUNDS = 8;
 let isLocked = false;
 let currentEnglishQ = null;
+let currentZhuyinQ = null;
 let currentMathQ = null;
 let currentClockQ = null;
 let usedEnglishWords = new Set();
+let usedZhuyinWords = new Set();
 
 // ============================================================================
-// 🔊 雙引擎真人級語音系統（Edge Neural 真人曉臻 + 雲端自然女聲串流）
+// 🔊 雙引擎真人級語音系統（支援 0.75x ~ 1.50x 倍速播放）
 // ============================================================================
 const audioCtx = typeof window !== 'undefined' && (window.AudioContext || window.webkitAudioContext)
   ? new (window.AudioContext || window.webkitAudioContext)()
@@ -336,12 +430,15 @@ function playCloudTTSItem(item, token) {
 
     const isEn = (item.lang || '').toLowerCase().startsWith('en');
     const tl = isEn ? 'en' : 'zh-TW';
-    const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&client=gtx&tl=${tl}&ttsspeed=0.8&q=${encodeURIComponent(item.text)}`;
+    const userRate = PET_CONFIG.speechRate || 1.0;
+    const ttsSpeedParam = userRate < 0.9 ? '0.8' : '1.0';
+    const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&client=gtx&tl=${tl}&ttsspeed=${ttsSpeedParam}&q=${encodeURIComponent(item.text)}`;
 
     const audio = new Audio();
     activeAudioEl = audio;
     audio.preload = 'auto';
-    audio.playbackRate = Math.max(0.88, Math.min(1.05, PET_CONFIG.speechRate || 0.92));
+    // 支援最高 1.50 倍速播放
+    audio.playbackRate = Math.max(0.75, Math.min(1.5, userRate));
 
     let settled = false;
     const finish = (ok) => {
@@ -350,7 +447,8 @@ function playCloudTTSItem(item, token) {
       if (!ok && token === speechCancelToken) {
         playNativeTTSItem(item, token).then(resolve);
       } else {
-        setTimeout(resolve, item.pauseAfter || 320);
+        const scaledPause = Math.round((item.pauseAfter || 280) / Math.max(0.8, userRate));
+        setTimeout(resolve, scaledPause);
       }
     };
 
@@ -371,20 +469,21 @@ function playNativeTTSItem(item, token) {
     if (voice) utter.voice = voice;
     utter.lang = item.lang || (isEn ? 'en-US' : 'zh-TW');
 
-    const userRate = PET_CONFIG.speechRate || 0.90;
-    utter.rate = item.rate || (isEn ? Math.max(0.78, userRate - 0.06) : Math.max(0.86, userRate));
+    const userRate = PET_CONFIG.speechRate || 1.0;
+    utter.rate = item.rate || Math.max(0.75, Math.min(1.5, userRate));
     utter.pitch = 1.0;
 
     let done = false;
     const complete = () => {
       if (done) return;
       done = true;
-      setTimeout(resolve, item.pauseAfter || 300);
+      const scaledPause = Math.round((item.pauseAfter || 260) / Math.max(0.8, userRate));
+      setTimeout(resolve, scaledPause);
     };
 
     utter.onend = complete;
     utter.onerror = complete;
-    setTimeout(complete, Math.max(2500, item.text.length * 380));
+    setTimeout(complete, Math.max(2200, item.text.length * 350));
 
     window.speechSynthesis.speak(utter);
   });
@@ -427,7 +526,10 @@ function applyPetNames() {
   document.querySelectorAll('[data-pet-name="shannon"]').forEach((el) => {
     el.textContent = PET_CONFIG.shannonName;
   });
-  document.title = `${PET_CONFIG.corieName}、${PET_CONFIG.duncanName} & ${PET_CONFIG.shannonName} 的快樂學習樂園`;
+  document.querySelectorAll('[data-pet-name="tieniu"]').forEach((el) => {
+    el.textContent = PET_CONFIG.tieniuName;
+  });
+  document.title = `${PET_CONFIG.corieName}、${PET_CONFIG.duncanName}、${PET_CONFIG.shannonName} & ${PET_CONFIG.tieniuName} 的快樂學習樂園`;
 }
 
 function updateStarsUI() {
@@ -478,20 +580,395 @@ function petSpeak(which) {
   playSuccessJingle();
   if (which === 'corie') {
     speakSequence([
-      { text: `嗨，我是橘貓 ${PET_CONFIG.corieName}，`, lang: 'zh-TW', pauseAfter: 250 },
+      { text: `嗨，我是橘貓 ${PET_CONFIG.corieName}，`, lang: 'zh-TW', pauseAfter: 200 },
       { text: '我們一起來玩數學冒險吧！', lang: 'zh-TW' },
     ]);
   } else if (which === 'duncan') {
     speakSequence([
-      { text: `哈囉，我是 ${PET_CONFIG.duncanName}，`, lang: 'zh-TW', pauseAfter: 250 },
+      { text: `哈囉，我是 ${PET_CONFIG.duncanName}，`, lang: 'zh-TW', pauseAfter: 200 },
       { text: '我們一起來認識英文單字吧！', lang: 'zh-TW' },
+    ]);
+  } else if (which === 'shannon') {
+    speakSequence([
+      { text: `咕嚕咕嚕，我是比奇堡來的魚姊姊 ${PET_CONFIG.shannonName}，`, lang: 'zh-TW', pauseAfter: 200 },
+      { text: '我們一起來學看時鐘吧！', lang: 'zh-TW' },
     ]);
   } else {
     speakSequence([
-      { text: `咕嚕咕嚕，我是比奇堡來的魚姊姊 ${PET_CONFIG.shannonName}，`, lang: 'zh-TW', pauseAfter: 250 },
-      { text: '我們一起來學看時鐘吧！', lang: 'zh-TW' },
+      { text: `嗶嗶！我是機器人 ${PET_CONFIG.tieniuName}，`, lang: 'zh-TW', pauseAfter: 200 },
+      { text: '我們一起來練習 ㄅㄆㄇ 注音符號吧！', lang: 'zh-TW' },
     ]);
   }
+}
+
+// ============================================================================
+// 🤖 注音遊戲：鐵牛的注音樂園（37 個注音符號 + 3 個難度等級）
+// ============================================================================
+function getZhuyinReadText(sym) {
+  const clean = sym.replace(/[ˊˇˋ˙]/g, '');
+  return ZHUYIN_SOUND_MAP[clean] || sym;
+}
+
+function startZhuyinGame(lvl = 1) {
+  currentGame = 'zhuyin';
+  zhuyinLevel = lvl;
+  currentRound = 1;
+  usedZhuyinWords.clear();
+  updateZhuyinLevelChips();
+  showScreen('zhuyin');
+  nextZhuyinRound();
+}
+
+function switchZhuyinLevel(lvl) {
+  zhuyinLevel = lvl;
+  currentRound = 1;
+  usedZhuyinWords.clear();
+  updateZhuyinLevelChips();
+  nextZhuyinRound();
+}
+
+function updateZhuyinLevelChips() {
+  [1, 2, 3].forEach((n) => {
+    const chip = document.getElementById(`zy-lvl-chip-${n}`);
+    if (chip) chip.classList.toggle('active', n === zhuyinLevel);
+  });
+}
+
+function pickUnusedZhuyin(pool = ZHUYIN_BANK) {
+  let available = pool.filter((item) => !usedZhuyinWords.has(item.word + item.sym));
+  if (available.length < 4) {
+    usedZhuyinWords.clear();
+    available = [...pool];
+  }
+  const target = available[Math.floor(Math.random() * available.length)];
+  usedZhuyinWords.add(target.word + target.sym);
+  return target;
+}
+
+function nextZhuyinRound() {
+  isLocked = false;
+  document.getElementById('zy-round-text').textContent = `第 ${currentRound} / ${TOTAL_ROUNDS} 題`;
+  document.getElementById('zy-progress-fill').style.width = `${(currentRound / TOTAL_ROUNDS) * 100}%`;
+
+  const slotsWrap = document.getElementById('zy-spelling-slots');
+  slotsWrap.classList.add('hidden');
+  slotsWrap.innerHTML = '';
+
+  if (zhuyinLevel === 1) {
+    setupZhuyinLevel1();
+  } else if (zhuyinLevel === 2) {
+    if (Math.random() < 0.5) {
+      setupZhuyinListenSymbol();
+    } else {
+      setupZhuyinMissingInitial();
+    }
+  } else {
+    if (Math.random() < 0.45) {
+      setupZhuyinSequenceOrder();
+    } else {
+      setupZhuyinSpelling();
+    }
+  }
+}
+
+// 🌱 Lv.1：認識 37 個注音符號與代表語詞圖卡
+function setupZhuyinLevel1() {
+  const target = pickUnusedZhuyin();
+  const distractors = ZHUYIN_BANK
+    .filter((item) => item.sym !== target.sym)
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 3);
+  const choices = [target, ...distractors].sort(() => Math.random() - 0.5);
+
+  currentZhuyinQ = {
+    mode: 'lvl1',
+    target,
+    spokenChunks: [
+      { text: `${target.sound}，${target.word}的${target.sound}，`, lang: 'zh-TW', pauseAfter: 250 },
+      { text: `請找出 ${target.sym} 開頭的「${target.word}」！`, lang: 'zh-TW' },
+    ],
+  };
+
+  document.getElementById('zy-target-symbol').textContent = target.sym;
+  document.getElementById('zy-target-subword').textContent = `${target.bopomofo}（${target.word}）`;
+  document.getElementById('zy-prompt-text').innerHTML =
+    `<b>${PET_CONFIG.tieniuName}</b> 說：這是注音「<b>${target.sym}（讀音：${target.sound}）</b>」，請找出 <b>${target.sym}</b> 的好朋友「<b>${target.word}</b>」！`;
+
+  const container = document.getElementById('zy-options-container');
+  container.innerHTML = '';
+  choices.forEach((choice) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-card';
+    btn.innerHTML = `
+      <div class="option-emoji">${choice.emoji}</div>
+      <div class="option-word" style="color:#6b21a8;">${choice.sym} ‧ ${choice.word}</div>
+      <div class="option-zh">${choice.bopomofo}</div>
+    `;
+    btn.onclick = () => verifyZhuyinChoice(choice.sym === target.sym, choice, btn);
+    container.appendChild(btn);
+  });
+
+  repeatZhuyinPrompt();
+}
+
+// 🌟 Lv.2-A：聽鐵牛念注音，從 4 個注音符號中選出正確符號
+function setupZhuyinListenSymbol() {
+  const target = pickUnusedZhuyin();
+  const wrongSyms = ZHUYIN_ORDER
+    .filter((s) => s !== target.sym)
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 3);
+  const symChoices = [target.sym, ...wrongSyms].sort(() => Math.random() - 0.5);
+
+  currentZhuyinQ = {
+    mode: 'listen_sym',
+    target,
+    spokenChunks: [
+      { text: `${target.sound}，${target.word}的${target.sound}，`, lang: 'zh-TW', pauseAfter: 250 },
+      { text: `請問哪一個注音是「${target.sound}」呢？`, lang: 'zh-TW' },
+    ],
+  };
+
+  document.getElementById('zy-target-symbol').textContent = `🎧 ${target.emoji}`;
+  document.getElementById('zy-target-subword').textContent = `${target.word}（點我再聽發音）`;
+  document.getElementById('zy-prompt-text').innerHTML =
+    `仔細聽 <b>${PET_CONFIG.tieniuName}</b> 的聲音：「<b>${target.word}</b>」的注音 <b>${target.sound}</b> 是哪一個符號呢？`;
+
+  const container = document.getElementById('zy-options-container');
+  container.innerHTML = '';
+  symChoices.forEach((s) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-card';
+    btn.innerHTML = `<div class="option-word" style="font-size:3.2rem; color:#6b21a8;">${s}</div>`;
+    btn.onclick = () => verifyZhuyinChoice(s === target.sym, { sym: s, sound: getZhuyinReadText(s), word: `注音 ${s}` }, btn);
+    container.appendChild(btn);
+  });
+
+  repeatZhuyinPrompt();
+}
+
+// 🌟 Lv.2-B：注音首音填空（例如 🐰 ＿ㄨˋ ㄗ˙，選出開頭注音 ㄊ）
+function setupZhuyinMissingInitial() {
+  const target = pickUnusedZhuyin();
+  const wrongSyms = ZHUYIN_ORDER
+    .filter((s) => s !== target.sym)
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 3);
+  const symChoices = [target.sym, ...wrongSyms].sort(() => Math.random() - 0.5);
+
+  const maskedBopomofo = target.bopomofo.replace(target.sym, '＿');
+
+  currentZhuyinQ = {
+    mode: 'missing_sym',
+    target,
+    spokenChunks: [
+      { text: `${target.word}，`, lang: 'zh-TW', pauseAfter: 250 },
+      { text: `請問「${target.word}」開頭的注音是什麼呢？`, lang: 'zh-TW' },
+    ],
+  };
+
+  document.getElementById('zy-target-symbol').textContent = target.emoji;
+  document.getElementById('zy-target-subword').textContent = `${maskedBopomofo}（${target.word}）`;
+  document.getElementById('zy-prompt-text').innerHTML =
+    `「<b>${target.word}</b>」的注音是 <b>${maskedBopomofo}</b>，請問缺少的注音符號是哪一個呢？`;
+
+  const container = document.getElementById('zy-options-container');
+  container.innerHTML = '';
+  symChoices.forEach((s) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-card';
+    btn.innerHTML = `<div class="option-word" style="font-size:3rem; color:#7e22ce;">${s}</div>`;
+    btn.onclick = () => {
+      if (s === target.sym) {
+        document.getElementById('zy-target-subword').textContent = `${target.bopomofo}（${target.word}）`;
+      }
+      verifyZhuyinChoice(s === target.sym, { sym: s, sound: getZhuyinReadText(s), word: `注音 ${s}` }, btn);
+    };
+    container.appendChild(btn);
+  });
+
+  repeatZhuyinPrompt();
+}
+
+// 🏆 Lv.3-A：ㄅㄆㄇ 順序接龍（例如 ㄅ ➔ ㄆ ➔ ？ ➔ ㄈ）
+function setupZhuyinSequenceOrder() {
+  const startIdx = randInt(0, ZHUYIN_ORDER.length - 4);
+  const seq = ZHUYIN_ORDER.slice(startIdx, startIdx + 4);
+  const missingPos = randInt(1, 3);
+  const answerSym = seq[missingPos];
+  const answerSound = getZhuyinReadText(answerSym);
+
+  const displaySeq = seq.map((s, i) => (i === missingPos ? '❓' : s)).join(' ➔ ');
+  const spokenBefore = seq
+    .slice(0, missingPos)
+    .map((s) => getZhuyinReadText(s))
+    .join('、');
+
+  const wrongSyms = ZHUYIN_ORDER
+    .filter((s) => s !== answerSym)
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 3);
+  const choices = [answerSym, ...wrongSyms].sort(() => Math.random() - 0.5);
+
+  currentZhuyinQ = {
+    mode: 'sequence',
+    target: { sym: answerSym, sound: answerSound, word: `注音 ${answerSym}` },
+    spokenChunks: [
+      { text: `注音排排隊：${spokenBefore}，`, lang: 'zh-TW', pauseAfter: 250 },
+      { text: '請問問號裡面，下一個注音是誰呢？', lang: 'zh-TW' },
+    ],
+  };
+
+  document.getElementById('zy-target-symbol').textContent = displaySeq;
+  document.getElementById('zy-target-subword').textContent = '按照 ㄅㄆㄇ 順序找找看！';
+  document.getElementById('zy-prompt-text').innerHTML =
+    `<b>${PET_CONFIG.tieniuName}</b> 的注音火車：<b>${displaySeq}</b>，請問 ❓ 裡面應該填哪個注音符號？`;
+
+  const container = document.getElementById('zy-options-container');
+  container.innerHTML = '';
+  choices.forEach((s) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-card';
+    btn.innerHTML = `<div class="option-word" style="font-size:3rem; color:#6b21a8;">${s}</div>`;
+    btn.onclick = () => verifyZhuyinChoice(s === answerSym, { sym: s, sound: getZhuyinReadText(s), word: `注音 ${s}` }, btn);
+    container.appendChild(btn);
+  });
+
+  repeatZhuyinPrompt();
+}
+
+// 🏆 Lv.3-B：注音拼音組合挑戰（依序點擊聲母、介音、韻母拼出語詞）
+function setupZhuyinSpelling() {
+  const target = pickUnusedZhuyin(ZHUYIN_SPELL_WORDS);
+  const parts = [...target.parts];
+
+  const extraSyms = ZHUYIN_ORDER
+    .filter((s) => !parts.includes(s))
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 2);
+  const scrambled = [...parts, ...extraSyms].sort(() => Math.random() - 0.5);
+
+  currentZhuyinQ = {
+    mode: 'zy_spell',
+    target,
+    parts,
+    currentIndex: 0,
+    spokenChunks: [
+      { text: `我們一起把「${target.word}」的注音，`, lang: 'zh-TW', pauseAfter: 250 },
+      { text: '按照順序拼出來吧！', lang: 'zh-TW' },
+    ],
+  };
+
+  document.getElementById('zy-target-symbol').textContent = target.emoji;
+  document.getElementById('zy-target-subword').textContent = `${target.word}（${target.bopomofo}）`;
+  document.getElementById('zy-prompt-text').innerHTML =
+    `請按照順序點選注音，幫 <b>${PET_CONFIG.tieniuName}</b> 拼出「<b>${target.word}（${parts.join(' ＋ ')}）</b>」！`;
+
+  const slotsWrap = document.getElementById('zy-spelling-slots');
+  slotsWrap.classList.remove('hidden');
+  slotsWrap.innerHTML = '';
+  parts.forEach((_, idx) => {
+    const slot = document.createElement('div');
+    slot.className = 'spell-slot';
+    slot.id = `zy-slot-${idx}`;
+    slot.textContent = '';
+    slotsWrap.appendChild(slot);
+  });
+
+  const container = document.getElementById('zy-options-container');
+  container.innerHTML = '';
+  scrambled.forEach((p) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-card';
+    btn.innerHTML = `<div class="option-word" style="font-size:2.6rem; color:#6b21a8;">${p}</div>`;
+    btn.onclick = () => handleZhuyinSpellClick(p, btn);
+    container.appendChild(btn);
+  });
+
+  repeatZhuyinPrompt();
+}
+
+function handleZhuyinSpellClick(part, btnEl) {
+  if (isLocked) return;
+  const q = currentZhuyinQ;
+  const expected = q.parts[q.currentIndex];
+
+  if (part === expected) {
+    btnEl.classList.add('used-letter');
+    const slot = document.getElementById(`zy-slot-${q.currentIndex}`);
+    if (slot) {
+      slot.textContent = part;
+      slot.classList.add('filled');
+    }
+    q.currentIndex += 1;
+    playTone(500 + q.currentIndex * 80, 0.12, 'triangle');
+    speakSequence([{ text: getZhuyinReadText(part), lang: 'zh-TW' }]);
+
+    if (q.currentIndex === q.parts.length) {
+      isLocked = true;
+      setTimeout(() => {
+        playSuccessJingle();
+        spawnConfetti(22);
+        totalStars += 1;
+        updateStarsUI();
+        speakSequence([
+          { text: `嗶嗶！太棒了，成功拼出「${q.target.word}」了！`, lang: 'zh-TW' },
+        ]);
+        advanceOrFinishZhuyin();
+      }, 450);
+    }
+  } else {
+    btnEl.classList.add('wrong');
+    playTryAgainSound();
+    speakSequence([
+      { text: `下一個注音是「${getZhuyinReadText(expected)}」喔，再找找看！`, lang: 'zh-TW' },
+    ]);
+    setTimeout(() => btnEl.classList.remove('wrong'), 600);
+  }
+}
+
+function repeatZhuyinPrompt() {
+  if (!currentZhuyinQ || !currentZhuyinQ.spokenChunks) return;
+  speakSequence(currentZhuyinQ.spokenChunks);
+}
+
+function verifyZhuyinChoice(isCorrect, chosenItem, btnEl) {
+  if (isLocked) return;
+  const { target } = currentZhuyinQ;
+
+  if (isCorrect) {
+    isLocked = true;
+    btnEl.classList.add('correct');
+    playSuccessJingle();
+    spawnConfetti(18);
+    totalStars += 1;
+    updateStarsUI();
+
+    speakSequence([
+      { text: `答對了！就是 ${target.sound}，${target.word}！你好聰明喔！`, lang: 'zh-TW' },
+    ]);
+
+    advanceOrFinishZhuyin();
+  } else {
+    btnEl.classList.add('wrong');
+    playTryAgainSound();
+    const wrongRead = chosenItem.sound || getZhuyinReadText(chosenItem.sym || '');
+    speakSequence([
+      { text: `這是 ${wrongRead}，${chosenItem.word}，我們再試一次喔！`, lang: 'zh-TW' },
+    ]);
+    setTimeout(() => btnEl.classList.remove('wrong'), 650);
+  }
+}
+
+function advanceOrFinishZhuyin() {
+  setTimeout(() => {
+    if (currentRound < TOTAL_ROUNDS) {
+      currentRound += 1;
+      nextZhuyinRound();
+    } else {
+      finishGame();
+    }
+  }, 2200);
 }
 
 // ============================================================================
@@ -767,7 +1244,7 @@ function handleSpellingLetterClick(ltr, btnEl) {
         totalStars += 1;
         updateStarsUI();
         speakSequence([
-          { text: q.target.word, lang: 'en-US', pauseAfter: 450 },
+          { text: q.target.word, lang: 'en-US', pauseAfter: 400 },
           { text: `太厲害了，你成功拼出，${q.target.zh}，了喔！`, lang: 'zh-TW' },
         ]);
         advanceOrFinishEnglish();
@@ -789,29 +1266,29 @@ function repeatEnglishPrompt() {
 
   if (mode === 'listen') {
     speakSequence([
-      { text: target.word, lang: 'en-US', pauseAfter: 550 },
-      { text: target.word, lang: 'en-US', pauseAfter: 450 },
+      { text: target.word, lang: 'en-US', pauseAfter: 500 },
+      { text: target.word, lang: 'en-US', pauseAfter: 400 },
       { text: '請問，這是哪一個圖案呢？', lang: 'zh-TW' },
     ]);
   } else if (mode === 'missing_letter') {
     speakSequence([
-      { text: target.word, lang: 'en-US', pauseAfter: 450 },
+      { text: target.word, lang: 'en-US', pauseAfter: 400 },
       { text: `${target.zh}，的第一個字母是什麼呢？`, lang: 'zh-TW' },
     ]);
   } else if (mode === 'case_match') {
     speakSequence([
-      { text: target.letter, lang: 'en-US', pauseAfter: 450 },
+      { text: target.letter, lang: 'en-US', pauseAfter: 400 },
       { text: `請找出字母，${target.letter}，的好朋友`, lang: 'zh-TW' },
     ]);
   } else if (mode === 'spelling') {
     speakSequence([
-      { text: target.word, lang: 'en-US', pauseAfter: 450 },
+      { text: target.word, lang: 'en-US', pauseAfter: 400 },
       { text: `我們一起把，${target.zh}，拼出來吧！`, lang: 'zh-TW' },
     ]);
   } else {
     speakSequence([
-      { text: target.letter, lang: 'en-US', pauseAfter: 400 },
-      { text: target.word, lang: 'en-US', pauseAfter: 450 },
+      { text: target.letter, lang: 'en-US', pauseAfter: 360 },
+      { text: target.word, lang: 'en-US', pauseAfter: 400 },
       { text: `請找出，${target.zh}`, lang: 'zh-TW' },
     ]);
   }
@@ -830,7 +1307,7 @@ function verifyEnglishChoice(isCorrect, chosenItem, btnEl) {
     updateStarsUI();
 
     speakSequence([
-      { text: target.word, lang: 'en-US', pauseAfter: 400 },
+      { text: target.word, lang: 'en-US', pauseAfter: 360 },
       { text: `答對了，是${target.zh}，你好棒喔！`, lang: 'zh-TW' },
     ]);
 
@@ -839,7 +1316,7 @@ function verifyEnglishChoice(isCorrect, chosenItem, btnEl) {
     btnEl.classList.add('wrong');
     playTryAgainSound();
     speakSequence([
-      { text: chosenItem.word, lang: 'en-US', pauseAfter: 380 },
+      { text: chosenItem.word, lang: 'en-US', pauseAfter: 360 },
       { text: `這是，${chosenItem.zh}，我們再試一次喔！`, lang: 'zh-TW' },
     ]);
     setTimeout(() => btnEl.classList.remove('wrong'), 650);
@@ -854,7 +1331,7 @@ function advanceOrFinishEnglish() {
     } else {
       finishGame();
     }
-  }, 2300);
+  }, 2200);
 }
 
 // ============================================================================
@@ -934,7 +1411,7 @@ function setupMathAddition(minA, maxA, minB, maxB, theme) {
     a, b, answer,
     countSoFar: 0,
     spokenChunks: [
-      { text: `${a}，加 ${b}，等於多少呢？`, lang: 'zh-TW', pauseAfter: 300 },
+      { text: `${a}，加 ${b}，等於多少呢？`, lang: 'zh-TW', pauseAfter: 250 },
       { text: '可以點點看圖案，幫你數喔！', lang: 'zh-TW' },
     ],
   };
@@ -972,7 +1449,7 @@ function setupMathSubtraction(minTotal, maxTotal, theme) {
     total, minus, answer,
     countSoFar: 0,
     spokenChunks: [
-      { text: `原本有 ${total} 個，`, lang: 'zh-TW', pauseAfter: 250 },
+      { text: `原本有 ${total} 個，`, lang: 'zh-TW', pauseAfter: 220 },
       { text: `拿走了 ${minus} 個，還剩下幾個呢？`, lang: 'zh-TW' },
     ],
   };
@@ -1021,7 +1498,7 @@ function setupMathComparison(theme) {
     leftVal, rightVal, answer,
     countSoFar: 0,
     spokenChunks: [
-      { text: `左邊有 ${leftVal} 個，右邊有 ${rightVal} 個，`, lang: 'zh-TW', pauseAfter: 280 },
+      { text: `左邊有 ${leftVal} 個，右邊有 ${rightVal} 個，`, lang: 'zh-TW', pauseAfter: 250 },
       { text: '哪一邊比較多，還是一樣多呢？', lang: 'zh-TW' },
     ],
   };
@@ -1074,7 +1551,7 @@ function setupMathMissingAddend(theme) {
     a, answer, total,
     countSoFar: 0,
     spokenChunks: [
-      { text: `已經有 ${a} 個了，`, lang: 'zh-TW', pauseAfter: 250 },
+      { text: `已經有 ${a} 個了，`, lang: 'zh-TW', pauseAfter: 220 },
       { text: `還要再加幾個，才會變成 ${total} 個呢？`, lang: 'zh-TW' },
     ],
   };
@@ -1125,7 +1602,7 @@ function setupMathTripleAddition(theme) {
     a, b, c, answer,
     countSoFar: 0,
     spokenChunks: [
-      { text: `超級挑戰！${a} 加 ${b}，再加 ${c}，`, lang: 'zh-TW', pauseAfter: 280 },
+      { text: `超級挑戰！${a} 加 ${b}，再加 ${c}，`, lang: 'zh-TW', pauseAfter: 250 },
       { text: '合起來總共是多少呢？', lang: 'zh-TW' },
     ],
   };
@@ -1245,7 +1722,7 @@ function verifyMathAnswer(chosenVal, btnEl) {
       } else {
         finishGame();
       }
-    }, 2200);
+    }, 2100);
   } else {
     btnEl.classList.add('wrong');
     playTryAgainSound();
@@ -1257,7 +1734,7 @@ function verifyMathAnswer(chosenVal, btnEl) {
 }
 
 // ============================================================================
-// ⏰ 時鐘遊戲：Shannon 的時鐘教室（整點、半點、15分、5分刻度與動手撥針）
+// ⏰ 時鐘遊戲：Shannon 的時鐘教室
 // ============================================================================
 const DAILY_ROUTINES = {
   1: '🌙 半夜 1 點（睡香香）',
@@ -1318,17 +1795,14 @@ function nextClockRound() {
   optionsContainer.classList.remove('hidden');
 
   if (clockLevel === 1) {
-    // 🌱 Lv.1：整點報時 (1:00 ~ 12:00)
     const hour = randInt(1, 12);
     setupClockReadQuestion(hour, 0, false);
   } else if (clockLevel === 2) {
-    // 🌟 Lv.2：半點 (:30) 與 一刻鐘 (:15 / :45)
     const hour = randInt(1, 12);
     const minPool = [15, 30, 30, 45];
     const minute = minPool[Math.floor(Math.random() * minPool.length)];
     setupClockReadQuestion(hour, minute, true);
   } else {
-    // 🏆 Lv.3：5 分鐘刻度認時鐘 (55%) 或 親手幫 Shannon 撥時鐘調鬧鐘 (45%)
     if (Math.random() < 0.55) {
       const hour = randInt(1, 12);
       const minPool = [5, 10, 20, 25, 35, 40, 50, 55];
@@ -1352,7 +1826,7 @@ function setupClockReadQuestion(hour, minute, showOuterFiveMarks) {
     spokenTime,
     showOuterFiveMarks,
     spokenChunks: [
-      { text: `看看 ${PET_CONFIG.shannonName} 的時鐘，`, lang: 'zh-TW', pauseAfter: 250 },
+      { text: `看看 ${PET_CONFIG.shannonName} 的時鐘，`, lang: 'zh-TW', pauseAfter: 220 },
       { text: minute === 0
         ? `藍長針指在 12，紅短針指在 ${hour}，現在是幾點呢？`
         : '紅短針看幾點，藍長針看幾分，現在是幾點幾分呢？', lang: 'zh-TW' },
@@ -1367,12 +1841,11 @@ function setupClockReadQuestion(hour, minute, showOuterFiveMarks) {
 
   drawAnalogClockSVG(hour, minute, showOuterFiveMarks);
 
-  // 產生 4 個時間選項
   const choiceMap = new Map();
   choiceMap.set(answerStr, { h: hour, m: minute, str: answerStr, zh: formatTimeSpokenZh(hour, minute) });
 
   while (choiceMap.size < 4) {
-    let fakeH = randInt(1, 12);
+    const fakeH = randInt(1, 12);
     let fakeM = minute;
     if (clockLevel === 2) {
       const p = [0, 15, 30, 45];
@@ -1404,15 +1877,13 @@ function setupClockReadQuestion(hour, minute, showOuterFiveMarks) {
   repeatClockPrompt();
 }
 
-// 🏆 Lv.3 互動撥針模式：幫 Shannon 調鬧鐘！
 function setupInteractiveSetClockQuestion() {
   const targetH = randInt(1, 12);
   const minOptions = [0, 15, 30, 45];
   const targetM = minOptions[Math.floor(Math.random() * minOptions.length)];
 
-  // 初始時間故意跟目標不同
-  let curH = (targetH % 12) + 1;
-  let curM = 0;
+  const curH = (targetH % 12) + 1;
+  const curM = 0;
 
   currentClockQ = {
     mode: 'set',
@@ -1421,7 +1892,7 @@ function setupInteractiveSetClockQuestion() {
     curH,
     curM,
     spokenChunks: [
-      { text: `請幫 ${PET_CONFIG.shannonName} 把鬧鐘，`, lang: 'zh-TW', pauseAfter: 250 },
+      { text: `請幫 ${PET_CONFIG.shannonName} 把鬧鐘，`, lang: 'zh-TW', pauseAfter: 220 },
       { text: `調到 ${formatTimeSpokenZh(targetH, targetM)} 吧！`, lang: 'zh-TW' },
     ],
   };
@@ -1475,7 +1946,7 @@ function checkInteractiveClockAnswer() {
       } else {
         finishGame();
       }
-    }, 2200);
+    }, 2100);
   } else {
     playTryAgainSound();
     speakSequence([
@@ -1493,13 +1964,11 @@ function drawAnalogClockSVG(hour, minute, showFiveMarks = false) {
   const r = 104;
 
   let html = `
-    <!-- 鐘面外框與底色 -->
     <circle cx="${cx}" cy="${cy}" r="${r + 12}" fill="#34d399" />
     <circle cx="${cx}" cy="${cy}" r="${r + 4}" fill="#ffffff" stroke="#10b981" stroke-width="4" />
     <circle cx="${cx}" cy="${cy}" r="${r - 2}" fill="#f0fdf4" />
   `;
 
-  // 繪製 60 個分鐘刻度
   for (let i = 0; i < 60; i++) {
     const angle = (i * 6 - 90) * (Math.PI / 180);
     const isHourTick = i % 5 === 0;
@@ -1512,7 +1981,6 @@ function drawAnalogClockSVG(hour, minute, showFiveMarks = false) {
     html += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${isHourTick ? '#0f766e' : '#99f6e4'}" stroke-width="${isHourTick ? 3.5 : 1.5}" stroke-linecap="round" />`;
   }
 
-  // 繪製 1 ~ 12 數字（以及進階模式外圈的 5, 10, 15... 分鐘提示）
   for (let n = 1; n <= 12; n++) {
     const angle = (n * 30 - 90) * (Math.PI / 180);
     const numR = r - 28;
@@ -1530,26 +1998,22 @@ function drawAnalogClockSVG(hour, minute, showFiveMarks = false) {
     }
   }
 
-  // 計算時針與分針角度
   const minuteAngleDeg = minute * 6;
   const hourAngleDeg = ((hour % 12) + minute / 60) * 30;
 
   const hRad = (hourAngleDeg - 90) * (Math.PI / 180);
   const mRad = (minuteAngleDeg - 90) * (Math.PI / 180);
 
-  const hLen = 54; // 紅短針
-  const mLen = 80; // 藍長針
+  const hLen = 54;
+  const mLen = 80;
 
   const hx = cx + hLen * Math.cos(hRad);
   const hy = cy + hLen * Math.sin(hRad);
   const mx = cx + mLen * Math.cos(mRad);
   const my = cy + mLen * Math.sin(mRad);
 
-  // 分針（藍長針）
   html += `<line x1="${cx}" y1="${cy}" x2="${mx}" y2="${my}" stroke="#2563eb" stroke-width="6.5" stroke-linecap="round" />`;
-  // 時針（紅短針）
   html += `<line x1="${cx}" y1="${cy}" x2="${hx}" y2="${hy}" stroke="#ef4444" stroke-width="9" stroke-linecap="round" />`;
-  // 中心圓扣
   html += `<circle cx="${cx}" cy="${cy}" r="8" fill="#fbbf24" stroke="#d97706" stroke-width="3" />`;
 
   svg.innerHTML = html;
@@ -1583,7 +2047,7 @@ function verifyClockChoice(choice, btnEl) {
       } else {
         finishGame();
       }
-    }, 2200);
+    }, 2100);
   } else {
     btnEl.classList.add('wrong');
     playTryAgainSound();
@@ -1606,16 +2070,17 @@ function finishGame() {
   spawnConfetti(45);
   playSuccessJingle();
 
-  const msg = `${PET_CONFIG.corieName}、${PET_CONFIG.duncanName} 和 ${PET_CONFIG.shannonName} 替你拍拍手！你完成了 ${TOTAL_ROUNDS} 道挑戰，獲得滿滿的星星！`;
+  const msg = `${PET_CONFIG.corieName}、${PET_CONFIG.duncanName}、${PET_CONFIG.shannonName} 和 ${PET_CONFIG.tieniuName} 替你拍拍手！你完成了 ${TOTAL_ROUNDS} 道挑戰，獲得滿滿的星星！`;
   document.getElementById('celebrate-message').textContent = msg;
   speakSequence([
-    { text: '太棒了，全部過關！', lang: 'zh-TW', pauseAfter: 300 },
+    { text: '太棒了，全部過關！', lang: 'zh-TW', pauseAfter: 250 },
     { text: msg, lang: 'zh-TW' },
   ]);
 
   const againBtn = document.getElementById('btn-play-again');
   againBtn.onclick = () => {
     if (currentGame === 'english') startEnglishGame(englishLevel);
+    else if (currentGame === 'zhuyin') startZhuyinGame(zhuyinLevel);
     else if (currentGame === 'math') startMathGame(mathLevel);
     else startClockGame(clockLevel);
   };
@@ -1636,7 +2101,7 @@ function spawnConfetti(count = 25) {
 }
 
 // ============================================================================
-// ⚙️ 家長設定（3位主角名字、雙語音引擎切換、語速與試聽）
+// ⚙️ 家長設定（4位主角名字、雙語音引擎切換、0.75x ~ 1.50x 語速與試聽）
 // ============================================================================
 function populateVoiceSelectors() {
   const zhSelect = document.getElementById('select-zh-voice');
@@ -1672,12 +2137,19 @@ function populateVoiceSelectors() {
 
 function updateSpeedLabel(val) {
   const num = parseFloat(val);
-  let desc = '溫柔適中';
-  if (num <= 0.8) desc = '慢速清晰';
-  else if (num <= 0.92) desc = '溫柔適中（推薦）';
-  else desc = '自然輕快';
+  let desc = '正常自然';
+  if (num <= 0.85) desc = '慢速清晰';
+  else if (num <= 1.05) desc = '正常自然';
+  else if (num <= 1.30) desc = '輕快流暢';
+  else desc = '快速 1.5 倍';
   const lbl = document.getElementById('speed-label-val');
   if (lbl) lbl.textContent = `${desc} (${num.toFixed(2)}x)`;
+}
+
+function setSpeedPreset(rateVal) {
+  const slider = document.getElementById('input-speech-rate');
+  if (slider) slider.value = rateVal;
+  updateSpeedLabel(rateVal);
 }
 
 function openSettingsModal() {
@@ -1685,6 +2157,7 @@ function openSettingsModal() {
   document.getElementById('input-corie-name').value = PET_CONFIG.corieName;
   document.getElementById('input-duncan-name').value = PET_CONFIG.duncanName;
   document.getElementById('input-shannon-name').value = PET_CONFIG.shannonName;
+  document.getElementById('input-tieniu-name').value = PET_CONFIG.tieniuName;
   document.getElementById('select-tts-mode').value = PET_CONFIG.ttsMode;
   document.getElementById('input-speech-rate').value = PET_CONFIG.speechRate;
   updateSpeedLabel(PET_CONFIG.speechRate);
@@ -1697,14 +2170,13 @@ function closeSettingsModal() {
 
 function testVoicePreview() {
   PET_CONFIG.ttsMode = document.getElementById('select-tts-mode').value;
-  PET_CONFIG.speechRate = parseFloat(document.getElementById('input-speech-rate').value || '0.90');
+  PET_CONFIG.speechRate = parseFloat(document.getElementById('input-speech-rate').value || '1.00');
   PET_CONFIG.zhVoiceURI = document.getElementById('select-zh-voice').value;
   PET_CONFIG.enVoiceURI = document.getElementById('select-en-voice').value;
 
   speakSequence([
-    { text: 'Apple. Strawberry.', lang: 'en-US', pauseAfter: 450 },
-    { text: `嗨，我是比奇堡的 ${PET_CONFIG.shannonName}，`, lang: 'zh-TW', pauseAfter: 280 },
-    { text: '我們一起來學看時鐘吧！', lang: 'zh-TW' },
+    { text: `嗶嗶！我是機器人 ${PET_CONFIG.tieniuName}，`, lang: 'zh-TW', pauseAfter: 200 },
+    { text: '玻、坡、摸、佛！現在的語音速度聽起來剛好嗎？', lang: 'zh-TW' },
   ]);
 }
 
@@ -1712,14 +2184,16 @@ function saveSettings() {
   const newCorie = document.getElementById('input-corie-name').value.trim() || 'Corie';
   const newDuncan = document.getElementById('input-duncan-name').value.trim() || 'Duncan';
   const newShannon = document.getElementById('input-shannon-name').value.trim() || 'Shannon';
+  const newTieniu = document.getElementById('input-tieniu-name').value.trim() || '鐵牛';
   const newMode = document.getElementById('select-tts-mode').value || 'auto';
-  const newRate = parseFloat(document.getElementById('input-speech-rate').value || '0.90');
+  const newRate = parseFloat(document.getElementById('input-speech-rate').value || '1.00');
   const newZh = document.getElementById('select-zh-voice').value;
   const newEn = document.getElementById('select-en-voice').value;
 
   PET_CONFIG.corieName = newCorie;
   PET_CONFIG.duncanName = newDuncan;
   PET_CONFIG.shannonName = newShannon;
+  PET_CONFIG.tieniuName = newTieniu;
   PET_CONFIG.ttsMode = newMode;
   PET_CONFIG.speechRate = newRate;
   PET_CONFIG.zhVoiceURI = newZh;
@@ -1728,6 +2202,7 @@ function saveSettings() {
   localStorage.setItem('pet_corie_name', newCorie);
   localStorage.setItem('pet_duncan_name', newDuncan);
   localStorage.setItem('pet_shannon_name', newShannon);
+  localStorage.setItem('pet_tieniu_name', newTieniu);
   localStorage.setItem('pet_tts_mode', newMode);
   localStorage.setItem('pet_speech_rate', String(newRate));
   localStorage.setItem('pet_zh_voice', newZh);

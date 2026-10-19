@@ -10,6 +10,9 @@
   --shannon-primary: #10b981;
   --shannon-light: #e6fffa;
   --shannon-border: #5eead4;
+  --tieniu-primary: #8b5cf6;
+  --tieniu-light: #f3e8ff;
+  --tieniu-border: #c084fc;
   --pink-accent: #ff6b9d;
   --purple-accent: #9b6bff;
   --success-green: #38c172;
@@ -65,7 +68,7 @@ body {
 .top-bar {
   position: relative;
   z-index: 10;
-  max-width: 1060px;
+  max-width: 1140px;
   margin: 0 auto;
   padding: 14px 20px;
   display: flex;
@@ -136,7 +139,7 @@ body {
 .main-container {
   position: relative;
   z-index: 5;
-  max-width: 1060px;
+  max-width: 1140px;
   margin: 0 auto;
   padding: 8px 18px 40px;
 }
@@ -168,14 +171,14 @@ body {
 .characters-showcase {
   display: flex;
   justify-content: center;
-  gap: 22px;
+  gap: 18px;
   flex-wrap: wrap;
   margin-bottom: 18px;
 }
 
 .pet-avatar-card {
-  width: 168px;
-  padding: 14px 12px;
+  width: 158px;
+  padding: 14px 10px;
   border-radius: 26px;
   cursor: pointer;
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -208,9 +211,15 @@ body {
   box-shadow: 0 6px 0 var(--shannon-border);
 }
 
+.tieniu-theme {
+  background: var(--tieniu-light);
+  border: 4px solid var(--tieniu-border);
+  box-shadow: 0 6px 0 var(--tieniu-border);
+}
+
 .avatar-img-wrap {
-  width: 112px;
-  height: 112px;
+  width: 106px;
+  height: 106px;
   margin: 0 auto 8px;
   border-radius: 50%;
   background: #ffffff;
@@ -229,19 +238,19 @@ body {
 }
 
 .avatar-fallback {
-  font-size: 4rem;
+  font-size: 3.8rem;
   align-items: center;
   justify-content: center;
 }
 
 .pet-name-badge {
-  font-size: 1.25rem;
+  font-size: 1.22rem;
   font-weight: 900;
   margin-bottom: 4px;
 }
 
 .speech-mini {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: #555;
   background: rgba(255, 255, 255, 0.88);
@@ -250,7 +259,7 @@ body {
 }
 
 .welcome-heading {
-  font-size: 1.75rem;
+  font-size: 1.7rem;
   font-weight: 900;
   margin-bottom: 6px;
 }
@@ -258,25 +267,26 @@ body {
 .highlight-corie { color: var(--corie-primary); }
 .highlight-duncan { color: var(--duncan-primary); }
 .highlight-shannon { color: var(--shannon-primary); }
+.highlight-tieniu { color: var(--tieniu-primary); }
 
 .welcome-sub {
-  font-size: 1.1rem;
+  font-size: 1.08rem;
   color: #6e627d;
   margin-bottom: 22px;
   font-weight: 600;
 }
 
-/* 遊戲選擇三大卡 */
+/* 遊戲選擇四大卡 */
 .game-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(275px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
   margin-bottom: 28px;
 }
 
 .game-mode-card {
   border-radius: 28px;
-  padding: 20px 16px;
+  padding: 20px 15px;
   text-align: center;
   border: 4px solid transparent;
   display: flex;
@@ -290,6 +300,12 @@ body {
   background: linear-gradient(145deg, #e8f4ff 0%, #d4ebff 100%);
   border-color: #7cc0ff;
   box-shadow: 0 10px 0 #7cc0ff;
+}
+
+.zhuyin-card {
+  background: linear-gradient(145deg, #f3e8ff 0%, #e9d5ff 100%);
+  border-color: #c084fc;
+  box-shadow: 0 10px 0 #c084fc;
 }
 
 .math-card {
@@ -309,7 +325,7 @@ body {
   padding: 5px 14px;
   border-radius: 999px;
   font-weight: 900;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   color: #555;
 }
 
@@ -318,8 +334,8 @@ body {
 }
 
 .card-character img {
-  width: 82px;
-  height: 82px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   object-fit: cover;
   background: #fff;
@@ -332,13 +348,13 @@ body {
 }
 
 .game-mode-card h2 {
-  font-size: 1.42rem;
+  font-size: 1.38rem;
   font-weight: 900;
   color: var(--text-dark);
 }
 
 .game-mode-card p {
-  font-size: 0.96rem;
+  font-size: 0.94rem;
   color: #5c5368;
   font-weight: 600;
   line-height: 1.4;
@@ -349,16 +365,16 @@ body {
   display: flex;
   flex-direction: column;
   width: 100%;
-  gap: 9px;
+  gap: 8px;
   margin-top: 4px;
 }
 
 .lvl-btn {
   width: 100%;
-  padding: 11px 14px;
+  padding: 11px 12px;
   border-radius: 18px;
   border: none;
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   font-weight: 900;
   cursor: pointer;
   font-family: inherit;
@@ -540,6 +556,10 @@ body {
   transition: width 0.35s ease;
 }
 
+.progress-fill.zhuyin-fill {
+  background: linear-gradient(90deg, #c084fc, #9333ea);
+}
+
 .progress-fill.math-fill {
   background: linear-gradient(90deg, #fb923c, #f97316);
 }
@@ -576,6 +596,7 @@ body {
 
 .corie-host { border-color: var(--corie-border); }
 .shannon-host { border-color: var(--shannon-border); }
+.tieniu-host { border-color: var(--tieniu-border); }
 
 .host-avatar img {
   width: 100%;
@@ -608,6 +629,12 @@ body {
   cursor: pointer;
 }
 
+.sound-replay-btn.zhuyin-replay {
+  background: #faf5ff;
+  border-color: #d8b4fe;
+  color: #7e22ce;
+}
+
 .sound-replay-btn.math-replay {
   background: #fff7ed;
   border-color: #fdba74;
@@ -620,18 +647,24 @@ body {
   color: #047857;
 }
 
-/* 英文舞台：大字母卡 */
+/* 英文與注音舞台：大字卡 */
 .target-letter-stage {
   background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
   border: 4px solid #93c5fd;
   border-radius: 28px;
   padding: 16px 22px;
   text-align: center;
-  max-width: 380px;
+  max-width: 420px;
   margin: 0 auto 20px;
   cursor: pointer;
   box-shadow: 0 8px 0 #93c5fd;
   transition: transform 0.15s;
+}
+
+.target-letter-stage.zhuyin-stage {
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+  border-color: #c084fc;
+  box-shadow: 0 8px 0 #c084fc;
 }
 
 .target-letter-stage:active {
@@ -645,8 +678,13 @@ body {
   line-height: 1.15;
 }
 
+.big-letter.zhuyin-big {
+  color: #6b21a8;
+  font-size: 4.2rem;
+}
+
 .target-subword {
-  font-size: 1.9rem;
+  font-size: 1.75rem;
   font-weight: 900;
   color: #0f172a;
   letter-spacing: 2px;
@@ -660,6 +698,10 @@ body {
   margin-top: 6px;
 }
 
+.zhuyin-stage .target-hint {
+  color: #7e22ce;
+}
+
 /* 拼字槽位 */
 .spelling-slots {
   display: flex;
@@ -670,8 +712,9 @@ body {
 }
 
 .spell-slot {
-  width: 58px;
-  height: 64px;
+  min-width: 62px;
+  height: 66px;
+  padding: 0 12px;
   border-radius: 16px;
   border: 3px dashed #93c5fd;
   background: #f8fafc;
@@ -1038,7 +1081,7 @@ body {
 }
 
 .celebrate-fallback {
-  font-size: 4.5rem;
+  font-size: 4rem;
   padding: 24px;
   justify-content: center;
 }
@@ -1131,7 +1174,7 @@ body {
   background: #ffffff;
   border-radius: 26px;
   padding: 24px;
-  max-width: 460px;
+  max-width: 480px;
   width: 100%;
   max-height: 92vh;
   overflow-y: auto;
@@ -1172,6 +1215,31 @@ body {
   accent-color: #8b5cf6;
   height: 8px;
   cursor: pointer;
+}
+
+.speed-preset-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.speed-chip {
+  flex: 1;
+  min-width: 82px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 2px solid #ddd6fe;
+  background: #f5f3ff;
+  color: #6d28d9;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.speed-chip:hover {
+  background: #ede9fe;
 }
 
 .test-voice-row {
