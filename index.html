@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Corie & Duncan 的快樂學習樂園</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- 飄浮背景裝飾 -->
+  <div class="bg-decorations" aria-hidden="true">
+    <span class="floating-cloud c1">☁️</span>
+    <span class="floating-cloud c2">☁️</span>
+    <span class="floating-star s1">⭐</span>
+    <span class="floating-star s2">✨</span>
+    <span class="floating-star s3">🌸</span>
+  </div>
+
+  <!-- 頂部導覽列：星星獎勵計數器 & 家長設定 -->
+  <header class="top-bar">
+    <button id="btn-home" class="nav-btn hidden" onclick="showScreen('home')" aria-label="回首頁">
+      🏠 回首頁
+    </button>
+    <div class="brand-title" id="header-title">🌈 快樂學習樂園</div>
+    <div class="top-right-controls">
+      <div class="star-counter" title="收集到的星星">
+        <span class="star-icon">⭐</span>
+        <span id="star-count">0</span>
+      </div>
+      <button id="btn-settings" class="icon-btn" onclick="openSettingsModal()" title="修改主角名字與語音設定">
+        ⚙️
+      </button>
+    </div>
+  </header>
+
+  <!-- 主容器 -->
+  <main class="main-container">
+    <!-- ==================== 1. 首頁大廳 ==================== -->
+    <section id="screen-home" class="screen active">
+      <div class="hero-card">
+        <div class="characters-showcase">
+          <div class="pet-avatar-card corie-theme" onclick="petSpeak('corie')">
+            <div class="avatar-img-wrap">
+              <img src="assets/corie.png" alt="橘貓 Corie" id="img-corie-home" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+              <div class="avatar-fallback" style="display:none;">🐱</div>
+            </div>
+            <div class="pet-name-badge" data-pet-name="corie">Corie</div>
+            <div class="speech-mini">點我打招呼！🐾</div>
+          </div>
+
+          <div class="pet-avatar-card duncan-theme" onclick="petSpeak('duncan')">
+            <div class="avatar-img-wrap">
+              <img src="assets/duncan.png" alt="邊牧 Duncan" id="img-duncan-home" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+              <div class="avatar-fallback" style="display:none;">🐶</div>
+            </div>
+            <div class="pet-name-badge" data-pet-name="duncan">Duncan</div>
+            <div class="speech-mini">汪汪！一起玩！🎾</div>
+          </div>
+        </div>
+
+        <h1 class="welcome-heading">
+          跟 <span class="highlight-corie" data-pet-name="corie">Corie</span> 和
+          <span class="highlight-duncan" data-pet-name="duncan">Duncan</span> 一起探險！
+        </h1>
+        <p class="welcome-sub">選一個遊戲開始收集閃亮星星吧 ✨</p>
+
+        <!-- 遊戲選擇大按鈕 -->
+        <div class="game-cards-grid">
+          <button class="game-mode-card english-card" onclick="startEnglishGame()">
+            <div class="card-badge">ABC 英文</div>
+            <div class="card-character">
+              <img src="assets/duncan.png" alt="Duncan" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
+              <span style="display:none; font-size:3.5rem;">🐶</span>
+            </div>
+            <h2><span data-pet-name="duncan">Duncan</span> 的字母尋寶</h2>
+            <p>聽聲音、認字母、找可愛單字圖卡！</p>
+            <span class="play-pill">▶ 開始玩</span>
+          </button>
+
+          <button class="game-mode-card math-card" onclick="startMathGame()">
+            <div class="card-badge">123 數學</div>
+            <div class="card-character">
+              <img src="assets/corie.png" alt="Corie" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
+              <span style="display:none; font-size:3.5rem;">🐱</span>
+            </div>
+            <h2><span data-pet-name="corie">Corie</span> 的加法冒險</h2>
+            <p>數一數小動物與點心，加起來有幾個？</p>
+            <span class="play-pill">▶ 開始玩</span>
+          </button>
+        </div>
+
+        <!-- 貼紙獎勵簿預覽 -->
+        <div class="sticker-shelf">
+          <div class="shelf-title">🎁 我的獎勵貼紙簿（每得 3 顆 ⭐ 解鎖一張！）</div>
+          <div id="sticker-list" class="sticker-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 2. 英文遊戲：Duncan 的字母尋寶 ==================== -->
+    <section id="screen-english" class="screen">
+      <div class="game-board english-board">
+        <div class="progress-bar-wrap">
+          <div class="round-indicator" id="en-round-text">第 1 / 5 題</div>
+          <div class="progress-track">
+            <div class="progress-fill" id="en-progress-fill" style="width: 20%"></div>
+          </div>
+        </div>
+
+        <div class="host-area">
+          <div class="host-avatar duncan-host" onclick="repeatEnglishPrompt()">
+            <img src="assets/duncan.png" alt="Duncan" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <div class="avatar-fallback" style="display:none;">🐶</div>
+          </div>
+          <div class="host-bubble">
+            <div class="bubble-text" id="en-prompt-text">請找出開頭是 <b>A</b> 的單字！</div>
+            <button class="sound-replay-btn" onclick="repeatEnglishPrompt()">
+              🔊 再聽一次發音
+            </button>
+          </div>
+        </div>
+
+        <!-- 題目目標大字母展示 -->
+        <div class="target-letter-stage" onclick="repeatEnglishPrompt()">
+          <div class="big-letter" id="en-target-letter">A a</div>
+          <div class="target-hint" id="en-target-hint">🔊 點擊聽發音</div>
+        </div>
+
+        <!-- 選項卡片區 -->
+        <div class="options-grid english-options" id="en-options-container"></div>
+      </div>
+    </section>
+
+    <!-- ==================== 3. 數學遊戲：Corie 的加法冒險 ==================== -->
+    <section id="screen-math" class="screen">
+      <div class="game-board math-board">
+        <div class="progress-bar-wrap">
+          <div class="round-indicator" id="math-round-text">第 1 / 5 題</div>
+          <div class="progress-track">
+            <div class="progress-fill math-fill" id="math-progress-fill" style="width: 20%"></div>
+          </div>
+        </div>
+
+        <div class="host-area">
+          <div class="host-avatar corie-host" onclick="repeatMathPrompt()">
+            <img src="assets/corie.png" alt="Corie" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <div class="avatar-fallback" style="display:none;">🐱</div>
+          </div>
+          <div class="host-bubble">
+            <div class="bubble-text" id="math-prompt-text">幫我們數一數，合起來總共有幾個呢？</div>
+            <button class="sound-replay-btn math-replay" onclick="repeatMathPrompt()">
+              🔊 聽題目
+            </button>
+          </div>
+        </div>
+
+        <!-- 視覺化加法算式舞台 -->
+        <div class="math-visual-stage">
+          <div class="math-group" id="math-group-left"></div>
+          <div class="math-operator">+</div>
+          <div class="math-group" id="math-group-right"></div>
+          <div class="math-operator">=</div>
+          <div class="math-question-box" id="math-answer-slot">?</div>
+        </div>
+
+        <!-- 數字算式對照 -->
+        <div class="math-equation-numbers">
+          <span id="math-num-left">2</span>
+          <span>+</span>
+          <span id="math-num-right">1</span>
+          <span>=</span>
+          <span id="math-num-result" class="question-mark">?</span>
+        </div>
+
+        <!-- 數字按鈕選項 -->
+        <div class="options-grid math-options" id="math-options-container"></div>
+      </div>
+    </section>
+
+    <!-- ==================== 4. 過關慶祝畫面 ==================== -->
+    <section id="screen-celebrate" class="screen">
+      <div class="celebrate-card">
+        <div class="celebrate-banner">
+          <img src="assets/friends.png" alt="Corie & Duncan 一起慶祝" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <div class="celebrate-fallback" style="display:none;">🐱 🎉 🐶</div>
+        </div>
+        <h2 class="celebrate-title">太棒了！全部過關！🎉</h2>
+        <p class="celebrate-desc" id="celebrate-message">
+          Corie 跟 Duncan 替你拍拍手！你獲得了閃亮星星！
+        </p>
+        <div class="reward-stars-row">⭐ ⭐ ⭐</div>
+        <div class="celebrate-actions">
+          <button class="big-action-btn primary-btn" id="btn-play-again">🔄 再玩一次</button>
+          <button class="big-action-btn secondary-btn" onclick="showScreen('home')">🏠 回快樂大廳</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 滿版灑花特效畫布 -->
+  <div id="confetti-container" aria-hidden="true"></div>
+
+  <!-- 家長設定彈窗（可隨時改貓咪與邊牧的名字） -->
+  <div id="settings-modal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h3>⚙️ 角色名字設定</h3>
+      <p class="modal-hint">你可以隨時修改橘貓與黑白邊牧的名字，全站題目跟語音都會自動更新喔！</p>
+      <label class="form-field">
+        <span>🐱 橘貓的名字：</span>
+        <input type="text" id="input-corie-name" value="Corie" maxlength="20" />
+      </label>
+      <label class="form-field">
+        <span>🐶 黑白邊牧的名字：</span>
+        <input type="text" id="input-duncan-name" value="Duncan" maxlength="20" />
+      </label>
+      <div class="modal-actions">
+        <button class="modal-btn cancel-btn" onclick="closeSettingsModal()">取消</button>
+        <button class="modal-btn save-btn" onclick="saveSettings()">💾 儲存設定</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
