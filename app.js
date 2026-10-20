@@ -577,137 +577,145 @@ const EN_SHAPES = [
 
 
 // ============================================================================
+// 🛠️ 通用隨機與陣列工具函式
+// ============================================================================
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function shuffle(arr) {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+// ============================================================================
 // 🚀 Lv.6《Rocket Girl & Activity Book》國小閱讀理解與文法題庫
 // ============================================================================
-const ROCKET_BOOK1_BANK = {
-  units: [
-    { id: 'all', title: '🌟 全部單元綜合挑戰 (All Units)' },
-    { id: 'u1', title: '🎒 Unit 1: School Subjects & Rules (校園科目與規範)' },
-    { id: 'u2', title: '👨‍👩‍👧‍👦 Unit 2: Family & Occupations (家庭與職業)' },
-    { id: 'u3', title: '🐾 Unit 3: Wildlife & Habitats (動物與棲息地)' },
-    { id: 'u4', title: '🎻 Unit 4: Hobbies & Instruments (才藝與興趣)' },
-    { id: 'u5', title: '🥗 Unit 5: Healthy Diet & Ordering (健康飲食與點餐)' },
-    { id: 'roxy', title: '🦸‍♀️ Rocket Girl: Space Mission (火箭女孩太空任務閱讀)' },
-  ],
-  readingQuizzes: [
-    {
-      unit: 'u1',
-      badge: '📖 校園短篇閱讀理解 (Reading Comprehension)',
-      passage: 'Every Tuesday morning, Lucas brings his microscope and notebook to the science lab. His favorite subject is science because he loves doing exciting experiments with his classmates.',
-      question: 'Why does Lucas love science class?',
-      ans: 'Because he loves doing experiments.',
-      zh: '因為他喜歡做實驗。',
-      wrong: [
-        'Because he likes playing badminton.',
-        'Because the library is very quiet.',
-        'Because he wants to buy a sandwich.',
-      ],
-    },
-    {
-      unit: 'u1',
-      badge: '📝 國小核心文法選擇 (Grammar Challenge)',
-      passage: 'Please ______ quiet in the school library! Many students are reading books right now.',
-      question: '請選出最符合祈使句文法的動詞：',
-      ans: 'be',
-      zh: '祈使句原形動詞：Please be quiet!',
-      wrong: ['is', 'are', 'am'],
-    },
-    {
-      unit: 'u2',
-      badge: '📖 家庭與職業閱讀 (Reading Comprehension)',
-      passage: 'My aunt Emma works at a big city hospital. She wears a white coat and helps sick children feel better every day. My uncle Leo is a firefighter who drives a red fire truck.',
-      question: 'Where does Aunt Emma work?',
-      ans: 'At a city hospital.',
-      zh: '在市立醫院工作。',
-      wrong: [
-        'At a bakery near the park.',
-        'Inside a space station.',
-        'At an elementary school.',
-      ],
-    },
-    {
-      unit: 'u2',
-      badge: '📝 過去式文法挑戰 (Past Tense Grammar)',
-      passage: 'Yesterday evening, my father ______ a delicious pasta dinner for our whole family.',
-      question: '句中有 Yesterday（昨天），應使用哪一個過去式動詞？',
-      ans: 'cooked',
-      zh: '過去式：cooked (煮了)',
-      wrong: ['cooks', 'cooking', 'to cook'],
-    },
-    {
-      unit: 'u3',
-      badge: '📖 自然科學閱讀 (Science Reading)',
-      passage: 'Chameleons and arctic foxes are masters of camouflage. An arctic fox has white fur during the snowy winter so predators cannot see it easily in the snow.',
-      question: 'How does white fur help the arctic fox in winter?',
-      ans: 'It helps the fox hide in the snow.',
-      zh: '幫助北極狐在雪地中隱藏自己。',
-      wrong: [
-        'It helps the fox fly in the sky.',
-        'It makes the fox swim faster than sharks.',
-        'It helps the fox breathe underwater.',
-      ],
-    },
-    {
-      unit: 'u3',
-      badge: '📝 比較級文法挑戰 (Comparative Grammar)',
-      passage: 'A blue whale is much ______ than a dolphin. It is the largest animal on Earth!',
-      question: '句中有 than（比…更…），請選出正確的比較級形容詞：',
-      ans: 'heavier',
-      zh: '比較級：heavier (更重的)',
-      wrong: ['heavy', 'heaviest', 'more heavy'],
-    },
-    {
-      unit: 'u4',
-      badge: '📖 才藝與音樂閱讀 (Hobbies Reading)',
-      passage: 'Sophia practices the violin for forty-five minutes every afternoon. Next Saturday, she will perform on stage with the school orchestra in front of her parents.',
-      question: 'What will Sophia do next Saturday?',
-      ans: 'Perform with the school orchestra.',
-      zh: '與學校管弦樂團一起登台演出。',
-      wrong: [
-        'Go camping in the high mountains.',
-        'Visit the dentist after school.',
-        'Buy a new bicycle at the store.',
-      ],
-    },
-    {
-      unit: 'u5',
-      badge: '📖 健康飲食閱讀 (Healthy Diet Reading)',
-      passage: 'Waiter: "May I take your order?" Mia: "Yes, I would like a bowl of vegetable soup, a grilled chicken sandwich, and a glass of fresh orange juice, please."',
-      question: 'What drink did Mia order at the restaurant?',
-      ans: 'A glass of fresh orange juice.',
-      zh: '一杯新鮮柳橙汁。',
-      wrong: [
-        'A cup of hot chocolate.',
-        'A bottle of strawberry milk.',
-        'Two bowls of tomato soup.',
-      ],
-    },
-    {
-      unit: 'roxy',
-      badge: '🦸‍♀️ Rocket Girl 英雄閱讀挑戰 (Hero Story Reading)',
-      passage: 'Whenever Metro City is in trouble, Roxy puts on her silver jetpack and flies faster than a helicopter! Today, she rescued a little kitten stuck on top of a tall bridge.',
-      question: 'How does Rocket Girl fly into the sky?',
-      ans: 'She uses her silver jetpack.',
-      zh: '她使用銀色噴射背包飛行。',
-      wrong: [
-        'She rides a yellow submarine.',
-        'She takes an underground train.',
-        'She sails on a wooden boat.',
-      ],
-    },
-    {
-      unit: 'roxy',
-      badge: '🦸‍♀️ Rocket Girl 未來式文法 (Future Tense)',
-      passage: 'Don\'t worry, citizens! Rocket Girl ______ protect Metro City from the giant robot!',
-      question: '請選出表示「將會保護」的助動詞：',
-      ans: 'will',
-      zh: '助動詞 will + 原形動詞 protect',
-      wrong: ['did', 'was', 'are'],
-    },
-  ],
-};
+const ROCKET_BOOK1_BANK = [
+  {
+    unit: 'u1',
+    badge: '📖 校園短篇閱讀理解 (Reading Comprehension)',
+    passage: 'Every Tuesday morning, Lucas brings his microscope and notebook to the science lab. His favorite subject is science because he loves doing exciting experiments with his classmates.',
+    question: 'Why does Lucas love science class?',
+    ans: 'Because he loves doing experiments.',
+    zh: '因為他喜歡做實驗。',
+    wrong: [
+      'Because he likes playing badminton.',
+      'Because the library is very quiet.',
+      'Because he wants to buy a sandwich.',
+    ],
+  },
+  {
+    unit: 'u1',
+    badge: '📝 國小核心文法選擇 (Grammar Challenge)',
+    passage: 'Please ______ quiet in the school library! Many students are reading books right now.',
+    question: '請選出最符合祈使句文法的動詞：',
+    ans: 'be',
+    zh: '祈使句原形動詞：Please be quiet!',
+    wrong: ['is', 'are', 'am'],
+  },
+  {
+    unit: 'u2',
+    badge: '📖 家庭與職業閱讀 (Reading Comprehension)',
+    passage: 'My aunt Emma works at a big city hospital. She wears a white coat and helps sick children feel better every day. My uncle Leo is a firefighter who drives a red fire truck.',
+    question: 'Where does Aunt Emma work?',
+    ans: 'At a city hospital.',
+    zh: '在市立醫院工作。',
+    wrong: [
+      'At a bakery near the park.',
+      'Inside a space station.',
+      'At an elementary school.',
+    ],
+  },
+  {
+    unit: 'u2',
+    badge: '📝 過去式文法挑戰 (Past Tense Grammar)',
+    passage: 'Yesterday evening, my father ______ a delicious pasta dinner for our whole family.',
+    question: '句中有 Yesterday（昨天），應使用哪一個過去式動詞？',
+    ans: 'cooked',
+    zh: '過去式：cooked (煮了)',
+    wrong: ['cooks', 'cooking', 'to cook'],
+  },
+  {
+    unit: 'u3',
+    badge: '📖 自然科學閱讀 (Science Reading)',
+    passage: 'Chameleons and arctic foxes are masters of camouflage. An arctic fox has white fur during the snowy winter so predators cannot see it easily in the snow.',
+    question: 'How does white fur help the arctic fox in winter?',
+    ans: 'It helps the fox hide in the snow.',
+    zh: '幫助北極狐在雪地中隱藏自己。',
+    wrong: [
+      'It helps the fox fly in the sky.',
+      'It makes the fox swim faster than sharks.',
+      'It helps the fox breathe underwater.',
+    ],
+  },
+  {
+    unit: 'u3',
+    badge: '📝 比較級文法挑戰 (Comparative Grammar)',
+    passage: 'A blue whale is much ______ than a dolphin. It is the largest animal on Earth!',
+    question: '句中有 than（比…更…），請選出正確的比較級形容詞：',
+    ans: 'heavier',
+    zh: '比較級：heavier (更重的)',
+    wrong: ['heavy', 'heaviest', 'more heavy'],
+  },
+  {
+    unit: 'u4',
+    badge: '📖 才藝與音樂閱讀 (Hobbies Reading)',
+    passage: 'Sophia practices the violin for forty-five minutes every afternoon. Next Saturday, she will perform on stage with the school orchestra in front of her parents.',
+    question: 'What will Sophia do next Saturday?',
+    ans: 'Perform with the school orchestra.',
+    zh: '與學校管弦樂團一起登台演出。',
+    wrong: [
+      'Go camping in the high mountains.',
+      'Visit the dentist after school.',
+      'Buy a new bicycle at the store.',
+    ],
+  },
+  {
+    unit: 'u5',
+    badge: '📖 健康飲食閱讀 (Healthy Diet Reading)',
+    passage: 'Waiter: "May I take your order?" Mia: "Yes, I would like a bowl of vegetable soup, a grilled chicken sandwich, and a glass of fresh orange juice, please."',
+    question: 'What drink did Mia order at the restaurant?',
+    ans: 'A glass of fresh orange juice.',
+    zh: '一杯新鮮柳橙汁。',
+    wrong: [
+      'A cup of hot chocolate.',
+      'A bottle of strawberry milk.',
+      'Two bowls of tomato soup.',
+    ],
+  },
+  {
+    unit: 'rg',
+    badge: '🦸‍♀️ Rocket Girl 英雄閱讀挑戰 (Hero Story Reading)',
+    passage: 'Whenever Metro City is in trouble, Roxy puts on her silver jetpack and flies faster than a helicopter! Today, she rescued a little kitten stuck on top of a tall bridge.',
+    question: 'How does Rocket Girl fly into the sky?',
+    ans: 'She uses her silver jetpack.',
+    zh: '她使用銀色噴射背包飛行。',
+    wrong: [
+      'She rides a yellow submarine.',
+      'She takes an underground train.',
+      'She sails on a wooden boat.',
+    ],
+  },
+  {
+    unit: 'rg',
+    badge: '🦸‍♀️ Rocket Girl 未來式文法 (Future Tense)',
+    passage: "Don't worry, citizens! Rocket Girl ______ protect Metro City from the giant robot!",
+    question: '請選出表示「將會保護」的助動詞：',
+    ans: 'will',
+    zh: '助動詞 will + 原形動詞 protect',
+    wrong: ['did', 'was', 'are'],
+  },
+];
 
-// 🐱 數學視覺化與商店單品題庫
 const MATH_ITEMS = [
   { emoji: '🍓', name: '日本大草莓', unit: '顆' },
   { emoji: '🍩', name: '巧克力甜甜圈', unit: '個' },
@@ -724,190 +732,27 @@ const MATH_ITEMS = [
 // ============================================================================
 // 🎮 全域遊戲狀態
 // ============================================================================
+const TOTAL_ROUNDS = 8;
 let state = {
-  currentPet: null, // 'en' | 'math' | 'clock'
-  level: { en: 1, math: 1, clock: 1 },
+  currentMode: 'home', // 'home' | 'english' | 'math' | 'clock'
+  enLevel: 1,
+  mathLevel: 1,
+  clockLevel: 1,
   rocketUnit: 'all',
-  score: 0,
-  questionIndex: 0,
-  totalQuestions: 5,
-  currentQuestion: null,
+  round: 1,
+  streak: { en: 0, math: 0, clock: 0 },
   isAnswering: false,
-  lastEarnedSticker: null,
-  lastCoinsEarned: 0,
-  lastExpEarned: 0,
+  currentSpeech: [],
+  currentQuestion: null,
 };
 
 let audioCtx = null;
 let selectedZhVoice = null;
 let selectedEnVoice = null;
 let speechQueueId = 0;
-let activeCloudAudio = null;
 
 // ============================================================================
-// 🚀 初始化與存檔系統整合
-// ============================================================================
-function initApp() {
-  loadPetConfig();
-  loadSaveData();
-  applyPetNamesToDOM();
-
-  initSpeechVoices();
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.onvoiceschanged = initSpeechVoices;
-  }
-
-  renderPetSanctuary();
-  renderBadgesAndStreaks();
-  renderStickerWall();
-  startPlaytimeMonitor();
-
-  // 預熱音效與語音
-  document.addEventListener(
-    'pointerdown',
-    () => {
-      getAudioContext();
-    },
-    { once: true }
-  );
-}
-
-function renderBadgesAndStreaks() {
-  if (!SAVE_DATA) return;
-  document.getElementById('total-stars').textContent = SAVE_DATA.totalStars;
-  document.getElementById('coin-count').textContent = SAVE_DATA.coins;
-
-  // 各關卡完成次數徽章
-  const subjects = [
-    { key: 'en', max: 6 },
-    { key: 'math', max: 6 },
-    { key: 'clock', max: 3 },
-  ];
-  subjects.forEach((sub) => {
-    for (let lv = 1; lv <= sub.max; lv++) {
-      const id = `${sub.key}-${lv}`;
-      const count = SAVE_DATA.levelClears[id] || 0;
-      const el = document.getElementById(`badge-${id}`);
-      if (el) {
-        if (count > 0) {
-          el.textContent = `🏅×${count}`;
-          el.classList.add('cleared');
-        } else {
-          el.textContent = '未挑戰';
-          el.classList.remove('cleared');
-        }
-      }
-    }
-    const streakEl = document.getElementById(`${sub.key}-streak-pill`);
-    if (streakEl) {
-      streakEl.textContent = `🔥 連對 ${SAVE_DATA.streaks[sub.key] || 0}`;
-    }
-  });
-}
-
-// ============================================================================
-// 💾 學習檔案與進度備份視窗
-// ============================================================================
-function openProgressModal() {
-  playClickTick();
-  const grid = document.getElementById('progress-summary-grid');
-  if (grid && SAVE_DATA) {
-    const totalClears = Object.values(SAVE_DATA.levelClears).reduce((a, b) => a + b, 0);
-    const unlockedPets = Object.values(SAVE_DATA.pets).filter((p) => p.unlocked).length;
-    grid.innerHTML = `
-      <div class="progress-stat-box">
-        <span class="stat-num">⭐ ${SAVE_DATA.totalStars}</span>
-        <span class="stat-label">累積榮譽星星</span>
-      </div>
-      <div class="progress-stat-box">
-        <span class="stat-num">🪙 ${SAVE_DATA.coins}</span>
-        <span class="stat-label">目前擁有金幣</span>
-      </div>
-      <div class="progress-stat-box">
-        <span class="stat-num">🏆 ${totalClears} 次</span>
-        <span class="stat-label">累計通關次數</span>
-      </div>
-      <div class="progress-stat-box">
-        <span class="stat-num">✅ ${SAVE_DATA.totalCorrect || 0} 題</span>
-        <span class="stat-label">累計答對題數</span>
-      </div>
-      <div class="progress-stat-box">
-        <span class="stat-num">🐾 ${unlockedPets} / 5 隻</span>
-        <span class="stat-label">已解鎖守護夥伴</span>
-      </div>
-      <div class="progress-stat-box">
-        <span class="stat-num">🎁 ${SAVE_DATA.unlockedStickers.length} / ${STICKERS.length}</span>
-        <span class="stat-label">已收集榮譽貼紙</span>
-      </div>
-    `;
-  }
-  document.getElementById('progress-modal').classList.remove('hidden');
-}
-
-function closeProgressModal() {
-  playClickTick();
-  document.getElementById('progress-modal').classList.add('hidden');
-}
-
-function exportSaveCode() {
-  try {
-    const json = JSON.stringify(SAVE_DATA);
-    const code = btoa(encodeURIComponent(json));
-    const box = document.getElementById('save-code-textarea');
-    if (box) {
-      box.value = code;
-      box.select();
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(code).catch(() => {});
-      }
-    }
-    playSuccessJingle();
-    speakSequence([{ text: '進度備份碼已經產生並複製囉！', lang: 'zh-TW' }]);
-  } catch (e) {
-    console.warn('Export failed:', e);
-  }
-}
-
-function importSaveCode() {
-  const box = document.getElementById('save-code-textarea');
-  const raw = (box ? box.value : '').trim();
-  if (!raw) {
-    speakSequence([{ text: '請先在文字框貼上備份碼喔！', lang: 'zh-TW' }]);
-    return;
-  }
-  try {
-    const json = decodeURIComponent(atob(raw));
-    const parsed = JSON.parse(json);
-    if (parsed && typeof parsed.coins === 'number') {
-      SAVE_DATA = Object.assign(getDefaultSaveData(), parsed);
-      saveProgress();
-      renderPetSanctuary();
-      renderBadgesAndStreaks();
-      renderStickerWall();
-      openProgressModal();
-      playSuccessJingle();
-      speakSequence([{ text: '太棒了！學習進度與寵物屋已經成功還原！', lang: 'zh-TW' }]);
-    }
-  } catch (e) {
-    playTryAgainSound();
-    speakSequence([{ text: '備份碼格式不正確，請重新確認喔！', lang: 'zh-TW' }]);
-  }
-}
-
-function confirmResetAllProgress() {
-  const ok = window.confirm('確定要清除所有學習進度、金幣、寵物等級與貼紙嗎？此動作無法復原喔！');
-  if (!ok) return;
-  SAVE_DATA = getDefaultSaveData();
-  saveProgress();
-  renderPetSanctuary();
-  renderBadgesAndStreaks();
-  renderStickerWall();
-  openProgressModal();
-  speakSequence([{ text: '已重置所有學習紀錄。', lang: 'zh-TW' }]);
-}
-
-// ============================================================================
-// 🔊 雙語音與音效引擎
+// 🔊 音效與雙語音合成引擎
 // ============================================================================
 function getAudioContext() {
   if (!audioCtx) {
@@ -920,12 +765,84 @@ function getAudioContext() {
   return audioCtx;
 }
 
+function playTone(freq = 520, duration = 0.1, type = 'triangle') {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0.12, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start();
+  osc.stop(ctx.currentTime + duration + 0.01);
+}
+
+function playClickTick() {
+  playTone(660, 0.05, 'sine');
+}
+
+function playSuccessJingle() {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  const notes = [523.25, 659.25, 783.99, 1046.5];
+  notes.forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.14, ctx.currentTime + i * 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.08 + 0.24);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime + i * 0.08);
+    osc.stop(ctx.currentTime + i * 0.08 + 0.25);
+  });
+}
+
+function playTryAgainSound() {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  [300, 240].forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.12, ctx.currentTime + i * 0.12);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.12 + 0.2);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime + i * 0.12);
+    osc.stop(ctx.currentTime + i * 0.12 + 0.22);
+  });
+}
+
 function initSpeechVoices() {
   if (!('speechSynthesis' in window)) return;
   const voices = window.speechSynthesis.getVoices();
   if (!voices || !voices.length) return;
 
+  const zhSelect = document.getElementById('select-zh-voice');
+  const enSelect = document.getElementById('select-en-voice');
+
+  const zhVoices = voices.filter((v) => v.lang.startsWith('zh'));
+  const enVoices = voices.filter((v) => v.lang.startsWith('en'));
+
+  if (zhSelect && zhVoices.length) {
+    zhSelect.innerHTML = zhVoices
+      .map((v) => `<option value="${v.voiceURI}">${v.name} (${v.lang})</option>`)
+      .join('');
+  }
+  if (enSelect && enVoices.length) {
+    enSelect.innerHTML = enVoices
+      .map((v) => `<option value="${v.voiceURI}">${v.name} (${v.lang})</option>`)
+      .join('');
+  }
+
   const zhPriority = [
+    (v) => PET_CONFIG.zhVoiceURI && v.voiceURI === PET_CONFIG.zhVoiceURI,
     (v) => v.name.includes('HsiaoChen') && v.name.includes('Natural'),
     (v) => v.name.includes('HsiaoYu') && v.name.includes('Natural'),
     (v) => v.name.includes('Meijia') || v.name.includes('美佳'),
@@ -937,11 +854,13 @@ function initSpeechVoices() {
     const found = voices.find(test);
     if (found) {
       selectedZhVoice = found;
+      if (zhSelect) zhSelect.value = found.voiceURI;
       break;
     }
   }
 
   const enPriority = [
+    (v) => PET_CONFIG.enVoiceURI && v.voiceURI === PET_CONFIG.enVoiceURI,
     (v) => v.name.includes('Aria') && v.name.includes('Natural'),
     (v) => v.name.includes('Jenny') && v.name.includes('Natural'),
     (v) => v.name.includes('Samantha'),
@@ -953,6 +872,7 @@ function initSpeechVoices() {
     const found = voices.find(test);
     if (found) {
       selectedEnVoice = found;
+      if (enSelect) enSelect.value = found.voiceURI;
       break;
     }
   }
@@ -963,20 +883,13 @@ function clearPendingSpeech() {
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
   }
-  if (activeCloudAudio) {
-    try {
-      activeCloudAudio.pause();
-      activeCloudAudio.src = '';
-    } catch (e) {}
-    activeCloudAudio = null;
-  }
 }
 
 function speakSequence(items) {
   if (!items || !items.length) return;
   clearPendingSpeech();
   const myQueueId = speechQueueId;
-  const speed = Number(PET_CONFIG.speechRate) || 1.05;
+  const speed = Number(PET_CONFIG.speechRate) || 1.0;
 
   let idx = 0;
   function playNext() {
@@ -1021,206 +934,184 @@ function speakSingleItem(item, speed, onDone) {
   }
 }
 
-function speakCurrentPrompt() {
-  if (state.currentQuestion && state.currentQuestion.speech) {
-    speakSequence(state.currentQuestion.speech);
-  }
-}
-
-function playSuccessJingle() {
-  const ctx = getAudioContext();
-  if (!ctx) return;
-  const notes = [523.25, 659.25, 783.99, 1046.5];
-  notes.forEach((freq, i) => {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0.14, ctx.currentTime + i * 0.08);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.08 + 0.24);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(ctx.currentTime + i * 0.08);
-    osc.stop(ctx.currentTime + i * 0.08 + 0.25);
+// ============================================================================
+// 🧭 畫面切換、頂部計數器與貼紙櫃渲染
+// ============================================================================
+function applyPetNamesToDOM() {
+  document.querySelectorAll('[data-pet-name="corie"]').forEach((el) => {
+    el.textContent = PET_CONFIG.corieName;
+  });
+  document.querySelectorAll('[data-pet-name="duncan"]').forEach((el) => {
+    el.textContent = PET_CONFIG.duncanName;
+  });
+  document.querySelectorAll('[data-pet-name="shannon"]').forEach((el) => {
+    el.textContent = PET_CONFIG.shannonName;
   });
 }
 
-function playTryAgainSound() {
-  const ctx = getAudioContext();
-  if (!ctx) return;
-  const freqs = [300, 240];
-  freqs.forEach((freq, i) => {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0.12, ctx.currentTime + i * 0.12);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.12 + 0.2);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(ctx.currentTime + i * 0.12);
-    osc.stop(ctx.currentTime + i * 0.12 + 0.22);
-  });
-}
+function updateTopCountersUI() {
+  const starEl = document.getElementById('star-count');
+  const coinEl = document.getElementById('coin-count');
+  if (starEl) starEl.textContent = SAVE_DATA.totalStars;
+  if (coinEl) coinEl.textContent = SAVE_DATA.coins;
 
-function playClickTick() {
-  const ctx = getAudioContext();
-  if (!ctx) return;
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = 'sine';
-  osc.frequency.value = 660;
-  gain.gain.setValueAtTime(0.06, ctx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.start();
-  osc.stop(ctx.currentTime + 0.055);
-}
-
-// ============================================================================
-// 🧭 畫面切換與關卡控制
-// ============================================================================
-function showScreen(screenId) {
-  document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
-  const target = document.getElementById(screenId);
-  if (target) target.classList.add('active');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function goHome() {
-  playClickTick();
-  clearPendingSpeech();
-  state.currentPet = null;
-  renderPetSanctuary();
-  renderBadgesAndStreaks();
-  renderStickerWall();
-  showScreen('home-screen');
-}
-
-function selectPet(petKey, levelNum) {
-  playClickTick();
-  state.currentPet = petKey;
-  if (levelNum) {
-    state.level[petKey] = levelNum;
-  }
-  state.score = 0;
-  state.questionIndex = 0;
-  state.lastCoinsEarned = 0;
-  state.lastExpEarned = 0;
-
-  if (petKey === 'en') {
-    updateLevelTabs('en-screen', state.level.en);
-    const rocketBar = document.getElementById('rocket-unit-bar');
-    if (rocketBar) {
-      rocketBar.classList.toggle('hidden', state.level.en !== 6);
-      if (state.level.en === 6) renderRocketUnitBar();
+  // 更新首頁關卡過關次數徽章
+  const mapping = [
+    { key: 'en', max: 6 },
+    { key: 'math', max: 6 },
+    { key: 'clock', max: 3 },
+  ];
+  mapping.forEach((m) => {
+    for (let lv = 1; lv <= m.max; lv++) {
+      const badge = document.getElementById(`badge-${m.key}-${lv}`);
+      const clears = SAVE_DATA.levelClears[`${m.key}_${lv}`] || 0;
+      if (badge) {
+        badge.textContent = clears > 0 ? `🏅×${clears}` : '';
+      }
     }
-    showScreen('en-screen');
-    loadEnglishQuestion();
-  } else if (petKey === 'math') {
-    updateLevelTabs('math-screen', state.level.math);
-    showScreen('math-screen');
-    loadMathQuestion();
-  } else if (petKey === 'clock') {
-    updateLevelTabs('clock-screen', state.level.clock);
-    showScreen('clock-screen');
-    loadClockQuestion();
-  }
-}
-
-function changeLevel(petKey, lv) {
-  playClickTick();
-  state.level[petKey] = lv;
-  state.questionIndex = 0;
-  state.score = 0;
-  selectPet(petKey, lv);
-}
-
-function updateLevelTabs(screenId, activeLv) {
-  const container = document.getElementById(screenId);
-  if (!container) return;
-  const tabs = container.querySelectorAll('.level-tabs .lvl-tab');
-  tabs.forEach((btn, idx) => {
-    btn.classList.toggle('active', idx + 1 === activeLv);
   });
-}
 
-function updateProgressDots(prefix) {
-  const container = document.getElementById(`${prefix}-dots`);
-  if (!container) return;
-  let html = '';
-  for (let i = 0; i < state.totalQuestions; i++) {
-    let cls = 'dot';
-    if (i < state.questionIndex) cls += ' done';
-    else if (i === state.questionIndex) cls += ' active';
-    html += `<span class="${cls}"></span>`;
-  }
-  container.innerHTML = html;
+  renderStickerWall();
 }
 
 function renderStickerWall() {
-  const wall = document.getElementById('sticker-wall');
-  const countEl = document.getElementById('sticker-count');
-  const totalEl = document.getElementById('sticker-total');
-  if (!wall || !SAVE_DATA) return;
+  const listEl = document.getElementById('sticker-list');
+  const progEl = document.getElementById('sticker-progress-text');
+  if (!listEl) return;
 
-  if (countEl) countEl.textContent = SAVE_DATA.unlockedStickers.length;
-  if (totalEl) totalEl.textContent = STICKERS.length;
+  const unlockedCount = Math.min(STICKERS.length, Math.floor(SAVE_DATA.totalStars / 3));
+  if (progEl) {
+    progEl.textContent = `已解鎖 ${unlockedCount} / ${STICKERS.length} 張`;
+  }
 
-  wall.innerHTML = STICKERS.map((s, idx) => {
-    const unlocked = SAVE_DATA.unlockedStickers.includes(idx);
+  listEl.innerHTML = STICKERS.map((s, idx) => {
+    const unlocked = idx < unlockedCount;
     if (unlocked) {
-      return `<div class="sticker-slot unlocked" title="${s.name}" onclick="speakSticker(${idx})">
-        <span class="s-emoji">${s.emoji}</span>
-        <span class="s-name">${s.name}</span>
+      return `<div class="sticker-item unlocked" title="${s.name}" onclick="speakSequence([{text:'${s.name}',lang:'zh-TW'}])">
+        <span class="sticker-emoji">${s.emoji}</span>
+        <span class="sticker-name">${s.name}</span>
       </div>`;
     }
-    return `<div class="sticker-slot locked" title="再得 3 顆星即可解鎖">🔒</div>`;
+    return `<div class="sticker-item locked" title="每集滿 3 顆星解鎖一張">🔒</div>`;
   }).join('');
 }
 
-function speakSticker(idx) {
-  const s = STICKERS[idx];
-  if (!s) return;
+function showScreen(screenKey) {
   playClickTick();
-  speakSequence([{ text: s.name, lang: 'zh-TW' }]);
+  clearPendingSpeech();
+
+  const map = {
+    home: 'screen-home',
+    english: 'screen-english',
+    math: 'screen-math',
+    clock: 'screen-clock',
+    celebrate: 'screen-celebrate',
+  };
+  const targetId = map[screenKey] || screenKey;
+
+  document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
+  const targetEl = document.getElementById(targetId);
+  if (targetEl) targetEl.classList.add('active');
+
+  const homeBtn = document.getElementById('btn-home');
+  if (homeBtn) {
+    homeBtn.classList.toggle('hidden', targetId === 'screen-home');
+  }
+
+  if (targetId === 'screen-home') {
+    state.currentMode = 'home';
+    updateTopCountersUI();
+    renderPetSanctuary();
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateRoundProgressUI(prefix) {
+  const roundEl = document.getElementById(`${prefix}-round-text`);
+  const fillEl = document.getElementById(`${prefix}-progress-fill`);
+  const streakEl = document.getElementById(`${prefix}-streak-pill`);
+  if (roundEl) roundEl.textContent = `第 ${state.round} / ${TOTAL_ROUNDS} 題`;
+  if (fillEl) fillEl.style.width = `${Math.round((state.round / TOTAL_ROUNDS) * 100)}%`;
+  if (streakEl) streakEl.textContent = `🔥 連對 ${state.streak[prefix] || 0}`;
+}
+
+function spawnConfetti(count = 24) {
+  const container = document.getElementById('confetti-container');
+  if (!container) return;
+  container.innerHTML = '';
+  const emojis = ['🎉', '⭐', '🪙', '🏆', '🌈', '✨', '🎈'];
+  for (let i = 0; i < count; i++) {
+    const piece = document.createElement('span');
+    piece.className = 'confetti-piece';
+    piece.textContent = emojis[i % emojis.length];
+    piece.style.left = `${Math.random() * 95}%`;
+    piece.style.animationDelay = `${(Math.random() * 0.7).toFixed(2)}s`;
+    container.appendChild(piece);
+  }
+  setTimeout(() => {
+    container.innerHTML = '';
+  }, 3000);
 }
 
 // ============================================================================
-// 🐶 Duncan 國小英文學院 (6~12歲 6大進階關卡)
+// 🐶 Duncan 國小英文學院 (6~12歲 6大關卡)
 // ============================================================================
-function renderRocketUnitBar() {
-  const bar = document.getElementById('rocket-unit-bar');
-  if (!bar) return;
-  bar.innerHTML = ROCKET_BOOK1_BANK.units
-    .map(
-      (u) => `<button class="lvl-tab ${state.rocketUnit === u.id ? 'active' : ''}"
-        onclick="selectRocketUnit('${u.id}')">${u.title}</button>`
-    )
-    .join('');
+function startEnglishGame(lv = 1) {
+  state.currentMode = 'english';
+  state.enLevel = lv;
+  state.round = 1;
+  showScreen('english');
+  syncEnglishLevelChips();
+  loadEnglishQuestion();
 }
 
-function selectRocketUnit(unitId) {
+function switchEnglishLevel(lv) {
+  playClickTick();
+  state.enLevel = lv;
+  state.round = 1;
+  syncEnglishLevelChips();
+  loadEnglishQuestion();
+}
+
+function syncEnglishLevelChips() {
+  for (let i = 1; i <= 6; i++) {
+    const chip = document.getElementById(`en-lvl-chip-${i}`);
+    if (chip) chip.classList.toggle('active', i === state.enLevel);
+  }
+  const rocketBar = document.getElementById('rocket-unit-bar');
+  if (rocketBar) {
+    rocketBar.classList.toggle('hidden', state.enLevel !== 6);
+  }
+}
+
+function switchRocketUnit(unitId) {
   playClickTick();
   state.rocketUnit = unitId;
-  state.questionIndex = 0;
-  renderRocketUnitBar();
+  state.round = 1;
+  ['all', 'u1', 'u2', 'u3', 'u4', 'u5', 'rg'].forEach((id) => {
+    const btn = document.getElementById(`rk-unit-${id}`);
+    if (btn) btn.classList.toggle('active', id === unitId);
+  });
   loadEnglishQuestion();
+}
+
+function repeatEnglishPrompt() {
+  if (state.currentSpeech && state.currentSpeech.length) {
+    speakSequence(state.currentSpeech);
+  }
 }
 
 function loadEnglishQuestion() {
   state.isAnswering = false;
-  updateProgressDots('en');
-  renderBadgesAndStreaks();
+  updateRoundProgressUI('en');
 
-  const fb = document.getElementById('en-feedback');
-  if (fb) {
-    fb.textContent = '';
-    fb.className = 'feedback-banner';
+  const slotsEl = document.getElementById('en-spelling-slots');
+  if (slotsEl) {
+    slotsEl.innerHTML = '';
+    slotsEl.classList.add('hidden');
   }
 
-  const lv = state.level.en;
+  const lv = state.enLevel;
   if (lv === 1) renderEnLv1ClueChallenge();
   else if (lv === 2) renderEnLv2ClozeAndOpposite();
   else if (lv === 3) renderEnLv3ScrambleAndSpell();
@@ -1229,87 +1120,87 @@ function loadEnglishQuestion() {
   else renderEnLv6ReadingAndGrammar();
 }
 
-// Lv.1 國小百大單字與英英定義謎題 (Word Detective)
+function setEnglishStageCard(bigText, subHtml, hintText) {
+  const stageBox = document.getElementById('en-stage-box');
+  if (!stageBox) return;
+  stageBox.innerHTML = `
+    <div class="big-letter" id="en-target-letter">${bigText}</div>
+    <div class="target-subword" id="en-target-subword">${subHtml}</div>
+    <div class="target-hint" id="en-target-hint">${hintText}</div>
+  `;
+}
+
+// Lv.1 國小百大單字與英英定義謎題
 function renderEnLv1ClueChallenge() {
-  const stage = document.getElementById('en-stage');
-  const grid = document.getElementById('en-options');
+  const container = document.getElementById('en-options-container');
   const target = pickRandom(ENGLISH_BANK);
   const distractors = shuffle(ENGLISH_BANK.filter((w) => w.word !== target.word)).slice(0, 3);
   const options = shuffle([target, ...distractors]);
 
-  state.currentQuestion = {
-    answer: target.word,
-    speech: [
-      { text: 'Word Detective! Listen to the clue:', lang: 'en-US' },
-      { text: target.clue, lang: 'en-US' },
-      { text: `Which word means ${target.zh}?`, lang: 'zh-TW' },
-    ],
-  };
+  document.getElementById('en-prompt-text').textContent =
+    `${PET_CONFIG.duncanName}：「請閱讀英文定義線索，推理出正確的國小單字！」`;
 
-  document.getElementById('en-prompt').textContent =
-    `${PET_CONFIG.en}：「請閱讀英文定義線索，找出正確的國小核心單字！」`;
+  setEnglishStageCard(
+    `${target.emoji} Word Detective`,
+    `<div style="font-size:1.15rem; color:#1e293b; font-weight:800; line-height:1.5; margin:6px 0;">"${target.clue}"</div>`,
+    `💡 字首提示：${target.letter}... ｜ 點此聽英文線索發音`
+  );
 
-  stage.innerHTML = `
-    <div class="word-problem-card">
-      <div class="wp-badge">🕵️ 英英定義解謎 (English Definition Clue)</div>
-      <div class="wp-text">"${target.clue}"</div>
-      <div style="margin-top:8px; font-weight:800; color:#4f46e5;">💡 中文提示：${target.emoji} ${target.zh}（字首：${target.letter}）</div>
-    </div>
-  `;
+  state.currentSpeech = [
+    { text: target.clue, lang: 'en-US' },
+    { text: `Which word means ${target.zh}?`, lang: 'zh-TW' },
+  ];
 
-  grid.innerHTML = options
+  container.className = 'options-grid english-options';
+  container.innerHTML = options
     .map(
       (opt) => `
-      <button class="option-btn" onclick="checkEnglishOption(this, '${opt.word}', '${target.word}')">
-        <span style="font-size:2rem;">${opt.emoji}</span>
-        <span style="font-size:1.25rem; font-weight:900;">${opt.word}</span>
-        <span style="font-size:0.9rem; color:#64748b;">${opt.zh}</span>
+      <button class="option-card" onclick="checkEnglishAnswer(this, '${opt.word}', '${target.word}', '${opt.word} (${opt.zh})')">
+        <div class="opt-emoji">${opt.emoji}</div>
+        <div class="opt-word">${opt.word}</div>
+        <div class="opt-zh">${opt.zh}</div>
       </button>
     `
     )
     .join('');
 
-  speakCurrentPrompt();
+  repeatEnglishPrompt();
 }
 
-// Lv.2 克漏字填空與反義/同義詞挑戰
+// Lv.2 自然發音填空＆同反義詞
 function renderEnLv2ClozeAndOpposite() {
-  const stage = document.getElementById('en-stage');
-  const grid = document.getElementById('en-options');
+  const container = document.getElementById('en-options-container');
+  const isOpposite = state.round % 2 === 0;
 
-  const isOppositeMode = state.questionIndex % 2 === 1;
-  if (isOppositeMode) {
+  if (isOpposite) {
     const item = pickRandom(EN_OPPOSITES_BANK);
     const opts = shuffle([item.ans, ...item.wrong]);
-    state.currentQuestion = {
-      answer: item.ans,
-      speech: [
-        { text: `Find the ${item.rel.includes('Opposite') ? 'opposite' : 'synonym'} of`, lang: 'en-US' },
-        { text: item.base.split(' ')[0], lang: 'en-US' },
-      ],
-    };
-    document.getElementById('en-prompt').textContent =
-      `${PET_CONFIG.en}：「請找出下列單字的【${item.rel}】！」`;
 
-    stage.innerHTML = `
-      <div class="word-problem-card">
-        <div class="wp-badge">🔄 國小必考字彙關係 (${item.rel})</div>
-        <div class="wp-text" style="font-size:1.5rem; text-align:center;">
-          <strong>${item.base}</strong> ➔ <span style="color:#ec4899; border-bottom:3px dashed #ec4899; padding:0 12px;">?</span>
-        </div>
-      </div>
-    `;
-    grid.innerHTML = opts
+    document.getElementById('en-prompt-text').textContent =
+      `${PET_CONFIG.duncanName}：「請找出下列單字的【${item.rel}】！」`;
+
+    setEnglishStageCard(
+      item.base,
+      `<div style="font-size:1.2rem; color:#ec4899; font-weight:900;">請選出它的 ${item.rel} ➔ [ ? ]</div>`,
+      `🔊 點此聽單字發音`
+    );
+
+    state.currentSpeech = [
+      { text: item.base.split(' ')[0], lang: 'en-US' },
+      { text: `請找出它的${item.rel}`, lang: 'zh-TW' },
+    ];
+
+    container.className = 'options-grid english-options';
+    container.innerHTML = opts
       .map(
         (w) => `
-        <button class="option-btn" onclick="checkEnglishOption(this, '${w}', '${item.ans}')">
-          <span style="font-size:1.35rem; font-weight:900;">${w}</span>
+        <button class="option-card" onclick="checkEnglishAnswer(this, '${w}', '${item.ans}', '${w}')">
+          <div class="opt-word" style="font-size:1.5rem;">${w}</div>
         </button>
       `
       )
       .join('');
   } else {
-    // 進階克漏字拼字填空 (挖空2~3個母音/子音字母)
     const target = pickRandom(ENGLISH_BANK);
     const word = target.word;
     const midIdx = Math.max(1, Math.floor(word.length / 2) - 1);
@@ -1320,141 +1211,122 @@ function renderEnLv2ClozeAndOpposite() {
     const distractors = shuffle(pool.filter((p) => p !== missingPart.toLowerCase())).slice(0, 3);
     const opts = shuffle([missingPart, ...distractors]);
 
-    state.currentQuestion = {
-      answer: missingPart,
-      speech: [
-        { text: target.word, lang: 'en-US' },
-        { text: target.clue, lang: 'en-US' },
-      ],
-    };
-    document.getElementById('en-prompt').textContent =
-      `${PET_CONFIG.en}：「聽發音，選出正確的字母組合完成單字！」`;
+    document.getElementById('en-prompt-text').textContent =
+      `${PET_CONFIG.duncanName}：「聽發音與線索，選出正確的雙字母完成單字！」`;
 
-    stage.innerHTML = `
-      <div class="word-problem-card" style="text-align:center;">
-        <div class="wp-badge">🔤 自然發音雙字母填空 (Phonics Cloze)</div>
-        <div style="font-size:3.2rem; margin:6px 0;">${target.emoji}</div>
-        <div style="font-size:2rem; font-weight:900; letter-spacing:3px; color:#1e293b;">${maskedWord}</div>
-        <div style="font-size:1rem; color:#475569; margin-top:4px;">${target.zh} — "${target.clue}"</div>
-      </div>
-    `;
-    grid.innerHTML = opts
+    setEnglishStageCard(
+      `${target.emoji} ${maskedWord}`,
+      `<div style="font-size:1.05rem; color:#475569; font-weight:800;">${target.zh} — "${target.clue}"</div>`,
+      `🔊 點此聽完整單字發音`
+    );
+
+    state.currentSpeech = [
+      { text: target.word, lang: 'en-US' },
+      { text: target.zh, lang: 'zh-TW' },
+    ];
+
+    container.className = 'options-grid english-options';
+    container.innerHTML = opts
       .map(
         (part) => `
-        <button class="option-btn" onclick="checkEnglishOption(this, '${part}', '${missingPart}')">
-          <span style="font-size:1.6rem; font-weight:900; color:#4f46e5;">${part}</span>
+        <button class="option-card" onclick="checkEnglishAnswer(this, '${part}', '${missingPart}', '${target.word}')">
+          <div class="opt-word" style="font-size:1.75rem; color:#4f46e5;">${part}</div>
         </button>
       `
       )
       .join('');
   }
-  speakCurrentPrompt();
+  repeatEnglishPrompt();
 }
 
-// Lv.3 英文句子重組與長單字拼寫
+// Lv.3 進階拼字＆英文句子重組
 function renderEnLv3ScrambleAndSpell() {
-  const stage = document.getElementById('en-stage');
-  const grid = document.getElementById('en-options');
-  grid.innerHTML = '';
+  const slotsEl = document.getElementById('en-spelling-slots');
+  const container = document.getElementById('en-options-container');
+  slotsEl.classList.remove('hidden');
 
   const item = pickRandom(EN_SENTENCE_SCRAMBLE_BANK);
   const fullSentence = item.words.join(' ');
-  const shuffledWords = shuffle(item.words.map((w, i) => ({ w, id: i })));
+  const pool = shuffle(item.words.map((w, idx) => ({ w, id: idx })));
 
   state.currentQuestion = {
     targetWords: item.words,
-    pickedWords: [],
-    shuffledPool: shuffledWords,
-    speech: [
-      { text: fullSentence, lang: 'en-US' },
-      { text: item.zh, lang: 'zh-TW' },
-    ],
+    picked: [],
+    pool,
+    zh: item.zh,
   };
 
-  document.getElementById('en-prompt').textContent =
-    `${PET_CONFIG.en}：「請依正確英文文法順序，點擊單字卡重組完整句子！」`;
+  document.getElementById('en-prompt-text').textContent =
+    `${PET_CONFIG.duncanName}：「請按照正確的英文文法順序，依序點擊單字卡重組句子！」`;
 
-  renderScrambleUI(item.zh);
-  speakCurrentPrompt();
+  setEnglishStageCard(
+    '✍️ Sentence Scramble',
+    `<div style="font-size:1.25rem; color:#1e293b; font-weight:900;">中文句意：${item.zh}</div>`,
+    `🔊 點此聽完整英文句子提示`
+  );
+
+  state.currentSpeech = [
+    { text: fullSentence, lang: 'en-US' },
+    { text: item.zh, lang: 'zh-TW' },
+  ];
+
+  renderEnLv3ScrambleSlots();
+  repeatEnglishPrompt();
 }
 
-function renderScrambleUI(zhHint) {
-  const stage = document.getElementById('en-stage');
+function renderEnLv3ScrambleSlots() {
+  const slotsEl = document.getElementById('en-spelling-slots');
+  const container = document.getElementById('en-options-container');
   const q = state.currentQuestion;
-  const pickedHtml = q.targetWords
-    .map((_, idx) => {
-      const picked = q.pickedWords[idx];
-      if (picked) {
-        return `<span class="spell-slot filled" style="width:auto; padding:6px 12px; font-size:1.1rem;">${picked.w}</span>`;
-      }
-      return `<span class="spell-slot" style="width:48px; font-size:1rem;">${idx + 1}</span>`;
+
+  slotsEl.innerHTML = q.targetWords
+    .map((_, i) => {
+      const p = q.picked[i];
+      return `<div class="letter-slot ${p ? 'filled' : ''}" style="min-width:64px; width:auto; padding:0 12px; font-size:1.15rem;">
+        ${p ? p.w : i + 1}
+      </div>`;
     })
     .join('');
 
-  const poolHtml = q.shuffledPool
+  container.className = 'options-grid english-options';
+  container.innerHTML = q.pool
     .map((token) => {
-      const used = q.pickedWords.some((p) => p.id === token.id);
-      return `<button class="letter-tile ${used ? 'used' : ''}"
-        style="width:auto; padding:10px 16px; font-size:1.15rem;"
+      const used = q.picked.some((p) => p.id === token.id);
+      return `<button class="option-card ${used ? 'correct-pick' : ''}"
+        style="padding:12px 18px; min-height:64px;"
         ${used ? 'disabled' : ''}
-        onclick="pickScrambleWord(${token.id})">${token.w}</button>`;
+        onclick="handleScrambleWordPick(${token.id})">
+        <div class="opt-word" style="font-size:1.3rem;">${token.w}</div>
+      </button>`;
     })
     .join('');
-
-  stage.innerHTML = `
-    <div class="word-problem-card" style="text-align:center;">
-      <div class="wp-badge">✍️ 國小英文句型重組 (Sentence Scramble)</div>
-      <div class="wp-text" style="font-size:1.25rem; margin-bottom:10px;">中文句意：<strong>${zhHint}</strong></div>
-      <div class="spell-slots-row" style="flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:14px;">
-        ${pickedHtml}
-      </div>
-      <div class="letter-tiles-row" style="flex-wrap:wrap; gap:10px; justify-content:center;">
-        ${poolHtml}
-      </div>
-      <div style="margin-top:12px;">
-        <button class="secondary-pill-btn" onclick="resetScrambleWords()">🔄 重新排列</button>
-      </div>
-    </div>
-  `;
 }
 
-function pickScrambleWord(tokenId) {
+function handleScrambleWordPick(tokenId) {
   if (state.isAnswering) return;
-  playClickTick();
   const q = state.currentQuestion;
-  const token = q.shuffledPool.find((t) => t.id === tokenId);
+  const token = q.pool.find((t) => t.id === tokenId);
   if (!token) return;
 
-  const expectedWord = q.targetWords[q.pickedWords.length];
-  if (token.w.toLowerCase() === expectedWord.toLowerCase()) {
-    q.pickedWords.push(token);
+  const expected = q.targetWords[q.picked.length];
+  if (token.w.toLowerCase() === expected.toLowerCase()) {
+    playClickTick();
+    q.picked.push(token);
     speakSequence([{ text: token.w, lang: 'en-US' }]);
-    const zhHint = q.speech[1] ? q.speech[1].text : '';
-    renderScrambleUI(zhHint);
+    renderEnLv3ScrambleSlots();
 
-    if (q.pickedWords.length === q.targetWords.length) {
-      handleCorrectAnswer('en', q.targetWords.join(' '), [
-        { text: 'Awesome! ' + q.targetWords.join(' '), lang: 'en-US' },
-      ]);
+    if (q.picked.length === q.targetWords.length) {
+      const sentence = q.targetWords.join(' ');
+      onCorrectAnswer('en', sentence, [{ text: `Awesome! ${sentence}`, lang: 'en-US' }]);
     }
   } else {
-    handleWrongAnswer('en', `下一個單字不是 "${token.w}" 喔，再聽一次句子順序！`);
+    onWrongAnswer('en', `下一個單字不是 "${token.w}" 喔，再聽一次句子順序！`);
   }
 }
 
-function resetScrambleWords() {
-  if (state.isAnswering || !state.currentQuestion) return;
-  playClickTick();
-  state.currentQuestion.pickedWords = [];
-  renderScrambleUI(state.currentQuestion.speech[1].text);
-}
-
-// Lv.4 幾何圖形與色彩英文任務 (Geometry & Color Balloons)
+// Lv.4 幾何多邊形與雙重指令氣球
 function renderEnLv4GeometryBalloon() {
-  const stage = document.getElementById('en-stage');
-  const grid = document.getElementById('en-options');
-  grid.innerHTML = '';
-
+  const container = document.getElementById('en-options-container');
   const targetColor = pickRandom(EN_COLORS);
   const targetShape = pickRandom(EN_SHAPES);
   const targetKey = `${targetColor.shortEn}-${targetShape.id}`;
@@ -1464,245 +1336,220 @@ function renderEnLv4GeometryBalloon() {
     const c = pickRandom(EN_COLORS);
     const s = pickRandom(EN_SHAPES);
     const k = `${c.shortEn}-${s.id}`;
-    if (!combos.some((item) => item.key === k)) {
-      combos.push({ color: c, shape: s, key: k });
-    }
+    if (!combos.some((x) => x.key === k)) combos.push({ color: c, shape: s, key: k });
   }
-  const shuffledCombos = shuffle(combos);
+  const shuffled = shuffle(combos);
 
-  state.currentQuestion = {
-    answer: targetKey,
-    speech: [
-      { text: `Pop the ${targetColor.en} ${targetShape.en}!`, lang: 'en-US' },
-      { text: `Hint: ${targetShape.en} is ${targetShape.clue}.`, lang: 'en-US' },
-    ],
-  };
+  document.getElementById('en-prompt-text').textContent =
+    `${PET_CONFIG.duncanName}：「幾何色彩雙重指令！請戳破【${targetColor.en} ${targetShape.en}】！」`;
 
-  document.getElementById('en-prompt').textContent =
-    `${PET_CONFIG.en}：「請找出【${targetColor.en} ${targetShape.en}】（${targetShape.clue}）！」`;
+  setEnglishStageCard(
+    `🎈 ${targetColor.en} ${targetShape.en}`,
+    `<div style="font-size:1.05rem; color:#475569; font-weight:800;">Clue: A ${targetShape.en.toLowerCase()} is ${targetShape.clue} (${targetColor.zh}${targetShape.zh})</div>`,
+    `🔊 點此聽英文幾何指令`
+  );
 
-  stage.innerHTML = `
-    <div style="width:100%;">
-      <div class="word-problem-card" style="margin-bottom:12px; text-align:center;">
-        <div class="wp-badge">🎈 國小幾何多邊形與色彩指令</div>
-        <div class="wp-text">Target: <strong>${targetColor.en} ${targetShape.en}</strong> (${targetColor.zh}${targetShape.zh})</div>
-        <div style="font-size:0.9rem; color:#64748b;">Clue: A ${targetShape.en.toLowerCase()} is ${targetShape.clue}.</div>
-      </div>
-      <div class="balloon-stage-grid">
-        ${shuffledCombos
-          .map(
-            (item) => `
-          <button class="balloon-card" style="background:${item.color.bg}; border-color:${item.color.border};"
-            onclick="checkBalloonPop(this, '${item.key}', '${targetKey}', '${item.color.en} ${item.shape.en}')">
-            <div class="balloon-svg-wrap">${getPolygonSvg(item.shape.id, item.color.fill)}</div>
-            <div class="balloon-label">${item.color.shortEn} ${item.shape.en}</div>
-          </button>
-        `
-          )
-          .join('')}
-      </div>
-    </div>
-  `;
-  speakCurrentPrompt();
-}
+  state.currentSpeech = [
+    { text: `Pop the ${targetColor.en} ${targetShape.en}!`, lang: 'en-US' },
+    { text: `It is ${targetShape.clue}.`, lang: 'en-US' },
+  ];
 
-function getPolygonSvg(shapeId, fill) {
-  let shapeMarkup = '';
-  if (shapeId === 'pentagon') {
-    shapeMarkup = `<polygon points="50,8 92,38 76,88 24,88 8,38" fill="${fill}" stroke="#fff" stroke-width="4"/>`;
-  } else if (shapeId === 'hexagon') {
-    shapeMarkup = `<polygon points="50,6 90,28 90,72 50,94 10,72 10,28" fill="${fill}" stroke="#fff" stroke-width="4"/>`;
-  } else if (shapeId === 'octagon') {
-    shapeMarkup = `<polygon points="32,8 68,8 92,32 92,68 68,92 32,92 8,68 8,32" fill="${fill}" stroke="#fff" stroke-width="4"/>`;
-  } else if (shapeId === 'rectangle') {
-    shapeMarkup = `<rect x="10" y="24" width="80" height="52" rx="6" fill="${fill}" stroke="#fff" stroke-width="4"/>`;
-  } else if (shapeId === 'triangle') {
-    shapeMarkup = `<polygon points="50,10 90,86 10,86" fill="${fill}" stroke="#fff" stroke-width="4"/>`;
-  } else {
-    shapeMarkup = `<polygon points="50,8 88,50 50,92 12,50" fill="${fill}" stroke="#fff" stroke-width="4"/>`;
-  }
-  return `<svg viewBox="0 0 100 100" width="68" height="68">${shapeMarkup}</svg>`;
-}
-
-function checkBalloonPop(btn, chosenKey, targetKey, spokenLabel) {
-  if (state.isAnswering) return;
-  if (chosenKey === targetKey) {
-    btn.classList.add('correct');
-    handleCorrectAnswer('en', spokenLabel, [{ text: `Great job! ${spokenLabel}!`, lang: 'en-US' }]);
-  } else {
-    btn.classList.add('wrong');
-    setTimeout(() => btn.classList.remove('wrong'), 500);
-    handleWrongAnswer('en', `這顆是 ${spokenLabel}，再仔細數數看邊數與顏色喔！`);
-  }
-}
-
-// Lv.5 12張進階英文單字與中文釋義記憶翻牌 (6對)
-function renderEnLv5MemoryMatch12() {
-  const stage = document.getElementById('en-stage');
-  const grid = document.getElementById('en-options');
-  grid.innerHTML = '';
-
-  const chosenWords = shuffle(ENGLISH_BANK).slice(0, 6);
-  const deck = [];
-  chosenWords.forEach((item) => {
-    deck.push({
-      pairId: item.word,
-      type: 'en',
-      displayTop: '🔤 English',
-      displayMain: item.word,
-      displaySub: `(${item.letter}...)`,
-      word: item.word,
-    });
-    deck.push({
-      pairId: item.word,
-      type: 'zh',
-      displayTop: item.emoji,
-      displayMain: item.zh,
-      displaySub: '中文意義',
-      word: item.word,
-    });
-  });
-
-  const shuffledDeck = shuffle(deck);
-  state.currentQuestion = {
-    deck: shuffledDeck,
-    flippedIndices: [],
-    matchedPairs: 0,
-    totalPairs: 6,
-    lockFlip: false,
-    speech: [{ text: 'Match the English word card with its Chinese meaning card!', lang: 'en-US' }],
-  };
-
-  document.getElementById('en-prompt').textContent =
-    `${PET_CONFIG.en}：「12 張記憶大考驗！請翻開配對【英文單字卡】與對應的【中文意義卡】！」`;
-
-  stage.innerHTML = `
-    <div class="memory-grid-12" id="memory-board-12">
-      ${shuffledDeck
-        .map(
-          (card, idx) => `
-        <div class="memory-card" id="mem-card-${idx}" onclick="flipMemoryCard12(${idx})">
-          <div class="memory-card-inner">
-            <div class="memory-face memory-front">🐾</div>
-            <div class="memory-face memory-back">
-              <span style="font-size:1.3rem;">${card.displayTop}</span>
-              <strong style="font-size:0.95rem; color:#1e293b; word-break:break-word;">${card.displayMain}</strong>
-            </div>
-          </div>
-        </div>
-      `
-        )
-        .join('')}
-    </div>
-  `;
-  speakCurrentPrompt();
-}
-
-function flipMemoryCard12(idx) {
-  if (state.isAnswering) return;
-  const q = state.currentQuestion;
-  if (!q || q.lockFlip) return;
-  if (q.flippedIndices.includes(idx)) return;
-
-  const cardEl = document.getElementById(`mem-card-${idx}`);
-  if (!cardEl || cardEl.classList.contains('matched')) return;
-
-  playClickTick();
-  cardEl.classList.add('flipped');
-  const cardData = q.deck[idx];
-  speakSequence([{ text: cardData.word, lang: 'en-US' }]);
-
-  q.flippedIndices.push(idx);
-  if (q.flippedIndices.length === 2) {
-    q.lockFlip = true;
-    const [i1, i2] = q.flippedIndices;
-    const c1 = q.deck[i1];
-    const c2 = q.deck[i2];
-
-    if (c1.pairId === c2.pairId && c1.type !== c2.type) {
-      setTimeout(() => {
-        document.getElementById(`mem-card-${i1}`)?.classList.add('matched');
-        document.getElementById(`mem-card-${i2}`)?.classList.add('matched');
-        q.flippedIndices = [];
-        q.lockFlip = false;
-        q.matchedPairs++;
-        playSuccessJingle();
-        if (q.matchedPairs >= q.totalPairs) {
-          handleCorrectAnswer('en', '6組單字全數配對成功！', [
-            { text: 'Fantastic memory! You matched all six pairs!', lang: 'en-US' },
-          ]);
-        }
-      }, 450);
-    } else {
-      setTimeout(() => {
-        document.getElementById(`mem-card-${i1}`)?.classList.remove('flipped');
-        document.getElementById(`mem-card-${i2}`)?.classList.remove('flipped');
-        q.flippedIndices = [];
-        q.lockFlip = false;
-      }, 950);
-    }
-  }
-}
-
-// Lv.6 Rocket Girl 國小閱讀理解與文法選擇
-function renderEnLv6ReadingAndGrammar() {
-  const stage = document.getElementById('en-stage');
-  const grid = document.getElementById('en-options');
-
-  let pool = ROCKET_BOOK1_BANK.readingQuizzes;
-  if (state.rocketUnit !== 'all') {
-    const filtered = pool.filter((q) => q.unit === state.rocketUnit);
-    if (filtered.length > 0) pool = filtered;
-  }
-
-  const quiz = pickRandom(pool);
-  const options = shuffle([quiz.ans, ...quiz.wrong]);
-
-  state.currentQuestion = {
-    answer: quiz.ans,
-    speech: [
-      { text: quiz.passage.replace('______', 'blank'), lang: 'en-US' },
-      { text: quiz.question, lang: quiz.question.match(/[a-zA-Z]/) ? 'en-US' : 'zh-TW' },
-    ],
-  };
-
-  document.getElementById('en-prompt').textContent =
-    `${PET_CONFIG.en}：「請仔細閱讀短文，回答下列閱讀理解或文法問題！」`;
-
-  stage.innerHTML = `
-    <div class="word-problem-card">
-      <div class="wp-badge">${quiz.badge}</div>
-      <div class="wp-text" style="background:#f8fafc; padding:12px; border-radius:12px; border:1px solid #cbd5e1;">
-        "${quiz.passage}"
-      </div>
-      <div style="margin-top:10px; font-size:1.15rem; font-weight:900; color:#4f46e5;">
-        ❓ Question: ${quiz.question}
-      </div>
-    </div>
-  `;
-
-  grid.innerHTML = options
+  container.className = 'balloon-stage-grid';
+  container.innerHTML = shuffled
     .map(
-      (opt) => `
-      <button class="option-btn" style="padding:14px;" onclick="checkEnglishOption(this, '${opt.replace(/'/g, "\\'")}', '${quiz.ans.replace(/'/g, "\\'")}')">
-        <span style="font-size:1.1rem; font-weight:800;">${opt}</span>
+      (item) => `
+      <button class="balloon-card" style="background:${item.color.bg}; border-color:${item.color.border};"
+        onclick="checkEnglishAnswer(this, '${item.key}', '${targetKey}', '${item.color.en} ${item.shape.en}')">
+        <div class="balloon-svg-wrap">${getPolygonSvg(item.shape.id, item.color.fill)}</div>
+        <div class="balloon-label" style="font-weight:900; color:#1e293b;">${item.color.shortEn} ${item.shape.en}</div>
       </button>
     `
     )
     .join('');
 
-  speakCurrentPrompt();
+  repeatEnglishPrompt();
 }
 
-function checkEnglishOption(btn, chosen, correct) {
-  if (state.isAnswering) return;
-  if (chosen === correct) {
-    btn.classList.add('correct');
-    handleCorrectAnswer('en', correct, [{ text: correct, lang: 'en-US' }]);
+function getPolygonSvg(shapeId, fill) {
+  let poly = '';
+  if (shapeId === 'pentagon') {
+    poly = `<polygon points="50,8 92,38 76,88 24,88 8,38" fill="${fill}" stroke="#fff" stroke-width="4"/>`;
+  } else if (shapeId === 'hexagon') {
+    poly = `<polygon points="50,6 90,28 90,72 50,94 10,72 10,28" fill="${fill}" stroke="#fff" stroke-width="4"/>`;
+  } else if (shapeId === 'octagon') {
+    poly = `<polygon points="32,8 68,8 92,32 92,68 68,92 32,92 8,68 8,32" fill="${fill}" stroke="#fff" stroke-width="4"/>`;
+  } else if (shapeId === 'rectangle') {
+    poly = `<rect x="10" y="24" width="80" height="52" rx="6" fill="${fill}" stroke="#fff" stroke-width="4"/>`;
+  } else if (shapeId === 'triangle') {
+    poly = `<polygon points="50,10 90,86 10,86" fill="${fill}" stroke="#fff" stroke-width="4"/>`;
   } else {
-    btn.classList.add('wrong');
-    setTimeout(() => btn.classList.remove('wrong'), 500);
-    handleWrongAnswer('en', '答案不太對喔，再讀一次題目線索試試看！');
+    poly = `<polygon points="50,8 88,50 50,92 12,50" fill="${fill}" stroke="#fff" stroke-width="4"/>`;
+  }
+  return `<svg viewBox="0 0 100 100" width="68" height="68">${poly}</svg>`;
+}
+
+// Lv.5 12張英漢意思配對翻牌 (6對)
+function renderEnLv5MemoryMatch12() {
+  const container = document.getElementById('en-options-container');
+  const chosenWords = shuffle(ENGLISH_BANK).slice(0, 6);
+  const deck = [];
+  chosenWords.forEach((item) => {
+    deck.push({ pairId: item.word, type: 'en', top: '🔤 EN', main: item.word, word: item.word });
+    deck.push({ pairId: item.word, type: 'zh', top: item.emoji, main: item.zh, word: item.word });
+  });
+  const shuffledDeck = shuffle(deck);
+
+  state.currentQuestion = {
+    deck: shuffledDeck,
+    flipped: [],
+    matched: 0,
+    totalPairs: 6,
+    lock: false,
+  };
+
+  document.getElementById('en-prompt-text').textContent =
+    `${PET_CONFIG.duncanName}：「12 張記憶翻牌！請把【英文單字卡】與對應的【中文意義卡】配對起來！」`;
+
+  setEnglishStageCard(
+    '🃏 12-Card Memory Match',
+    `<div style="font-size:1.05rem; color:#475569; font-weight:800;">目前已配對：<span id="mem-pair-progress">0 / 6</span> 對</div>`,
+    `🔊 翻開卡片時會自動唸出英文單字喔！`
+  );
+
+  state.currentSpeech = [
+    { text: 'Match each English word card with its Chinese meaning card!', lang: 'en-US' },
+  ];
+
+  container.className = 'memory-grid-12';
+  container.innerHTML = shuffledDeck
+    .map(
+      (c, idx) => `
+      <button class="memory-card-btn" id="mem12-card-${idx}" onclick="handleFlipCard12(${idx})">
+        <div class="mem-card-front">🐾 翻牌</div>
+        <div class="mem-card-back" style="display:none;">
+          <div style="font-size:1.3rem;">${c.top}</div>
+          <div style="font-size:0.95rem; font-weight:900; color:#1e293b;">${c.main}</div>
+        </div>
+      </button>
+    `
+    )
+    .join('');
+
+  repeatEnglishPrompt();
+}
+
+function handleFlipCard12(idx) {
+  if (state.isAnswering) return;
+  const q = state.currentQuestion;
+  if (!q || q.lock || q.flipped.includes(idx)) return;
+
+  const btn = document.getElementById(`mem12-card-${idx}`);
+  if (!btn || btn.classList.contains('matched')) return;
+
+  playClickTick();
+  const front = btn.querySelector('.mem-card-front');
+  const back = btn.querySelector('.mem-card-back');
+  if (front) front.style.display = 'none';
+  if (back) back.style.display = 'block';
+  btn.classList.add('flipped');
+
+  speakSequence([{ text: q.deck[idx].word, lang: 'en-US' }]);
+  q.flipped.push(idx);
+
+  if (q.flipped.length === 2) {
+    q.lock = true;
+    const [i1, i2] = q.flipped;
+    const c1 = q.deck[i1];
+    const c2 = q.deck[i2];
+
+    if (c1.pairId === c2.pairId && c1.type !== c2.type) {
+      setTimeout(() => {
+        const b1 = document.getElementById(`mem12-card-${i1}`);
+        const b2 = document.getElementById(`mem12-card-${i2}`);
+        b1?.classList.add('matched');
+        b2?.classList.add('matched');
+        q.flipped = [];
+        q.lock = false;
+        q.matched++;
+        playSuccessJingle();
+        const prog = document.getElementById('mem-pair-progress');
+        if (prog) prog.textContent = `${q.matched} / ${q.totalPairs}`;
+        if (q.matched >= q.totalPairs) {
+          onCorrectAnswer('en', '6組全數配對完成', [
+            { text: 'Awesome memory! All six pairs matched!', lang: 'en-US' },
+          ]);
+        }
+      }, 400);
+    } else {
+      setTimeout(() => {
+        [i1, i2].forEach((i) => {
+          const b = document.getElementById(`mem12-card-${i}`);
+          if (b) {
+            b.classList.remove('flipped');
+            const f = b.querySelector('.mem-card-front');
+            const bk = b.querySelector('.mem-card-back');
+            if (f) f.style.display = 'block';
+            if (bk) bk.style.display = 'none';
+          }
+        });
+        q.flipped = [];
+        q.lock = false;
+      }, 900);
+    }
+  }
+}
+
+// Lv.6 Rocket Girl 閱讀理解＆文法
+function renderEnLv6ReadingAndGrammar() {
+  const container = document.getElementById('en-options-container');
+  let pool = ROCKET_BOOK1_BANK;
+  if (state.rocketUnit !== 'all') {
+    const filtered = pool.filter((q) => q.unit === state.rocketUnit);
+    if (filtered.length) pool = filtered;
+  }
+  const quiz = pickRandom(pool);
+  const opts = shuffle([quiz.ans, ...quiz.wrong]);
+
+  document.getElementById('en-prompt-text').textContent =
+    `${PET_CONFIG.duncanName}：「請閱讀短文，選出最正確的閱讀理解或文法答案！」`;
+
+  setEnglishStageCard(
+    quiz.badge,
+    `<div style="font-size:1.08rem; color:#1e293b; background:#f8fafc; padding:12px; border-radius:12px; border:1px solid #cbd5e1; text-align:left; line-height:1.55; margin:8px 0;">
+      "${quiz.passage}"
+    </div>
+    <div style="font-size:1.15rem; font-weight:900; color:#4f46e5;">❓ ${quiz.question}</div>`,
+    `🔊 點此聽英文短文朗讀`
+  );
+
+  state.currentSpeech = [
+    { text: quiz.passage.replace('______', 'blank'), lang: 'en-US' },
+    { text: quiz.question, lang: /[a-zA-Z]/.test(quiz.question) ? 'en-US' : 'zh-TW' },
+  ];
+
+  container.className = 'options-grid english-options';
+  container.innerHTML = opts
+    .map(
+      (opt) => `
+      <button class="option-card" style="padding:14px;" onclick="checkEnglishAnswer(this, '${opt.replace(/'/g, "\\'")}', '${quiz.ans.replace(/'/g, "\\'")}', '${quiz.ans.replace(/'/g, "\\'")}')">
+        <div class="opt-word" style="font-size:1.1rem;">${opt}</div>
+      </button>
+    `
+    )
+    .join('');
+
+  repeatEnglishPrompt();
+}
+
+function checkEnglishAnswer(btn, chosen, correct, spokenLabel) {
+  if (state.isAnswering) return;
+  if (String(chosen) === String(correct)) {
+    btn.classList.add('correct-pick');
+    onCorrectAnswer('en', spokenLabel || correct, [{ text: String(correct), lang: 'en-US' }]);
+  } else {
+    btn.classList.add('wrong-pick');
+    setTimeout(() => btn.classList.remove('wrong-pick'), 500);
+    onWrongAnswer('en', '答案不太對喔，再仔細讀一次題目線索！');
   }
 }
 
@@ -1710,24 +1557,34 @@ function checkEnglishOption(btn, chosen, correct) {
 // ============================================================================
 // 🐱 Corie 國小數理學院 (6~12歲 6大進階關卡)
 // ============================================================================
-function loadMathQuestion() {
-  state.isAnswering = false;
-  updateProgressDots('math');
-  renderBadgesAndStreaks();
+function startMathGame(lv = 1) {
+  state.currentMode = 'math';
+  state.mathLevel = lv;
+  state.round = 1;
+  showScreen('math');
+  syncMathLevelChips();
+  loadMathQuestion();
+}
 
-  const fb = document.getElementById('math-feedback');
-  if (fb) {
-    fb.textContent = '';
-    fb.className = 'feedback-banner';
+function switchMathLevel(lv) {
+  playClickTick();
+  state.mathLevel = lv;
+  state.round = 1;
+  syncMathLevelChips();
+  loadMathQuestion();
+}
+
+function syncMathLevelChips() {
+  for (let i = 1; i <= 6; i++) {
+    const chip = document.getElementById(`math-lvl-chip-${i}`);
+    if (chip) chip.classList.toggle('active', i === state.mathLevel);
   }
+}
 
-  const lv = state.level.math;
-  if (lv === 1) renderMathLv1MultiDigit();
-  else if (lv === 2) renderMathLv2MultDivCompare();
-  else if (lv === 3) renderMathLv3EquationAndWordProblem();
-  else if (lv === 4) renderMathLv4CashierPro();
-  else if (lv === 5) renderMathLv5OlympiadSequence();
-  else renderMathLv6FractionAndGeometry();
+function repeatMathPrompt() {
+  if (state.currentSpeech && state.currentSpeech.length) {
+    speakSequence(state.currentSpeech);
+  }
 }
 
 function makeNumericDistractors(correct, count = 3, stepRange = [1, 10]) {
@@ -1746,20 +1603,34 @@ function makeNumericDistractors(correct, count = 3, stepRange = [1, 10]) {
   return shuffle(list);
 }
 
-// Lv.1 二～三位數進位加法與退位減法
+function loadMathQuestion() {
+  state.isAnswering = false;
+  updateRoundProgressUI('math');
+
+  const lv = state.mathLevel;
+  if (lv === 1) renderMathLv1MultiDigit();
+  else if (lv === 2) renderMathLv2MultDivCompare();
+  else if (lv === 3) renderMathLv3EquationAndWordProblem();
+  else if (lv === 4) renderMathLv4CashierPro();
+  else if (lv === 5) renderMathLv5OlympiadSequence();
+  else renderMathLv6FractionAndGeometry();
+}
+
+// Lv.1 雙位數與百位進退位加減
 function renderMathLv1MultiDigit() {
-  const stage = document.getElementById('math-stage');
-  const grid = document.getElementById('math-options');
+  const stage = document.getElementById('math-visual-stage');
+  const eqBar = document.getElementById('math-equation-bar');
+  const container = document.getElementById('math-options-container');
 
   const isAdd = Math.random() < 0.55;
   let a, b, ans, op;
   if (isAdd) {
-    a = randInt(35, 240);
-    b = randInt(28, 185);
+    a = randInt(36, 245);
+    b = randInt(28, 178);
     ans = a + b;
     op = '+';
   } else {
-    a = randInt(85, 320);
+    a = randInt(85, 340);
     b = randInt(27, a - 15);
     ans = a - b;
     op = '−';
@@ -1767,256 +1638,221 @@ function renderMathLv1MultiDigit() {
 
   const opts = makeNumericDistractors(ans, 3, [1, 12]);
   const item = pickRandom(MATH_ITEMS);
-
-  state.currentQuestion = {
-    answer: ans,
-    speech: [
-      {
-        text: `請計算：${a} ${isAdd ? '加' : '減'} ${b} 等於多少？`,
-        lang: 'zh-TW',
-      },
-    ],
-  };
-
-  document.getElementById('math-prompt').textContent =
-    `${PET_CONFIG.math}：「多位數進退位挑戰！先算個位、再算十位與百位喔！」`;
-
   const hA = Math.floor(a / 100);
   const tA = Math.floor((a % 100) / 10);
   const uA = a % 10;
 
+  document.getElementById('math-prompt-text').textContent =
+    `${PET_CONFIG.corieName}：「多位數進退位挑戰！先算個位、再算十位與百位喔！」`;
+
   stage.innerHTML = `
     <div class="word-problem-card" style="text-align:center;">
       <div class="wp-badge">🧮 國小二～三位數進退位心算</div>
-      <div style="font-size:2.4rem; font-weight:900; color:#1e293b; margin:8px 0;">
-        ${a} <span style="color:#f59e0b;">${op}</span> ${b} ＝ <span style="color:#ec4899;">?</span>
-      </div>
-      <div style="font-size:0.95rem; color:#475569;">
-        ${item.emoji} 位值分解提示：${a} ＝ ${hA > 0 ? hA + '個百 + ' : ''}${tA}個十 + ${uA}個一
+      <div style="font-size:1.05rem; color:#475569; font-weight:800; margin-top:4px;">
+        ${item.emoji} 位值分解提示：<strong>${a}</strong> ＝ ${hA > 0 ? hA + '個百 + ' : ''}${tA}個十 + ${uA}個一
       </div>
     </div>
   `;
 
-  grid.innerHTML = opts
+  eqBar.innerHTML = `<span style="font-size:2.3rem; font-weight:900;">${a} <span style="color:#f59e0b;">${op}</span> ${b} ＝ <span style="color:#ec4899;">?</span></span>`;
+
+  state.currentSpeech = [
+    { text: `請計算：${a} ${isAdd ? '加' : '減'} ${b} 等於多少？`, lang: 'zh-TW' },
+  ];
+
+  container.className = 'options-grid math-options';
+  container.innerHTML = opts
     .map(
       (n) => `
-      <button class="option-btn" onclick="checkMathOption(this, ${n}, ${ans})">
-        <span style="font-size:1.8rem; font-weight:900;">${n}</span>
+      <button class="option-card math-opt-btn" onclick="checkMathAnswer(this, ${n}, ${ans})">
+        <div class="opt-word" style="font-size:1.9rem;">${n}</div>
       </button>
     `
     )
     .join('');
 
-  speakCurrentPrompt();
+  repeatMathPrompt();
 }
 
-// Lv.2 九九乘法、整除除法與算式比大小
+// Lv.2 九九乘法、除法＆算式比大小
 function renderMathLv2MultDivCompare() {
-  const stage = document.getElementById('math-stage');
-  const grid = document.getElementById('math-options');
+  const stage = document.getElementById('math-visual-stage');
+  const eqBar = document.getElementById('math-equation-bar');
+  const container = document.getElementById('math-options-container');
 
-  const mode = state.questionIndex % 3; // 0: 乘法, 1: 除法, 2: 算式比大小
-  if (mode === 0) {
+  const mode = state.round % 3;
+  if (mode === 1) {
     const a = randInt(3, 12);
     const b = randInt(3, 9);
     const ans = a * b;
     const opts = makeNumericDistractors(ans, 3, [2, 9]);
-    state.currentQuestion = {
-      answer: ans,
-      speech: [{ text: `請問 ${a} 乘以 ${b} 等於多少？`, lang: 'zh-TW' }],
-    };
-    document.getElementById('math-prompt').textContent =
-      `${PET_CONFIG.math}：「乘法達人挑戰！算算看總共是多少？」`;
+
+    document.getElementById('math-prompt-text').textContent =
+      `${PET_CONFIG.corieName}：「乘法進階挑戰！每組有 ${a} 個，共 ${b} 組，總共是多少？」`;
 
     stage.innerHTML = `
       <div class="word-problem-card" style="text-align:center;">
-        <div class="wp-badge">✖️ 國小乘法進階挑戰 (Multiplication)</div>
-        <div style="font-size:2.5rem; font-weight:900; margin:10px 0;">
-          ${a} × ${b} ＝ <span style="color:#ec4899;">?</span>
-        </div>
-        <div style="font-size:0.95rem; color:#64748b;">💡 提示：每組有 ${a} 個，共有 ${b} 組</div>
+        <div class="wp-badge">✖️ 國小乘法挑戰 (Multiplication)</div>
+        <div style="font-size:1rem; color:#475569; font-weight:800;">💡 提示：每組 ${a} 個 × ${b} 組</div>
       </div>
     `;
-    grid.innerHTML = opts
+    eqBar.innerHTML = `<span style="font-size:2.4rem; font-weight:900;">${a} × ${b} ＝ <span style="color:#ec4899;">?</span></span>`;
+    state.currentSpeech = [{ text: `請問 ${a} 乘以 ${b} 等於多少？`, lang: 'zh-TW' }];
+
+    container.className = 'options-grid math-options';
+    container.innerHTML = opts
       .map(
-        (n) => `
-        <button class="option-btn" onclick="checkMathOption(this, ${n}, ${ans})">
-          <span style="font-size:1.8rem; font-weight:900;">${n}</span>
-        </button>
-      `
+        (n) => `<button class="option-card math-opt-btn" onclick="checkMathAnswer(this, ${n}, ${ans})"><div class="opt-word" style="font-size:1.9rem;">${n}</div></button>`
       )
       .join('');
-  } else if (mode === 1) {
+  } else if (mode === 2) {
     const divisor = randInt(3, 9);
     const quotient = randInt(4, 12);
     const dividend = divisor * quotient;
     const opts = makeNumericDistractors(quotient, 3, [1, 4]);
-    state.currentQuestion = {
-      answer: quotient,
-      speech: [{ text: `請問 ${dividend} 除以 ${divisor} 等於多少？`, lang: 'zh-TW' }],
-    };
-    document.getElementById('math-prompt').textContent =
-      `${PET_CONFIG.math}：「整除除法挑戰！平分成 ${divisor} 組，每組有幾個？」`;
+
+    document.getElementById('math-prompt-text').textContent =
+      `${PET_CONFIG.corieName}：「整除除法挑戰！把 ${dividend} 平分成 ${divisor} 組，每組有幾個？」`;
 
     stage.innerHTML = `
       <div class="word-problem-card" style="text-align:center;">
-        <div class="wp-badge">➗ 國小除法運算 (Division)</div>
-        <div style="font-size:2.5rem; font-weight:900; margin:10px 0;">
-          ${dividend} ÷ ${divisor} ＝ <span style="color:#ec4899;">?</span>
-        </div>
-        <div style="font-size:0.95rem; color:#64748b;">💡 驗算思考：${divisor} × (?) ＝ ${dividend}</div>
+        <div class="wp-badge">➗ 國小整除除法 (Division)</div>
+        <div style="font-size:1rem; color:#475569; font-weight:800;">💡 乘法驗算思考：${divisor} × (?) ＝ ${dividend}</div>
       </div>
     `;
-    grid.innerHTML = opts
+    eqBar.innerHTML = `<span style="font-size:2.4rem; font-weight:900;">${dividend} ÷ ${divisor} ＝ <span style="color:#ec4899;">?</span></span>`;
+    state.currentSpeech = [{ text: `請問 ${dividend} 除以 ${divisor} 等於多少？`, lang: 'zh-TW' }];
+
+    container.className = 'options-grid math-options';
+    container.innerHTML = opts
       .map(
-        (n) => `
-        <button class="option-btn" onclick="checkMathOption(this, ${n}, ${quotient})">
-          <span style="font-size:1.8rem; font-weight:900;">${n}</span>
-        </button>
-      `
+        (n) => `<button class="option-card math-opt-btn" onclick="checkMathAnswer(this, ${n}, ${quotient})"><div class="opt-word" style="font-size:1.9rem;">${n}</div></button>`
       )
       .join('');
   } else {
-    // 雙邊算式比大小
     const a1 = randInt(4, 9), b1 = randInt(4, 9);
     const leftVal = a1 * b1;
     const a2 = randInt(15, 45), b2 = randInt(10, 35);
     const rightVal = a2 + b2;
     const correctSym = leftVal > rightVal ? '>' : leftVal < rightVal ? '<' : '=';
 
-    state.currentQuestion = {
-      answer: correctSym,
-      speech: [
-        {
-          text: `請比較左邊算式 ${a1} 乘以 ${b1}，和右邊算式 ${a2} 加 ${b2}，哪一邊比較大？`,
-          lang: 'zh-TW',
-        },
-      ],
-    };
-    document.getElementById('math-prompt').textContent =
-      `${PET_CONFIG.math}：「先算出左右兩個算式的答案，再選出正確的比較符號！」`;
+    document.getElementById('math-prompt-text').textContent =
+      `${PET_CONFIG.corieName}：「先算出左右兩個算式的答案，再比較哪一邊比較大！」`;
 
     stage.innerHTML = `
       <div class="word-problem-card" style="text-align:center;">
-        <div class="wp-badge">⚖️ 雙算式比大小挑戰</div>
-        <div style="display:flex; align-items:center; justify-content:center; gap:14px; font-size:1.9rem; font-weight:900; margin:12px 0;">
-          <span style="background:#eef2ff; padding:8px 14px; border-radius:12px;">${a1} × ${b1}</span>
-          <span style="color:#ec4899; border:3px dashed #ec4899; border-radius:12px; padding:4px 14px;">?</span>
-          <span style="background:#fef3c7; padding:8px 14px; border-radius:12px;">${a2} + ${b2}</span>
-        </div>
+        <div class="wp-badge">⚖️ 雙邊算式比大小</div>
+        <div style="font-size:1rem; color:#475569; font-weight:800;">請選出 > 、 = 或 < 填入中間的問號框！</div>
       </div>
     `;
-    grid.innerHTML = ['>', '=', '<']
+    eqBar.innerHTML = `
+      <span style="font-size:1.9rem; font-weight:900;">
+        (${a1} × ${b1}) <span style="color:#ec4899; padding:0 10px;">[ ? ]</span> (${a2} + ${b2})
+      </span>
+    `;
+    state.currentSpeech = [
+      { text: `請比較左邊 ${a1} 乘以 ${b1}，和右邊 ${a2} 加 ${b2}，哪一邊比較大？`, lang: 'zh-TW' },
+    ];
+
+    container.className = 'options-grid math-options';
+    container.innerHTML = ['>', '=', '<']
       .map(
-        (sym) => `
-        <button class="option-btn" onclick="checkMathOption(this, '${sym}', '${correctSym}')">
-          <span style="font-size:2.2rem; font-weight:900;">${sym}</span>
-        </button>
-      `
+        (sym) => `<button class="option-card math-opt-btn" onclick="checkMathAnswer(this, '${sym}', '${correctSym}')"><div class="opt-word" style="font-size:2.2rem;">${sym}</div></button>`
       )
       .join('');
   }
-  speakCurrentPrompt();
+  repeatMathPrompt();
 }
 
-// Lv.3 四則混合運算、未知數方程式與生活應用題
+// Lv.3 四則先乘除後加減、代數未知數＆生活應用題
 function renderMathLv3EquationAndWordProblem() {
-  const stage = document.getElementById('math-stage');
-  const grid = document.getElementById('math-options');
+  const stage = document.getElementById('math-visual-stage');
+  const eqBar = document.getElementById('math-equation-bar');
+  const container = document.getElementById('math-options-container');
 
-  const mode = state.questionIndex % 3;
-  if (mode === 0) {
-    // 先乘除後加減： A + B × C
+  const mode = state.round % 3;
+  if (mode === 1) {
     const a = randInt(12, 35);
     const b = randInt(3, 8);
     const c = randInt(4, 9);
     const ans = a + b * c;
     const opts = makeNumericDistractors(ans, 3, [2, 10]);
 
-    state.currentQuestion = {
-      answer: ans,
-      speech: [{ text: `四則運算規則：先乘除後加減。請問 ${a} 加 ${b} 乘以 ${c} 等於多少？`, lang: 'zh-TW' }],
-    };
-    document.getElementById('math-prompt').textContent =
-      `${PET_CONFIG.math}：「注意四則運算黃金法則：【先乘除、後加減】！」`;
+    document.getElementById('math-prompt-text').textContent =
+      `${PET_CONFIG.corieName}：「記住四則運算黃金法則：【先乘除、後加減】！」`;
 
     stage.innerHTML = `
       <div class="word-problem-card" style="text-align:center;">
         <div class="wp-badge">📐 四則運算（先乘除後加減）</div>
-        <div style="font-size:2.3rem; font-weight:900; margin:10px 0;">
-          ${a} ＋ ${b} × ${c} ＝ <span style="color:#ec4899;">?</span>
-        </div>
-        <div style="font-size:0.95rem; color:#4f46e5; font-weight:700;">💡 先算 ${b} × ${c}，再加上 ${a} 喔！</div>
+        <div style="font-size:1rem; color:#4f46e5; font-weight:800;">💡 先算 ${b} × ${c}，最後再加上 ${a} 喔！</div>
       </div>
     `;
-    grid.innerHTML = opts
-      .map((n) => `<button class="option-btn" onclick="checkMathOption(this, ${n}, ${ans})"><span style="font-size:1.8rem; font-weight:900;">${n}</span></button>`)
+    eqBar.innerHTML = `<span style="font-size:2.3rem; font-weight:900;">${a} ＋ ${b} × ${c} ＝ <span style="color:#ec4899;">?</span></span>`;
+    state.currentSpeech = [{ text: `先乘除後加減：請問 ${a} 加 ${b} 乘以 ${c} 等於多少？`, lang: 'zh-TW' }];
+
+    container.className = 'options-grid math-options';
+    container.innerHTML = opts
+      .map((n) => `<button class="option-card math-opt-btn" onclick="checkMathAnswer(this, ${n}, ${ans})"><div class="opt-word" style="font-size:1.9rem;">${n}</div></button>`)
       .join('');
-  } else if (mode === 1) {
-    // 未知數方程式： A × [?] + B = C
+  } else if (mode === 2) {
     const a = randInt(3, 8);
     const x = randInt(4, 11);
     const b = randInt(5, 20);
     const c = a * x + b;
     const opts = makeNumericDistractors(x, 3, [1, 4]);
 
-    state.currentQuestion = {
-      answer: x,
-      speech: [{ text: `未知數推理：${a} 乘以多少，再加上 ${b} 會等於 ${c}？`, lang: 'zh-TW' }],
-    };
-    document.getElementById('math-prompt').textContent =
-      `${PET_CONFIG.math}：「小小代數偵探！請推理出問號格子裡的數字！」`;
+    document.getElementById('math-prompt-text').textContent =
+      `${PET_CONFIG.corieName}：「代數未知數推理！請問問號格裡的數字是多少？」`;
 
     stage.innerHTML = `
       <div class="word-problem-card" style="text-align:center;">
-        <div class="wp-badge">🕵️ 未知數方程式逆推 (Algebra Detective)</div>
-        <div style="font-size:2.2rem; font-weight:900; margin:10px 0;">
-          ${a} × <span style="display:inline-block; padding:2px 14px; border:3px dashed #ec4899; border-radius:10px; color:#ec4899;">?</span> ＋ ${b} ＝ ${c}
-        </div>
-        <div style="font-size:0.95rem; color:#64748b;">💡 提示：先算出 ${c} − ${b}，再除以 ${a}！</div>
+        <div class="wp-badge">🕵️ 未知數方程式逆推</div>
+        <div style="font-size:1rem; color:#475569; font-weight:800;">💡 提示：先算 ${c} − ${b}，再除以 ${a}！</div>
       </div>
     `;
-    grid.innerHTML = opts
-      .map((n) => `<button class="option-btn" onclick="checkMathOption(this, ${n}, ${x})"><span style="font-size:1.8rem; font-weight:900;">${n}</span></button>`)
+    eqBar.innerHTML = `<span style="font-size:2.2rem; font-weight:900;">${a} × <span style="color:#ec4899;">[ ? ]</span> ＋ ${b} ＝ ${c}</span>`;
+    state.currentSpeech = [{ text: `${a} 乘以多少，再加上 ${b} 會等於 ${c}？`, lang: 'zh-TW' }];
+
+    container.className = 'options-grid math-options';
+    container.innerHTML = opts
+      .map((n) => `<button class="option-card math-opt-btn" onclick="checkMathAnswer(this, ${n}, ${x})"><div class="opt-word" style="font-size:1.9rem;">${n}</div></button>`)
       .join('');
   } else {
-    // 國小兩步驟文字應用題
     const item = pickRandom(MATH_ITEMS);
     const price = randInt(12, 25);
     const qty = randInt(3, 6);
     const paid = 200;
     const ans = paid - price * qty;
     const opts = makeNumericDistractors(ans, 3, [5, 15]);
+    const story = `小華去商店買了 ${qty} ${item.unit}${item.name}（${item.emoji}），每${item.unit}售價 ${price} 元。他付了一張 ${paid} 元鈔票，請問老闆應該找他多少元？`;
 
-    const story = `小明去文具美食百貨買了 ${qty} ${item.unit}${item.name}（${item.emoji}），每${item.unit}售價 ${price} 元。他付了一張 ${paid} 元鈔票，請問老闆應該找他多少元？`;
-    state.currentQuestion = {
-      answer: ans,
-      speech: [{ text: story, lang: 'zh-TW' }],
-    };
-    document.getElementById('math-prompt').textContent =
-      `${PET_CONFIG.math}：「請閱讀生活應用題，列式算出正確答案！」`;
+    document.getElementById('math-prompt-text').textContent =
+      `${PET_CONFIG.corieName}：「請閱讀兩步驟文字應用題，算出正確的找零金額！」`;
 
     stage.innerHTML = `
       <div class="word-problem-card">
         <div class="wp-badge">📖 國小兩步驟文字應用題</div>
         <div class="wp-text">${story}</div>
-        <div style="margin-top:8px; font-size:0.92rem; color:#4f46e5; font-weight:800;">
-          💡 解題步驟：① 先算總價 ${price} × ${qty} ② 再用 ${paid} 減去總價
-        </div>
       </div>
     `;
-    grid.innerHTML = opts
-      .map((n) => `<button class="option-btn" onclick="checkMathOption(this, ${n}, ${ans})"><span style="font-size:1.7rem; font-weight:900;">${n} 元</span></button>`)
+    eqBar.innerHTML = `<span style="font-size:1.6rem; font-weight:900; color:#4f46e5;">${paid} − (${price} × ${qty}) ＝ ? 元</span>`;
+    state.currentSpeech = [{ text: story, lang: 'zh-TW' }];
+
+    container.className = 'options-grid math-options';
+    container.innerHTML = opts
+      .map((n) => `<button class="option-card math-opt-btn" onclick="checkMathAnswer(this, ${n}, ${ans})"><div class="opt-word" style="font-size:1.75rem;">${n} 元</div></button>`)
       .join('');
   }
-  speakCurrentPrompt();
+  repeatMathPrompt();
 }
 
-// Lv.4 🛒 百元鈔票收銀台 ($100 / $50 / $10 / $5 / $1 湊錢與找零)
+// Lv.4 超市收銀店長（百元湊錢＆找零）
 function renderMathLv4CashierPro() {
-  const stage = document.getElementById('math-stage');
-  const grid = document.getElementById('math-options');
-  grid.innerHTML = '';
+  const stage = document.getElementById('math-visual-stage');
+  const eqBar = document.getElementById('math-equation-bar');
+  const container = document.getElementById('math-options-container');
+  eqBar.innerHTML = '';
+  container.innerHTML = '';
 
   const i1 = pickRandom(MATH_ITEMS);
   const i2 = pickRandom(MATH_ITEMS.filter((x) => x.name !== i1.name));
@@ -2025,15 +1861,13 @@ function renderMathLv4CashierPro() {
   const qty1 = randInt(1, 2);
   const totalCost = p1 * qty1 + p2;
 
-  const isChangeMode = state.questionIndex % 2 === 1;
+  const isChangeMode = state.round % 2 === 0;
   let targetAmount = totalCost;
-  let modeTitle = '請拿出剛好足夠支付總金額的鈔票與硬幣';
   let customerPaid = 0;
 
   if (isChangeMode) {
     customerPaid = Math.ceil((totalCost + 15) / 50) * 50;
     targetAmount = customerPaid - totalCost;
-    modeTitle = `客人付了 $${customerPaid}，請湊出正確的【找零金額】放到托盤！`;
   }
 
   state.currentQuestion = {
@@ -2047,31 +1881,34 @@ function renderMathLv4CashierPro() {
     p1,
     p2,
     qty1,
-    modeTitle,
-    speech: [
-      {
-        text: isChangeMode
-          ? `商品總共 ${totalCost} 元，客人付了 ${customerPaid} 元，請算出要找客人多少錢並放上收銀盤！`
-          : `買了 ${qty1} ${i1.unit}${i1.name}和 1 ${i2.unit}${i2.name}，請算出總價並拿出正確的鈔票硬幣！`,
-        lang: 'zh-TW',
-      },
-    ],
   };
 
-  document.getElementById('math-prompt').textContent = `${PET_CONFIG.math}：「${modeTitle}」`;
-  renderCashierProUI();
-  speakCurrentPrompt();
+  document.getElementById('math-prompt-text').textContent = isChangeMode
+    ? `${PET_CONFIG.corieName}：「商品共 $${totalCost}，客人付了 $${customerPaid}，請湊出正確的【找零金額】！」`
+    : `${PET_CONFIG.corieName}：「請先算出兩項商品的總價，再拿出剛好金額的鈔票與硬幣！」`;
+
+  state.currentSpeech = [
+    {
+      text: isChangeMode
+        ? `商品總共 ${totalCost} 元，客人付了 ${customerPaid} 元，請算出要找客人多少錢並放上收銀托盤！`
+        : `買了 ${qty1} ${i1.unit}${i1.name}和 1 ${i2.unit}${i2.name}，請算出總價並拿出正確的鈔票硬幣！`,
+      lang: 'zh-TW',
+    },
+  ];
+
+  renderCashierProStage();
+  repeatMathPrompt();
 }
 
-function renderCashierProUI() {
-  const stage = document.getElementById('math-stage');
+function renderCashierProStage() {
+  const stage = document.getElementById('math-visual-stage');
   const q = state.currentQuestion;
   const currentSum = q.trayCoins.reduce((a, b) => a + b, 0);
 
   stage.innerHTML = `
     <div class="cashier-stage" style="width:100%;">
       <div class="word-problem-card" style="margin-bottom:10px;">
-        <div class="wp-badge">🛒 超級收銀員：${q.isChangeMode ? '找零錢特訓' : '多件結帳特訓'}</div>
+        <div class="wp-badge">🛒 超市收銀店長：${q.isChangeMode ? '找零錢特訓' : '多件結帳特訓'}</div>
         <div style="display:flex; justify-content:space-around; flex-wrap:wrap; gap:10px; margin:8px 0;">
           <div style="background:#f8fafc; padding:8px 14px; border-radius:12px; border:1px solid #cbd5e1; font-weight:800;">
             ${q.i1.emoji} ${q.i1.name} $${q.p1} × ${q.qty1} ＝ <strong>$${q.p1 * q.qty1}</strong>
@@ -2086,20 +1923,19 @@ function renderCashierProUI() {
         </div>
       </div>
 
-      <div class="cashier-tray">
-        <div class="tray-header">
-          <span>📥 收銀托盤（點擊托盤內錢幣可退回）</span>
-          <span class="tray-total">目前合計：$${currentSum} 元</span>
+      <div class="cashier-tray" style="background:#f8fafc; border:2px dashed #94a3b8; border-radius:16px; padding:12px;">
+        <div style="display:flex; justify-content:space-between; font-weight:900; margin-bottom:8px;">
+          <span>📥 收銀托盤（點擊錢幣可退回）</span>
+          <span style="color:#0284c7; font-size:1.15rem;">目前合計：$${currentSum} 元</span>
         </div>
-        <div class="tray-coins-area">
+        <div style="min-height:54px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:center;">
           ${
             q.trayCoins.length === 0
               ? '<span style="color:#94a3b8; font-weight:700;">請點擊下方鈔票或硬幣放入托盤...</span>'
               : q.trayCoins
                   .map(
                     (val, idx) =>
-                      `<button class="${val === 100 ? 'bill-100-btn' : val === 50 ? 'coin-50-btn' : val === 10 ? 'coin-10-btn' : val === 5 ? 'coin-btn coin-5' : 'coin-btn coin-1'}"
-                        style="transform:scale(0.88);"
+                      `<button class="${val === 100 ? 'bill-100-btn' : val === 50 ? 'coin-50-btn' : val === 10 ? 'coin-10-btn' : 'coin-btn'}"
                         onclick="removeCashierMoney(${idx})">$${val}</button>`
                   )
                   .join('')
@@ -2107,17 +1943,17 @@ function renderCashierProUI() {
         </div>
       </div>
 
-      <div class="cashier-wallet" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:12px;">
+      <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:12px;">
         <button class="bill-100-btn" onclick="addCashierMoney(100)">💵 $100</button>
-        <button class="coin-50-btn" onclick="addCashierMoney(50)">$50</button>
-        <button class="coin-10-btn" onclick="addCashierMoney(10)">$10</button>
-        <button class="coin-btn coin-5" onclick="addCashierMoney(5)">$5</button>
-        <button class="coin-btn coin-1" onclick="addCashierMoney(1)">$1</button>
+        <button class="coin-50-btn" onclick="addCashierMoney(50)">🪙 $50</button>
+        <button class="coin-10-btn" onclick="addCashierMoney(10)">🪙 $10</button>
+        <button class="coin-btn" style="background:#fef08a; border:2px solid #eab308; padding:10px 16px; border-radius:999px; font-weight:900;" onclick="addCashierMoney(5)">🪙 $5</button>
+        <button class="coin-btn" style="background:#fed7aa; border:2px solid #f97316; padding:10px 16px; border-radius:999px; font-weight:900;" onclick="addCashierMoney(1)">🪙 $1</button>
       </div>
 
-      <div style="display:flex; justify-content:center; gap:12px; margin-top:12px;">
-        <button class="secondary-pill-btn" onclick="clearCashierTray()">🗑️ 清空重湊</button>
-        <button class="checkout-btn" onclick="submitCashierCheckout()">✅ 確認結帳 ($${currentSum})</button>
+      <div style="display:flex; justify-content:center; gap:12px; margin-top:14px;">
+        <button class="speed-chip" onclick="clearCashierTray()">🗑️ 清空重湊</button>
+        <button class="submit-clock-btn" style="margin:0;" onclick="submitCashierCheckout()">✅ 確認結帳 ($${currentSum})</button>
       </div>
     </div>
   `;
@@ -2127,21 +1963,21 @@ function addCashierMoney(val) {
   if (state.isAnswering || !state.currentQuestion) return;
   playClickTick();
   state.currentQuestion.trayCoins.push(val);
-  renderCashierProUI();
+  renderCashierProStage();
 }
 
 function removeCashierMoney(idx) {
   if (state.isAnswering || !state.currentQuestion) return;
   playClickTick();
   state.currentQuestion.trayCoins.splice(idx, 1);
-  renderCashierProUI();
+  renderCashierProStage();
 }
 
 function clearCashierTray() {
   if (state.isAnswering || !state.currentQuestion) return;
   playClickTick();
   state.currentQuestion.trayCoins = [];
-  renderCashierProUI();
+  renderCashierProStage();
 }
 
 function submitCashierCheckout() {
@@ -2149,60 +1985,61 @@ function submitCashierCheckout() {
   const q = state.currentQuestion;
   const sum = q.trayCoins.reduce((a, b) => a + b, 0);
   if (sum === q.targetAmount) {
-    handleCorrectAnswer('math', `$${sum} 元`, [
-      { text: `結帳正確！總共是 ${sum} 元！`, lang: 'zh-TW' },
-    ]);
+    onCorrectAnswer('math', `$${sum} 元`, [{ text: `結帳正確！總共是 ${sum} 元！`, lang: 'zh-TW' }]);
   } else {
-    const diff = sum - q.targetAmount;
-    handleWrongAnswer(
+    onWrongAnswer(
       'math',
-      diff > 0
+      sum > q.targetAmount
         ? `目前放了 $${sum} 元，太多了喔！請點擊托盤裡的錢幣退回一部分。`
-        : `目前只有 $${sum} 元，還不夠喔！請再仔細算算看目標金額。`
+        : `目前只有 $${sum} 元，還不夠喔！請再算算看目標金額。`
     );
   }
 }
 
-// Lv.5 🚂 奧數數列與邏輯推理火車 (等差、倍數、平方數、費氏數列)
+// Lv.5 奧數級數列火車（等差/等比/平方/費氏）
 function renderMathLv5OlympiadSequence() {
-  const stage = document.getElementById('math-stage');
-  const grid = document.getElementById('math-options');
+  const stage = document.getElementById('math-visual-stage');
+  const eqBar = document.getElementById('math-equation-bar');
+  const container = document.getElementById('math-options-container');
 
   const seqTypes = [
     () => {
-      // 等差數列 (+6 ~ +15)
       const start = randInt(5, 25);
       const step = randInt(6, 14);
-      const arr = [0, 1, 2, 3, 4].map((i) => start + i * step);
-      return { arr, rule: `公差 +${step} 的等差數列`, stepHint: `每一節車廂都比前一節多 ${step}` };
+      return {
+        arr: [0, 1, 2, 3, 4].map((i) => start + i * step),
+        hint: `每一節車廂都比前一節多 ${step}（+${step}）`,
+      };
     },
     () => {
-      // 遞減等差數列 (-7 ~ -12)
       const step = randInt(7, 12);
       const start = randInt(65, 98);
-      const arr = [0, 1, 2, 3, 4].map((i) => start - i * step);
-      return { arr, rule: `公差 −${step} 的倒數數列`, stepHint: `每一節車廂都比前一節少 ${step}` };
+      return {
+        arr: [0, 1, 2, 3, 4].map((i) => start - i * step),
+        hint: `每一節車廂都比前一節少 ${step}（−${step}）`,
+      };
     },
     () => {
-      // 等比倍數數列 (×2)
       const start = randInt(2, 5);
-      const arr = [start, start * 2, start * 4, start * 8, start * 16];
-      return { arr, rule: '×2 等比倍數數列', stepHint: '後一個數字都是前一個數字的 2 倍（×2）' };
+      return {
+        arr: [start, start * 2, start * 4, start * 8, start * 16],
+        hint: '後一個數字都是前一個數字的 2 倍（×2）',
+      };
     },
     () => {
-      // 完全平方數列
       const base = randInt(1, 4);
-      const arr = [0, 1, 2, 3, 4].map((i) => (base + i) * (base + i));
-      return { arr, rule: '平方數數列 (n × n)', stepHint: '分別是連續整數自己乘以自己的平方數' };
+      return {
+        arr: [0, 1, 2, 3, 4].map((i) => (base + i) * (base + i)),
+        hint: '連續整數自己乘以自己的完全平方數 (n × n)',
+      };
     },
     () => {
-      // 費氏相加數列 (前兩項相加等於下一項)
-      const a = randInt(1, 4);
-      const b = randInt(2, 5);
-      const c = a + b;
-      const d = b + c;
-      const e = c + d;
-      return { arr: [a, b, c, d, e], rule: '費氏加法數列', stepHint: '前兩節車廂的數字加起來，剛好等於下一節車廂！' };
+      const a = randInt(1, 4), b = randInt(2, 5);
+      const c = a + b, d = b + c, e = c + d;
+      return {
+        arr: [a, b, c, d, e],
+        hint: '費氏數列：前兩節車廂加起來，等於下一節車廂！',
+      };
     },
   ];
 
@@ -2211,59 +2048,50 @@ function renderMathLv5OlympiadSequence() {
   const ans = chosen.arr[missingIdx];
   const opts = makeNumericDistractors(ans, 3, [2, 9]);
 
-  state.currentQuestion = {
-    answer: ans,
-    speech: [
-      { text: `奧數邏輯火車！請觀察車廂數字規律，找出問號車廂的數字！提示：${chosen.stepHint}`, lang: 'zh-TW' },
-    ],
-  };
-
-  document.getElementById('math-prompt').textContent =
-    `${PET_CONFIG.math}：「觀察相鄰車廂的差或倍數，推理出問號車廂的數字！」`;
+  document.getElementById('math-prompt-text').textContent =
+    `${PET_CONFIG.corieName}：「觀察火車車廂的規律，推理出問號車廂的數字！」`;
 
   const carsHtml = chosen.arr
-    .map((num, idx) => {
-      if (idx === missingIdx) {
-        return `<div class="train-car missing"><span>?</span></div>`;
-      }
-      return `<div class="train-car"><span>${num}</span></div>`;
-    })
-    .join('<span class="train-link">🔗</span>');
+    .map((n, i) =>
+      i === missingIdx
+        ? `<div class="train-car missing" style="display:inline-flex; align-items:center; justify-content:center; width:62px; height:52px; border-radius:12px; background:#fce7f3; border:3px dashed #ec4899; font-weight:900; font-size:1.4rem; color:#ec4899;">?</div>`
+        : `<div class="train-car" style="display:inline-flex; align-items:center; justify-content:center; width:62px; height:52px; border-radius:12px; background:#e0f2fe; border:2px solid #0284c7; font-weight:900; font-size:1.35rem; color:#0f172a;">${n}</div>`
+    )
+    .join('<span style="margin:0 4px; font-weight:900;">🔗</span>');
 
   stage.innerHTML = `
-    <div style="width:100%; text-align:center;">
-      <div class="word-problem-card" style="margin-bottom:12px;">
-        <div class="wp-badge">🚂 國小資優奧數數列推理</div>
-        <div style="font-size:0.95rem; color:#4f46e5; font-weight:800;">💡 規律提示：${chosen.stepHint}</div>
+    <div class="word-problem-card" style="text-align:center;">
+      <div class="wp-badge">🚂 國小資優奧數數列推理</div>
+      <div style="margin:12px 0; display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:4px;">
+        <span style="font-size:2.2rem; margin-right:6px;">🚂</span>${carsHtml}
       </div>
-      <div class="train-track-wrap">
-        <div class="train-engine">🚂</div>
-        ${carsHtml}
-      </div>
+      <div style="font-size:0.95rem; color:#4f46e5; font-weight:800;">💡 規律提示：${chosen.hint}</div>
     </div>
   `;
+  eqBar.innerHTML = '';
 
-  grid.innerHTML = opts
+  state.currentSpeech = [
+    { text: `請觀察車廂數字規律，找出問號車廂的數字！提示：${chosen.hint}`, lang: 'zh-TW' },
+  ];
+
+  container.className = 'options-grid math-options';
+  container.innerHTML = opts
     .map(
-      (n) => `
-      <button class="option-btn" onclick="checkMathOption(this, ${n}, ${ans})">
-        <span style="font-size:1.8rem; font-weight:900;">${n}</span>
-      </button>
-    `
+      (n) => `<button class="option-card math-opt-btn" onclick="checkMathAnswer(this, ${n}, ${ans})"><div class="opt-word" style="font-size:1.9rem;">${n}</div></button>`
     )
     .join('');
 
-  speakCurrentPrompt();
+  repeatMathPrompt();
 }
 
-// Lv.6 🍕 分數圖形認知與幾何周長面積計算
+// Lv.6 分數認知、長方形周長面積
 function renderMathLv6FractionAndGeometry() {
-  const stage = document.getElementById('math-stage');
-  const grid = document.getElementById('math-options');
+  const stage = document.getElementById('math-visual-stage');
+  const eqBar = document.getElementById('math-equation-bar');
+  const container = document.getElementById('math-options-container');
 
-  const isGeometry = state.questionIndex % 2 === 1;
-  if (!isGeometry) {
-    // 分數圓餅圖認知
+  const isGeo = state.round % 2 === 0;
+  if (!isGeo) {
     const fractions = [
       { num: 1, den: 3, label: '1/3 (三分之一)' },
       { num: 2, den: 3, label: '2/3 (三分之二)' },
@@ -2278,586 +2106,543 @@ function renderMathLv6FractionAndGeometry() {
     const distractors = shuffle(fractions.filter((f) => f.label !== target.label)).slice(0, 3);
     const opts = shuffle([target, ...distractors]);
 
-    state.currentQuestion = {
-      answer: target.label,
-      speech: [
-        {
-          text: `披薩平分成 ${target.den} 等份，塗顏色的部分佔了 ${target.num} 份，請問用分數怎麼表示？`,
-          lang: 'zh-TW',
-        },
-      ],
-    };
-
-    document.getElementById('math-prompt').textContent =
-      `${PET_CONFIG.math}：「數數看圓餅圖總共平分成幾份（分母），塗色佔了幾份（分子）！」`;
+    document.getElementById('math-prompt-text').textContent =
+      `${PET_CONFIG.corieName}：「數數看圓餅圖平分成幾等份（分母），塗色佔了幾份（分子）！」`;
 
     stage.innerHTML = `
       <div class="word-problem-card" style="text-align:center;">
-        <div class="wp-badge">🍕 國小分數視覺圖形挑戰 (Fractions)</div>
-        <div style="margin:10px auto;">${buildFractionPieSvg(target.num, target.den)}</div>
-        <div style="font-size:1rem; font-weight:800; color:#475569;">
-          全部平分成 <strong>${target.den}</strong> 等份，塗色部分有 <strong>${target.num}</strong> 份
-        </div>
+        <div class="wp-badge">🍕 國小分數圖形認知 (Fractions)</div>
+        <div style="margin:8px auto;">${buildFractionPieSvg(target.num, target.den)}</div>
+        <div style="font-weight:800; color:#475569;">平分成 <strong>${target.den}</strong> 等份，塗色佔 <strong>${target.num}</strong> 份</div>
       </div>
     `;
+    eqBar.innerHTML = '';
 
-    grid.innerHTML = opts
+    state.currentSpeech = [
+      { text: `圓餅平分成 ${target.den} 等份，塗色部分佔了 ${target.num} 份，用分數怎麼表示？`, lang: 'zh-TW' },
+    ];
+
+    container.className = 'options-grid math-options';
+    container.innerHTML = opts
       .map(
-        (o) => `
-        <button class="option-btn" onclick="checkMathOption(this, '${o.label}', '${target.label}')">
-          <span style="font-size:1.35rem; font-weight:900;">${o.label}</span>
-        </button>
-      `
+        (o) => `<button class="option-card math-opt-btn" onclick="checkMathAnswer(this, '${o.label}', '${target.label}')"><div class="opt-word" style="font-size:1.35rem;">${o.label}</div></button>`
       )
       .join('');
   } else {
-    // 長方形周長與面積計算
     const w = randInt(5, 14);
     const h = randInt(3, 9);
     const askArea = Math.random() < 0.5;
     const ans = askArea ? w * h : (w + h) * 2;
-    const unitLabel = askArea ? '平方公分 (cm²)' : '公分 (cm)';
-    const formulaHint = askArea
-      ? '長方形面積公式 ＝ 長 × 寬'
-      : '長方形周長公式 ＝ (長 ＋ 寬) × 2';
-
+    const unitLabel = askArea ? 'cm²' : 'cm';
+    const formula = askArea ? '面積 ＝ 長 × 寬' : '周長 ＝ (長 ＋ 寬) × 2';
     const opts = makeNumericDistractors(ans, 3, [2, 10]);
 
-    state.currentQuestion = {
-      answer: ans,
-      speech: [
-        {
-          text: `有一個長方形，長是 ${w} 公分，寬是 ${h} 公分，請問它的${askArea ? '面積' : '周長'}是多少？`,
-          lang: 'zh-TW',
-        },
-      ],
-    };
-
-    document.getElementById('math-prompt').textContent =
-      `${PET_CONFIG.math}：「請計算這個長方形的【${askArea ? '面積 (Area)' : '周長 (Perimeter)'}】！」`;
+    document.getElementById('math-prompt-text').textContent =
+      `${PET_CONFIG.corieName}：「幾何計算挑戰！請算出這個長方形的【${askArea ? '面積' : '周長'}】！」`;
 
     stage.innerHTML = `
       <div class="word-problem-card" style="text-align:center;">
-        <div class="wp-badge">📐 國小幾何圖形：長方形${askArea ? '面積' : '周長'}</div>
-        <div class="geometry-rect-box">
-          長 ${w} cm × 寬 ${h} cm
-        </div>
-        <div style="font-size:0.95rem; font-weight:800; color:#4f46e5;">💡 ${formulaHint}</div>
+        <div class="wp-badge">📐 長方形${askArea ? '面積 (Area)' : '周長 (Perimeter)'}計算</div>
+        <div class="geometry-rect-box">長 ${w} cm × 寬 ${h} cm</div>
+        <div style="font-weight:800; color:#4f46e5;">💡 公式提示：${formula}</div>
       </div>
     `;
+    eqBar.innerHTML = '';
 
-    grid.innerHTML = opts
+    state.currentSpeech = [
+      { text: `長方形的長是 ${w} 公分，寬是 ${h} 公分，請問它的${askArea ? '面積' : '周長'}是多少？`, lang: 'zh-TW' },
+    ];
+
+    container.className = 'options-grid math-options';
+    container.innerHTML = opts
       .map(
-        (n) => `
-        <button class="option-btn" onclick="checkMathOption(this, ${n}, ${ans})">
-          <span style="font-size:1.45rem; font-weight:900;">${n} ${unitLabel}</span>
-        </button>
-      `
+        (n) => `<button class="option-card math-opt-btn" onclick="checkMathAnswer(this, ${n}, ${ans})"><div class="opt-word" style="font-size:1.6rem;">${n} ${unitLabel}</div></button>`
       )
       .join('');
   }
-  speakCurrentPrompt();
+  repeatMathPrompt();
 }
 
 function buildFractionPieSvg(num, den) {
-  const cx = 70, cy = 70, r = 58;
+  const cx = 65, cy = 65, r = 55;
   let paths = '';
   for (let i = 0; i < den; i++) {
-    const startAngle = (i * 2 * Math.PI) / den - Math.PI / 2;
-    const endAngle = ((i + 1) * 2 * Math.PI) / den - Math.PI / 2;
-    const x1 = cx + r * Math.cos(startAngle);
-    const y1 = cy + r * Math.sin(startAngle);
-    const x2 = cx + r * Math.cos(endAngle);
-    const y2 = cy + r * Math.sin(endAngle);
+    const a1 = (i * 2 * Math.PI) / den - Math.PI / 2;
+    const a2 = ((i + 1) * 2 * Math.PI) / den - Math.PI / 2;
+    const x1 = cx + r * Math.cos(a1);
+    const y1 = cy + r * Math.sin(a1);
+    const x2 = cx + r * Math.cos(a2);
+    const y2 = cy + r * Math.sin(a2);
     const fill = i < num ? '#f97316' : '#f1f5f9';
-    paths += `<path d="M ${cx} ${cy} L ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 0 1 ${x2.toFixed(2)} ${y2.toFixed(2)} Z"
-      fill="${fill}" stroke="#334155" stroke-width="2.5"/>`;
+    paths += `<path d="M ${cx} ${cy} L ${x1.toFixed(1)} ${y1.toFixed(1)} A ${r} ${r} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)} Z" fill="${fill}" stroke="#334155" stroke-width="2.5"/>`;
   }
-  return `<svg viewBox="0 0 140 140" width="135" height="135">${paths}</svg>`;
+  return `<svg viewBox="0 0 130 130" width="125" height="125">${paths}</svg>`;
 }
 
-function checkMathOption(btn, chosen, correct) {
+function checkMathAnswer(btn, chosen, correct) {
   if (state.isAnswering) return;
   if (String(chosen) === String(correct)) {
-    btn.classList.add('correct');
-    handleCorrectAnswer('math', String(correct), [
-      { text: `答對了！答案是 ${correct}`, lang: 'zh-TW' },
-    ]);
+    btn.classList.add('correct-pick');
+    onCorrectAnswer('math', String(correct), [{ text: `答對了！答案是 ${correct}`, lang: 'zh-TW' }]);
   } else {
-    btn.classList.add('wrong');
-    setTimeout(() => btn.classList.remove('wrong'), 500);
-    handleWrongAnswer('math', '算式結果不太對喔，再檢查一次計算步驟！');
+    btn.classList.add('wrong-pick');
+    setTimeout(() => btn.classList.remove('wrong-pick'), 500);
+    onWrongAnswer('math', '算式結果不太對喔，再檢查一次計算步驟！');
   }
 }
 
 // ============================================================================
-// 🐟 Shannon 國小時間與行程學院 (6~12歲 3大進階關卡)
+// 🐟 Shannon 國小時間推理學院 (6~12歲 3大進階關卡)
 // ============================================================================
-function loadClockQuestion() {
-  state.isAnswering = false;
-  updateProgressDots('clock');
-  renderBadgesAndStreaks();
+function startClockGame(lv = 1) {
+  state.currentMode = 'clock';
+  state.clockLevel = lv;
+  state.round = 1;
+  showScreen('clock');
+  syncClockLevelChips();
+  loadClockQuestion();
+}
 
-  const fb = document.getElementById('clock-feedback');
-  if (fb) {
-    fb.textContent = '';
-    fb.className = 'feedback-banner';
+function switchClockLevel(lv) {
+  playClickTick();
+  state.clockLevel = lv;
+  state.round = 1;
+  syncClockLevelChips();
+  loadClockQuestion();
+}
+
+function syncClockLevelChips() {
+  for (let i = 1; i <= 3; i++) {
+    const chip = document.getElementById(`clock-lvl-chip-${i}`);
+    if (chip) chip.classList.toggle('active', i === state.clockLevel);
   }
+}
 
-  const lv = state.level.clock;
-  if (lv === 1) renderClockLv1ExactMinute();
-  else if (lv === 2) renderClockLv2ElapsedTime();
-  else renderClockLv3InteractiveSet();
+function repeatClockPrompt() {
+  if (state.currentSpeech && state.currentSpeech.length) {
+    speakSequence(state.currentSpeech);
+  }
 }
 
 function formatClockTime(h, m) {
   return `${h}:${m < 10 ? '0' + m : m}`;
 }
 
-function buildClockSvg(hour, minute) {
+function drawAnalogClockSvg(hour, minute) {
+  const svg = document.getElementById('analog-clock-svg');
+  if (!svg) return;
+
   const h12 = hour % 12;
   const minAngle = minute * 6;
   const hourAngle = h12 * 30 + minute * 0.5;
 
   let ticks = '';
   for (let i = 0; i < 60; i++) {
-    const angle = (i * 6 * Math.PI) / 180;
+    const rad = (i * 6 * Math.PI) / 180;
     const isMajor = i % 5 === 0;
-    const rOuter = 98;
-    const rInner = isMajor ? 86 : 93;
-    const x1 = 110 + rInner * Math.sin(angle);
-    const y1 = 110 - rInner * Math.cos(angle);
-    const x2 = 110 + rOuter * Math.sin(angle);
-    const y2 = 110 - rOuter * Math.cos(angle);
+    const rOut = 114;
+    const rIn = isMajor ? 100 : 108;
+    const x1 = 130 + rIn * Math.sin(rad);
+    const y1 = 130 - rIn * Math.cos(rad);
+    const x2 = 130 + rOut * Math.sin(rad);
+    const y2 = 130 - rOut * Math.cos(rad);
     ticks += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"
-      stroke="${isMajor ? '#1e293b' : '#94a3b8'}" stroke-width="${isMajor ? 3 : 1.4}" stroke-linecap="round"/>`;
+      stroke="${isMajor ? '#0f172a' : '#94a3b8'}" stroke-width="${isMajor ? 3.2 : 1.5}" stroke-linecap="round"/>`;
   }
 
-  let numbers = '';
+  let nums = '';
   for (let n = 1; n <= 12; n++) {
-    const angle = (n * 30 * Math.PI) / 180;
-    const rNum = 72;
-    const x = 110 + rNum * Math.sin(angle);
-    const y = 110 - rNum * Math.cos(angle) + 6;
-    numbers += `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle"
-      font-size="16" font-weight="900" fill="#1e293b">${n}</text>`;
+    const rad = (n * 30 * Math.PI) / 180;
+    const rNum = 84;
+    const x = 130 + rNum * Math.sin(rad);
+    const y = 130 - rNum * Math.cos(rad) + 6;
+    nums += `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" font-size="18" font-weight="900" fill="#1e293b">${n}</text>`;
   }
 
-  return `
-    <svg viewBox="0 0 220 220" class="clock-svg">
-      <circle cx="110" cy="110" r="102" fill="#ffffff" stroke="#0ea5e9" stroke-width="8"/>
-      ${ticks}
-      ${numbers}
-      <!-- 紅色短針 (時針) -->
-      <line x1="110" y1="110" x2="110" y2="58"
-        stroke="#ef4444" stroke-width="7" stroke-linecap="round"
-        transform="rotate(${hourAngle} 110 110)"/>
-      <!-- 藍色長針 (分針) -->
-      <line x1="110" y1="110" x2="110" y2="34"
-        stroke="#2563eb" stroke-width="4.5" stroke-linecap="round"
-        transform="rotate(${minAngle} 110 110)"/>
-      <circle cx="110" cy="110" r="6" fill="#0f172a"/>
-    </svg>
+  svg.innerHTML = `
+    <circle cx="130" cy="130" r="120" fill="#ffffff" stroke="#0ea5e9" stroke-width="8"/>
+    ${ticks}
+    ${nums}
+    <line x1="130" y1="130" x2="130" y2="68" stroke="#ef4444" stroke-width="7.5" stroke-linecap="round" transform="rotate(${hourAngle} 130 130)"/>
+    <line x1="130" y1="130" x2="130" y2="38" stroke="#2563eb" stroke-width="5" stroke-linecap="round" transform="rotate(${minAngle} 130 130)"/>
+    <circle cx="130" cy="130" r="7" fill="#0f172a"/>
   `;
 }
 
-// Lv.1 精準到「1分鐘」刻度讀時與 24小時制換算
-function renderClockLv1ExactMinute() {
-  const stage = document.getElementById('clock-stage');
-  const grid = document.getElementById('clock-options');
+function loadClockQuestion() {
+  state.isAnswering = false;
+  updateRoundProgressUI('clock');
 
-  const is24HrMode = state.questionIndex % 2 === 1;
+  const controls = document.getElementById('clock-set-controls');
+  const container = document.getElementById('clock-options-container');
+
+  const lv = state.clockLevel;
+  if (lv === 1) {
+    if (controls) controls.classList.add('hidden');
+    renderClockLv1ExactMinute(container);
+  } else if (lv === 2) {
+    if (controls) controls.classList.add('hidden');
+    renderClockLv2ElapsedTime(container);
+  } else {
+    if (controls) controls.classList.remove('hidden');
+    renderClockLv3InteractiveSet(container);
+  }
+}
+
+// Lv.1 精準1分鐘刻度＆24小時制換算
+function renderClockLv1ExactMinute(container) {
+  const is24Hr = state.round % 2 === 0;
   const h12 = randInt(1, 11);
   const min = randInt(1, 58);
   const h24 = h12 + 12;
 
-  const ansStr = is24HrMode
-    ? `${h24}:${min < 10 ? '0' + min : min}`
-    : formatClockTime(h12, min);
+  const ansStr = is24Hr ? formatClockTime(h24, min) : formatClockTime(h12, min);
+  drawAnalogClockSvg(h12, min);
 
-  const distractorTimes = new Set([ansStr]);
+  const badge = document.getElementById('clock-activity-badge');
+  if (badge) {
+    badge.textContent = is24Hr
+      ? '🌆 下午時刻 (PM) ➔ 請換算成 24 小時制（小時 +12）'
+      : '🔍 精準 1 分鐘細刻度判讀';
+  }
+
+  document.getElementById('clock-prompt-text').textContent = is24Hr
+    ? `${PET_CONFIG.shannonName}：「現在是【下午】，請讀出精準分鐘並換算成 24 小時制！」`
+    : `${PET_CONFIG.shannonName}：「請仔細數一數藍色分針指在第幾小格，選出正確時刻！」`;
+
   const opts = [ansStr];
   while (opts.length < 4) {
     const dm = (min + pickRandom([-5, -2, -1, 1, 2, 5, 15, 30]) + 60) % 60;
-    const dh = is24HrMode ? (Math.random() < 0.35 ? h12 : h24) : h12;
-    const cand = `${dh}:${dm < 10 ? '0' + dm : dm}`;
-    if (!distractorTimes.has(cand)) {
-      distractorTimes.add(cand);
-      opts.push(cand);
-    }
+    const dh = is24Hr ? (Math.random() < 0.35 ? h12 : h24) : h12;
+    const cand = formatClockTime(dh, dm);
+    if (!opts.includes(cand)) opts.push(cand);
   }
 
-  state.currentQuestion = {
-    answer: ansStr,
-    speech: [
-      {
-        text: is24HrMode
-          ? `請看時鐘上的細小分鐘刻度，如果是下午時刻，用 24 小時制表示是幾點幾分？`
-          : `請仔細數一數藍色分針指在第幾小格，現在是幾點幾分？`,
-        lang: 'zh-TW',
-      },
-    ],
-  };
+  state.currentSpeech = [
+    {
+      text: is24Hr
+        ? '請看時鐘，如果是下午時刻，用 24 小時制表示是幾點幾分？'
+        : '請看時鐘上的細小刻度，現在是幾點幾分？',
+      lang: 'zh-TW',
+    },
+  ];
 
-  document.getElementById('clock-prompt').textContent = is24HrMode
-    ? `${PET_CONFIG.clock}：「現在是【下午 (PM)】，請換算成 24 小時制（小時 +12）並讀出精準分鐘！」`
-    : `${PET_CONFIG.clock}：「請看紅短針與藍長針指的小刻度，選出精準到 1 分鐘的時刻！」`;
-
-  stage.innerHTML = `
-    <div style="text-align:center;">
-      <div class="wp-badge" style="margin-bottom:8px;">
-        ${is24HrMode ? '🌆 下午時刻 ➔ 24小時制換算' : '🔍 1分鐘細刻度精準判讀'}
-      </div>
-      ${buildClockSvg(h12, min)}
-    </div>
-  `;
-
-  grid.innerHTML = shuffle(opts)
+  container.innerHTML = shuffle(opts)
     .map(
-      (t) => `
-      <button class="option-btn" onclick="checkClockOption(this, '${t}', '${ansStr}')">
-        <span style="font-size:1.75rem; font-weight:900;">${t}</span>
-      </button>
-    `
+      (t) => `<button class="option-card clock-opt-btn" onclick="checkClockAnswer(this, '${t}', '${ansStr}')"><div class="opt-word" style="font-size:1.85rem;">${t}</div></button>`
     )
     .join('');
 
-  speakCurrentPrompt();
+  repeatClockPrompt();
 }
 
-// Lv.2 經過時間與行程推算應用題 (Elapsed Time)
-function renderClockLv2ElapsedTime() {
-  const stage = document.getElementById('clock-stage');
-  const grid = document.getElementById('clock-options');
-
+// Lv.2 經過時間推算應用題
+function renderClockLv2ElapsedTime(container) {
   const startH = randInt(8, 16);
   const startM = pickRandom([5, 10, 15, 20, 25, 30, 35, 40, 45]);
   const duration = pickRandom([25, 35, 40, 45, 50, 55, 65, 75]);
 
-  const totalEndMins = startH * 60 + startM + duration;
-  const endH = Math.floor(totalEndMins / 60);
-  const endM = totalEndMins % 60;
+  const endTotal = startH * 60 + startM + duration;
+  const endH = Math.floor(endTotal / 60);
+  const endM = endTotal % 60;
   const ansStr = formatClockTime(endH, endM);
 
-  const scenarios = [
-    `科博館太空劇場在 ${formatClockTime(startH, startM)} 開始播放，片長總共 ${duration} 分鐘，請問會在幾點幾分結束？`,
-    `自強號火車在 ${formatClockTime(startH, startM)} 從車站發車，行駛了 ${duration} 分鐘後抵達終點站，請問抵達時刻是幾點幾分？`,
-    `小華在 ${formatClockTime(startH, startM)} 開始練習小提琴與寫作業，共花了 ${duration} 分鐘完成，請問他幾點幾分寫完？`,
-  ];
-  const story = pickRandom(scenarios);
+  drawAnalogClockSvg(startH, startM);
+
+  const badge = document.getElementById('clock-activity-badge');
+  if (badge) {
+    badge.textContent = `🕒 開始時刻：${formatClockTime(startH, startM)} ｜ ⏳ 經過 ${duration} 分鐘後是幾點幾分？`;
+  }
+
+  const story = `時鐘顯示的是開始時刻 ${formatClockTime(startH, startM)}，經過 ${duration} 分鐘之後，請問會變成幾點幾分？`;
+  document.getElementById('clock-prompt-text').textContent = `${PET_CONFIG.shannonName}：「${story}（滿 60 分鐘要進位 1 小時喔！）」`;
 
   const opts = [ansStr];
-  const deltas = [-15, -10, -5, 5, 10, 15, 20];
   while (opts.length < 4) {
-    const t = totalEndMins + pickRandom(deltas);
+    const t = endTotal + pickRandom([-15, -10, -5, 5, 10, 15, 20]);
     const cand = formatClockTime(Math.floor(t / 60), ((t % 60) + 60) % 60);
     if (!opts.includes(cand)) opts.push(cand);
   }
 
-  state.currentQuestion = {
-    answer: ansStr,
-    speech: [{ text: story, lang: 'zh-TW' }],
-  };
+  state.currentSpeech = [{ text: story, lang: 'zh-TW' }];
 
-  document.getElementById('clock-prompt').textContent =
-    `${PET_CONFIG.clock}：「左邊是開始時刻，請推算經過 ${duration} 分鐘後的結束時刻！」`;
-
-  stage.innerHTML = `
-    <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:16px; width:100%;">
-      <div style="text-align:center;">
-        <div style="font-weight:800; color:#0284c7; margin-bottom:4px;">🕒 開始時刻：${formatClockTime(startH, startM)}</div>
-        ${buildClockSvg(startH, startM)}
-      </div>
-      <div class="word-problem-card" style="max-width:340px;">
-        <div class="wp-badge">⏳ 跨小時經過時間推算</div>
-        <div class="wp-text">${story}</div>
-        <div style="margin-top:8px; font-size:0.9rem; color:#0284c7; font-weight:800;">
-          💡 提示：滿 60 分鐘要向小時進位 1 小時喔！
-        </div>
-      </div>
-    </div>
-  `;
-
-  grid.innerHTML = shuffle(opts)
+  container.innerHTML = shuffle(opts)
     .map(
-      (t) => `
-      <button class="option-btn" onclick="checkClockOption(this, '${t}', '${ansStr}')">
-        <span style="font-size:1.75rem; font-weight:900;">${t}</span>
-      </button>
-    `
+      (t) => `<button class="option-card clock-opt-btn" onclick="checkClockAnswer(this, '${t}', '${ansStr}')"><div class="opt-word" style="font-size:1.85rem;">${t}</div></button>`
     )
     .join('');
 
-  speakCurrentPrompt();
+  repeatClockPrompt();
 }
 
-// Lv.3 親手撥針特訓 (支援 1分鐘與跨時推算調鬧鐘)
-function renderClockLv3InteractiveSet() {
-  const stage = document.getElementById('clock-stage');
-  const grid = document.getElementById('clock-options');
-  grid.innerHTML = '';
-
+// Lv.3 跨時應用題＆1分鐘微調撥針
+function renderClockLv3InteractiveSet(container) {
+  container.innerHTML = '';
   const targetH = randInt(1, 12);
   const targetM = randInt(1, 59);
-  const initH = (targetH + randInt(2, 6)) % 12 || 12;
-  const initM = (targetM + randInt(12, 42)) % 60;
+  const userH = (targetH + randInt(2, 5)) % 12 || 12;
+  const userM = (targetM + randInt(15, 40)) % 60;
 
-  state.currentQuestion = {
-    targetH,
-    targetM,
-    userH: initH,
-    userM: initM,
-    speech: [
-      {
-        text: `請操作按鈕撥動指針，把時鐘精準調整到 ${targetH} 點 ${targetM} 分！`,
-        lang: 'zh-TW',
-      },
-    ],
-  };
+  state.currentQuestion = { targetH, targetM, userH, userM };
+  drawAnalogClockSvg(userH, userM);
 
-  document.getElementById('clock-prompt').textContent =
-    `${PET_CONFIG.clock}：「請點擊下方調時按鈕，將指針精準撥到【${formatClockTime(targetH, targetM)}】！」`;
+  const badge = document.getElementById('clock-activity-badge');
+  if (badge) {
+    badge.textContent = `🎯 請撥針到目標時刻：【 ${formatClockTime(targetH, targetM)} 】（目前：${formatClockTime(userH, userM)}）`;
+  }
 
-  renderClockLv3UI();
-  speakCurrentPrompt();
+  document.getElementById('clock-prompt-text').textContent =
+    `${PET_CONFIG.shannonName}：「請使用下方按鈕微調時針與分針，精準對準【${formatClockTime(targetH, targetM)}】！」`;
+
+  state.currentSpeech = [
+    { text: `請操作按鈕撥動指針，把時鐘精準調整到 ${targetH} 點 ${targetM} 分！`, lang: 'zh-TW' },
+  ];
+
+  repeatClockPrompt();
 }
 
-function renderClockLv3UI() {
-  const stage = document.getElementById('clock-stage');
-  const q = state.currentQuestion;
-  stage.innerHTML = `
-    <div style="text-align:center; width:100%;">
-      <div class="word-problem-card" style="margin-bottom:10px; text-align:center;">
-        <div class="wp-badge">🛠️ 精準 1 分鐘手動撥針任務</div>
-        <div style="font-size:1.35rem; font-weight:900; color:#1e293b;">
-          🎯 目標時刻：<span style="color:#e11d48; font-size:1.6rem;">${formatClockTime(q.targetH, q.targetM)}</span>
-        </div>
-      </div>
-      ${buildClockSvg(q.userH, q.userM)}
-      <div class="clock-adjust-controls" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:12px;">
-        <button class="secondary-pill-btn" onclick="adjustClockHand(60)">🔴 時針 +1小時</button>
-        <button class="secondary-pill-btn" onclick="adjustClockHand(-60)">🔴 時針 -1小時</button>
-        <button class="secondary-pill-btn" onclick="adjustClockHand(5)">🔵 分針 +5分</button>
-        <button class="secondary-pill-btn" onclick="adjustClockHand(-5)">🔵 分針 -5分</button>
-        <button class="secondary-pill-btn" onclick="adjustClockHand(1)">✨ 分針 +1分</button>
-        <button class="secondary-pill-btn" onclick="adjustClockHand(-1)">✨ 分針 -1分</button>
-      </div>
-      <div style="margin-top:12px;">
-        <button class="checkout-btn" onclick="submitClockAdjust()">✅ 完成調時確認</button>
-      </div>
-    </div>
-  `;
-}
-
-function adjustClockHand(deltaMins) {
+function adjustInteractiveClock(deltaH, deltaM) {
   if (state.isAnswering || !state.currentQuestion) return;
   playClickTick();
   const q = state.currentQuestion;
-  let total = (q.userH % 12) * 60 + q.userM + deltaMins;
+  let total = (q.userH % 12) * 60 + q.userM + deltaH * 60 + deltaM;
   total = ((total % 720) + 720) % 720;
   q.userH = Math.floor(total / 60) || 12;
   q.userM = total % 60;
-  renderClockLv3UI();
+  drawAnalogClockSvg(q.userH, q.userM);
+
+  const badge = document.getElementById('clock-activity-badge');
+  if (badge) {
+    badge.textContent = `🎯 請撥針到目標時刻：【 ${formatClockTime(q.targetH, q.targetM)} 】（目前：${formatClockTime(q.userH, q.userM)}）`;
+  }
 }
 
-function submitClockAdjust() {
+function checkInteractiveClockAnswer() {
   if (state.isAnswering || !state.currentQuestion) return;
   const q = state.currentQuestion;
   if (q.userH % 12 === q.targetH % 12 && q.userM === q.targetM) {
     const label = formatClockTime(q.targetH, q.targetM);
-    handleCorrectAnswer('clock', label, [
-      { text: `太精準了！成功調到 ${q.targetH} 點 ${q.targetM} 分！`, lang: 'zh-TW' },
+    onCorrectAnswer('clock', label, [
+      { text: `太精準了！成功把時鐘調到 ${q.targetH} 點 ${q.targetM} 分！`, lang: 'zh-TW' },
     ]);
   } else {
-    handleWrongAnswer(
+    onWrongAnswer(
       'clock',
-      `目前指針在 ${formatClockTime(q.userH, q.userM)}，目標是 ${formatClockTime(q.targetH, q.targetM)}，再微調一下分鐘刻度喔！`
+      `目前指針在 ${formatClockTime(q.userH, q.userM)}，目標是 ${formatClockTime(q.targetH, q.targetM)}，再微調一下喔！`
     );
   }
 }
 
-function checkClockOption(btn, chosen, correct) {
+function checkClockAnswer(btn, chosen, correct) {
   if (state.isAnswering) return;
   if (chosen === correct) {
-    btn.classList.add('correct');
-    handleCorrectAnswer('clock', correct, [
-      { text: `答對了！時刻是 ${correct}`, lang: 'zh-TW' },
-    ]);
+    btn.classList.add('correct-pick');
+    onCorrectAnswer('clock', correct, [{ text: `答對了！時刻是 ${correct}`, lang: 'zh-TW' }]);
   } else {
-    btn.classList.add('wrong');
-    setTimeout(() => btn.classList.remove('wrong'), 500);
-    handleWrongAnswer('clock', '時刻不太對喔，再仔細觀察時針與分針的位置！');
+    btn.classList.add('wrong-pick');
+    setTimeout(() => btn.classList.remove('wrong-pick'), 500);
+    onWrongAnswer('clock', '時刻不太對喔，再仔細看一次指針指的小格！');
   }
 }
 
 // ============================================================================
-// 🏆 統一答題回饋、連勝金幣加成與過關結算
+// 🏆 統一答題結算、金幣與寵物經驗值發放
 // ============================================================================
-function handleCorrectAnswer(petKey, answerText, customSpeech) {
+function onCorrectAnswer(prefix, label, speechItems) {
   state.isAnswering = true;
-  state.score++;
   playSuccessJingle();
 
-  // 更新連勝與金幣獎勵
-  SAVE_DATA.streaks[petKey] = (SAVE_DATA.streaks[petKey] || 0) + 1;
+  state.streak[prefix] = (state.streak[prefix] || 0) + 1;
+  SAVE_DATA.totalAnswered = (SAVE_DATA.totalAnswered || 0) + 1;
   SAVE_DATA.totalCorrect = (SAVE_DATA.totalCorrect || 0) + 1;
-  const streakBonus = Math.min(10, SAVE_DATA.streaks[petKey] * 2);
-  const coinsEarned = 10 + streakBonus;
-  const expEarned = 12;
+  if (state.streak[prefix] > (SAVE_DATA.bestStreak || 0)) {
+    SAVE_DATA.bestStreak = state.streak[prefix];
+  }
 
-  SAVE_DATA.coins += coinsEarned;
-  state.lastCoinsEarned += coinsEarned;
-  state.lastExpEarned += expEarned;
-  addPetExp(SAVE_DATA.activeCompanion, expEarned);
+  const bonusCoins = Math.min(10, state.streak[prefix] * 2);
+  const earnedCoins = 8 + bonusCoins;
+  SAVE_DATA.coins += earnedCoins;
+  SAVE_DATA.totalStars += 1;
+
+  const activePet = SAVE_DATA.pets[SAVE_DATA.activePetId || 'corie'];
+  if (activePet) addPetExp(activePet, 15);
+
   saveProgress();
-  renderBadgesAndStreaks();
+  updateTopCountersUI();
+  updateRoundProgressUI(prefix);
 
-  const fb = document.getElementById(`${petKey}-feedback`);
-  if (fb) {
-    fb.textContent = `🎉 答對了！(${answerText}) 🪙+${coinsEarned} 金幣 ｜ 🔥連對 ${SAVE_DATA.streaks[petKey]} 題！`;
-    fb.className = 'feedback-banner success';
+  const promptId = prefix === 'en' ? 'en-prompt-text' : prefix === 'math' ? 'math-prompt-text' : 'clock-prompt-text';
+  const promptEl = document.getElementById(promptId);
+  if (promptEl) {
+    promptEl.textContent = `🎉 答對了！(${label}) 獲得 ⭐+1 ‧ 🪙+${earnedCoins} 金幣！`;
   }
 
-  if (customSpeech) {
-    speakSequence(customSpeech);
-  }
+  if (speechItems) speakSequence(speechItems);
 
   setTimeout(() => {
-    state.questionIndex++;
-    if (state.questionIndex >= state.totalQuestions) {
-      finishGame(petKey);
+    if (state.round >= TOTAL_ROUNDS) {
+      finishRoundSet(prefix);
     } else {
-      if (petKey === 'en') loadEnglishQuestion();
-      else if (petKey === 'math') loadMathQuestion();
-      else if (petKey === 'clock') loadClockQuestion();
+      state.round++;
+      if (prefix === 'en') loadEnglishQuestion();
+      else if (prefix === 'math') loadMathQuestion();
+      else loadClockQuestion();
     }
-  }, 1500);
+  }, 1400);
 }
 
-function handleWrongAnswer(petKey, hintMsg) {
+function onWrongAnswer(prefix, msg) {
   playTryAgainSound();
-  SAVE_DATA.streaks[petKey] = 0;
+  state.streak[prefix] = 0;
+  SAVE_DATA.totalAnswered = (SAVE_DATA.totalAnswered || 0) + 1;
   saveProgress();
-  renderBadgesAndStreaks();
+  updateRoundProgressUI(prefix);
 
-  const fb = document.getElementById(`${petKey}-feedback`);
-  if (fb) {
-    fb.textContent = `💪 ${hintMsg}`;
-    fb.className = 'feedback-banner error';
-  }
-  speakSequence([{ text: hintMsg, lang: 'zh-TW' }]);
+  const promptId = prefix === 'en' ? 'en-prompt-text' : prefix === 'math' ? 'math-prompt-text' : 'clock-prompt-text';
+  const promptEl = document.getElementById(promptId);
+  if (promptEl) promptEl.textContent = `💪 ${msg}`;
+  speakSequence([{ text: msg, lang: 'zh-TW' }]);
 }
 
-function finishGame(petKey) {
-  const lv = state.level[petKey];
-  const clearKey = `${petKey}-${lv}`;
+function finishRoundSet(prefix) {
+  const lv = prefix === 'en' ? state.enLevel : prefix === 'math' ? state.mathLevel : state.clockLevel;
+  const clearKey = `${prefix}_${lv}`;
   SAVE_DATA.levelClears[clearKey] = (SAVE_DATA.levelClears[clearKey] || 0) + 1;
 
-  // 過關額外加發 3 顆星與通關金幣紅包
-  const starsEarned = 3;
-  const clearBonusCoins = 25;
-  SAVE_DATA.totalStars += starsEarned;
-  SAVE_DATA.coins += clearBonusCoins;
-  state.lastCoinsEarned += clearBonusCoins;
-
-  // 解鎖新貼紙
-  let unlockedStickerObj = null;
-  if (SAVE_DATA.unlockedStickers.length < STICKERS.length) {
-    const nextIdx = SAVE_DATA.unlockedStickers.length;
-    SAVE_DATA.unlockedStickers.push(nextIdx);
-    unlockedStickerObj = STICKERS[nextIdx];
-  }
+  SAVE_DATA.coins += 30;
+  SAVE_DATA.totalStars += 2;
+  const activePet = SAVE_DATA.pets[SAVE_DATA.activePetId || 'corie'];
+  if (activePet) addPetExp(activePet, 30);
 
   saveProgress();
-  renderBadgesAndStreaks();
-  renderStickerWall();
-  renderPetSanctuary();
+  updateTopCountersUI();
 
-  // 更新過關畫面
-  const petName = PET_CONFIG[petKey];
-  document.getElementById('celeb-title').textContent = `太棒了！完成 ${petName} Lv.${lv} 挑戰！`;
-  document.getElementById('celeb-desc').textContent =
-    `獲得 3 顆榮譽星星 ⭐，這關已經累計通關 ${SAVE_DATA.levelClears[clearKey]} 次囉！`;
+  const msgEl = document.getElementById('celebrate-message');
+  if (msgEl) {
+    msgEl.innerHTML = `恭喜完成 <strong>Lv.${lv}</strong> 全部 8 題挑戰！（累計過關 ${SAVE_DATA.levelClears[clearKey]} 次 🏅）<br/>目前擁有 <strong>🪙 ${SAVE_DATA.coins} 金幣</strong> 與 <strong>⭐ ${SAVE_DATA.totalStars} 顆星</strong>，快回寵物養成屋幫夥伴買大餐跟新造型吧！`;
+  }
 
-  const rewardSummary = document.getElementById('celeb-reward-summary');
-  const activePet = SAVE_DATA.pets[SAVE_DATA.activeCompanion];
-  if (rewardSummary) {
-    rewardSummary.innerHTML = `
-      🪙 本局共獲得 <strong>+${state.lastCoinsEarned} 金幣</strong>（目前總金幣：${SAVE_DATA.coins}）<br/>
-      🐾 守護夥伴獲得 <strong>+${state.lastExpEarned} 經驗值</strong>（目前 Lv.${activePet ? activePet.level : 1}）
+  const againBtn = document.getElementById('btn-play-again');
+  if (againBtn) {
+    againBtn.onclick = () => {
+      if (prefix === 'en') startEnglishGame(state.enLevel);
+      else if (prefix === 'math') startMathGame(state.mathLevel);
+      else startClockGame(state.clockLevel);
+    };
+  }
+
+  showScreen('celebrate');
+  spawnConfetti(35);
+  playSuccessJingle();
+  speakSequence([
+    { text: '太棒了！學霸關卡完成！快回寵物養成屋餵食你的小動物吧！', lang: 'zh-TW' },
+  ]);
+}
+
+// ============================================================================
+// 📊 進度備份彈窗、安裝教學彈窗與家長設定彈窗
+// ============================================================================
+function openProgressModal() {
+  playClickTick();
+  const grid = document.getElementById('progress-summary-grid');
+  const totalClears = Object.values(SAVE_DATA.levelClears).reduce((a, b) => a + b, 0);
+  const unlockedStickers = Math.min(STICKERS.length, Math.floor(SAVE_DATA.totalStars / 3));
+
+  if (grid) {
+    grid.innerHTML = `
+      <div class="progress-stat-box">
+        <div class="stat-num">⭐ ${SAVE_DATA.totalStars}</div>
+        <div class="stat-label">累積榮譽星星</div>
+      </div>
+      <div class="progress-stat-box">
+        <div class="stat-num">🪙 ${SAVE_DATA.coins}</div>
+        <div class="stat-label">寵物養成金幣</div>
+      </div>
+      <div class="progress-stat-box">
+        <div class="stat-num">🏅 ${totalClears} 次</div>
+        <div class="stat-label">關卡完賽次數</div>
+      </div>
+      <div class="progress-stat-box">
+        <div class="stat-num">✅ ${SAVE_DATA.totalCorrect || 0} 題</div>
+        <div class="stat-label">累計答對題數</div>
+      </div>
+      <div class="progress-stat-box">
+        <div class="stat-num">🔥 ${SAVE_DATA.bestStreak || 0} 題</div>
+        <div class="stat-label">最高連對紀錄</div>
+      </div>
+      <div class="progress-stat-box">
+        <div class="stat-num">🎁 ${unlockedStickers} / ${STICKERS.length}</div>
+        <div class="stat-label">已解鎖貼紙圖鑑</div>
+      </div>
     `;
   }
 
-  const stickerBox = document.getElementById('new-sticker-box');
-  if (stickerBox) {
-    if (unlockedStickerObj) {
-      stickerBox.classList.remove('hidden');
-      document.getElementById('new-sticker-emoji').textContent = unlockedStickerObj.emoji;
-      document.getElementById('new-sticker-name').textContent = unlockedStickerObj.name;
-    } else {
-      stickerBox.classList.add('hidden');
-    }
+  const codeBox = document.getElementById('save-code-textarea');
+  if (codeBox) {
+    try {
+      codeBox.value = btoa(encodeURIComponent(JSON.stringify(SAVE_DATA)));
+    } catch (e) {}
   }
 
-  showScreen('celebration-screen');
-  spawnConfetti();
+  document.getElementById('progress-modal').classList.remove('hidden');
+}
+
+function closeProgressModal() {
+  playClickTick();
+  document.getElementById('progress-modal').classList.add('hidden');
+}
+
+function copySaveCode() {
+  const codeBox = document.getElementById('save-code-textarea');
+  if (!codeBox) return;
+  codeBox.select();
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(codeBox.value).catch(() => {});
+  }
   playSuccessJingle();
-
-  const celebSpeech = [
-    {
-      text: `恭喜過關！獲得 ${state.lastCoinsEarned} 枚金幣！快回首頁的寵物養成屋餵食或買新造型吧！`,
-      lang: 'zh-TW',
-    },
-  ];
-  if (unlockedStickerObj) {
-    celebSpeech.push({ text: `還獲得了新貼紙：${unlockedStickerObj.name}`, lang: 'zh-TW' });
-  }
-  speakSequence(celebSpeech);
+  speakSequence([{ text: '已經複製跨裝置存檔碼囉！', lang: 'zh-TW' }]);
 }
 
-function playAgain() {
-  if (!state.currentPet) {
-    goHome();
-    return;
-  }
-  selectPet(state.currentPet, state.level[state.currentPet]);
-}
-
-function spawnConfetti() {
-  const box = document.getElementById('confetti-box');
-  if (!box) return;
-  box.innerHTML = '';
-  const emojis = ['🎉', '⭐', '🪙', '🏆', '🌈', '✨', '🎈'];
-  for (let i = 0; i < 22; i++) {
-    const span = document.createElement('span');
-    span.className = 'confetti-piece';
-    span.textContent = emojis[i % emojis.length];
-    span.style.left = `${Math.random() * 94}%`;
-    span.style.animationDelay = `${(Math.random() * 0.8).toFixed(2)}s`;
-    box.appendChild(span);
+function promptImportSaveCode() {
+  const raw = window.prompt('請貼上您的跨裝置進度引繼碼：');
+  if (!raw || !raw.trim()) return;
+  try {
+    const parsed = JSON.parse(decodeURIComponent(atob(raw.trim())));
+    if (parsed && typeof parsed.coins === 'number') {
+      SAVE_DATA = { ...DEFAULT_SAVE, ...parsed };
+      saveProgress();
+      updateTopCountersUI();
+      renderPetSanctuary();
+      openProgressModal();
+      playSuccessJingle();
+      speakSequence([{ text: '進度還原成功！', lang: 'zh-TW' }]);
+    }
+  } catch (e) {
+    playTryAgainSound();
+    speakSequence([{ text: '引繼碼格式不正確喔！', lang: 'zh-TW' }]);
   }
 }
 
-// ============================================================================
-// ⚙️ 家長設定視窗 (角色改名 + 語速 + 20分鐘護眼鎖定設定)
-// ============================================================================
+function openInstallModal() {
+  playClickTick();
+  document.getElementById('install-modal').classList.remove('hidden');
+}
+
+function closeInstallModal() {
+  playClickTick();
+  document.getElementById('install-modal').classList.add('hidden');
+}
+
 function openSettingsModal() {
   playClickTick();
-  document.getElementById('input-name-math').value = PET_CONFIG.math;
-  document.getElementById('input-name-en').value = PET_CONFIG.en;
-  document.getElementById('input-name-clock').value = PET_CONFIG.clock;
-
-  const rateInput = document.getElementById('input-speech-rate');
-  const rateVal = document.getElementById('speech-rate-val');
-  if (rateInput) rateInput.value = PET_CONFIG.speechRate;
-  if (rateVal) rateVal.textContent = `${Number(PET_CONFIG.speechRate).toFixed(2)}x`;
-
-  const limitSelect = document.getElementById('select-time-limit');
-  if (limitSelect) limitSelect.value = String(PET_CONFIG.timeLimitMinutes || 20);
-
-  const pinInput = document.getElementById('input-parent-pin');
-  if (pinInput) pinInput.value = PET_CONFIG.parentPin || '1234';
-
+  document.getElementById('select-time-limit').value = String(PET_CONFIG.timeLimitMinutes);
+  document.getElementById('input-parent-pin').value = PET_CONFIG.parentPin || '1234';
+  document.getElementById('input-corie-name').value = PET_CONFIG.corieName;
+  document.getElementById('input-duncan-name').value = PET_CONFIG.duncanName;
+  document.getElementById('input-shannon-name').value = PET_CONFIG.shannonName;
+  document.getElementById('select-tts-mode').value = PET_CONFIG.ttsMode || 'auto';
+  document.getElementById('input-speech-rate').value = String(PET_CONFIG.speechRate || 1.0);
+  updateSpeedLabel(PET_CONFIG.speechRate || 1.0);
   document.getElementById('settings-modal').classList.remove('hidden');
 }
 
@@ -2866,50 +2651,83 @@ function closeSettingsModal() {
   document.getElementById('settings-modal').classList.add('hidden');
 }
 
-function previewSpeechRate(val) {
-  const rateVal = document.getElementById('speech-rate-val');
-  if (rateVal) rateVal.textContent = `${Number(val).toFixed(2)}x`;
-  PET_CONFIG.speechRate = Number(val);
+function updateSpeedLabel(val) {
+  const num = parseFloat(val) || 1.0;
+  const label = document.getElementById('speed-label-val');
+  if (label) {
+    label.textContent = `${num.toFixed(2)}x`;
+  }
 }
 
-function resetDefaultPetNames() {
+function setSpeedPreset(val) {
   playClickTick();
-  document.getElementById('input-name-math').value = DEFAULT_PET_NAMES.math;
-  document.getElementById('input-name-en').value = DEFAULT_PET_NAMES.en;
-  document.getElementById('input-name-clock').value = DEFAULT_PET_NAMES.clock;
-  document.getElementById('input-speech-rate').value = DEFAULT_PET_NAMES.speechRate;
-  document.getElementById('speech-rate-val').textContent = '1.05x';
-  document.getElementById('select-time-limit').value = '20';
-  document.getElementById('input-parent-pin').value = '1234';
+  const input = document.getElementById('input-speech-rate');
+  if (input) input.value = String(val);
+  updateSpeedLabel(val);
 }
 
-function savePetNamesFromModal() {
-  const mathName = document.getElementById('input-name-math').value.trim() || DEFAULT_PET_NAMES.math;
-  const enName = document.getElementById('input-name-en').value.trim() || DEFAULT_PET_NAMES.en;
-  const clockName = document.getElementById('input-name-clock').value.trim() || DEFAULT_PET_NAMES.clock;
-  const rate = Number(document.getElementById('input-speech-rate').value) || 1.05;
-  const limitMins = Number(document.getElementById('select-time-limit').value) || 20;
-  const pin = document.getElementById('input-parent-pin').value.trim() || '1234';
+function testVoicePreview() {
+  const rate = parseFloat(document.getElementById('input-speech-rate').value) || 1.0;
+  PET_CONFIG.speechRate = rate;
+  speakSequence([
+    { text: `嗨！我是 ${PET_CONFIG.corieName}，一起來挑戰國小學霸遊戲吧！`, lang: 'zh-TW' },
+    { text: `Hello! I am ${PET_CONFIG.duncanName}. Let's learn English together!`, lang: 'en-US' },
+  ]);
+}
 
-  PET_CONFIG = {
-    math: mathName,
-    en: enName,
-    clock: clockName,
-    speechRate: rate,
-    timeLimitMinutes: limitMins,
-    parentPin: pin,
-  };
+function saveSettings() {
+  PET_CONFIG.timeLimitMinutes = parseInt(document.getElementById('select-time-limit').value, 10);
+  PET_CONFIG.parentPin = document.getElementById('input-parent-pin').value.trim() || '1234';
+  PET_CONFIG.corieName = document.getElementById('input-corie-name').value.trim() || 'Corie';
+  PET_CONFIG.duncanName = document.getElementById('input-duncan-name').value.trim() || 'Duncan';
+  PET_CONFIG.shannonName = document.getElementById('input-shannon-name').value.trim() || 'Shannon';
+  PET_CONFIG.ttsMode = document.getElementById('select-tts-mode').value || 'auto';
+  PET_CONFIG.speechRate = parseFloat(document.getElementById('input-speech-rate').value) || 1.0;
 
-  try {
-    localStorage.setItem(PET_NAMES_STORAGE_KEY, JSON.stringify(PET_CONFIG));
-  } catch (e) {}
+  const zhSel = document.getElementById('select-zh-voice');
+  const enSel = document.getElementById('select-en-voice');
+  if (zhSel && zhSel.value) PET_CONFIG.zhVoiceURI = zhSel.value;
+  if (enSel && enSel.value) PET_CONFIG.enVoiceURI = enSel.value;
 
+  localStorage.setItem('pet_time_limit_mins', String(PET_CONFIG.timeLimitMinutes));
+  localStorage.setItem('pet_parent_pin', PET_CONFIG.parentPin);
+  localStorage.setItem('pet_corie_name', PET_CONFIG.corieName);
+  localStorage.setItem('pet_duncan_name', PET_CONFIG.duncanName);
+  localStorage.setItem('pet_shannon_name', PET_CONFIG.shannonName);
+  localStorage.setItem('pet_tts_mode', PET_CONFIG.ttsMode);
+  localStorage.setItem('pet_speech_rate', String(PET_CONFIG.speechRate));
+  localStorage.setItem('pet_zh_voice', PET_CONFIG.zhVoiceURI);
+  localStorage.setItem('pet_en_voice', PET_CONFIG.enVoiceURI);
+
+  initSpeechVoices();
   applyPetNamesToDOM();
   renderPetSanctuary();
   updateTimerUIAndCheckLock();
   closeSettingsModal();
   playSuccessJingle();
-  speakSequence([{ text: '設定已經儲存成功囉！', lang: 'zh-TW' }]);
+  speakSequence([{ text: '家長設定已經儲存成功囉！', lang: 'zh-TW' }]);
+}
+
+// ============================================================================
+// 🚀 啟動應用程式
+// ============================================================================
+function initApp() {
+  applyPetNamesToDOM();
+  initSpeechVoices();
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = initSpeechVoices;
+  }
+  updateTopCountersUI();
+  renderPetSanctuary();
+  startPlaytimeMonitor();
+
+  document.addEventListener(
+    'pointerdown',
+    () => {
+      getAudioContext();
+    },
+    { once: true }
+  );
 }
 
 window.addEventListener('DOMContentLoaded', initApp);
