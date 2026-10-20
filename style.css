@@ -1789,3 +1789,599 @@ body {
 
 .cancel-btn { background: #f1f5f9; color: #475569; }
 .save-btn { background: #8b5cf6; color: #ffffff; }
+
+/* ==================== 🎓 6~12歲升級版：頂部列、計時器、金幣與進度 ==================== */
+.top-left-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timer-pill {
+  background: #ecfdf5;
+  border: 3px solid #34d399;
+  border-radius: 999px;
+  padding: 5px 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 1rem;
+  font-weight: 900;
+  color: #047857;
+  box-shadow: 0 4px 0 #10b981;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.timer-pill.warning {
+  background: #fef2f2;
+  border-color: #f87171;
+  color: #b91c1c;
+  box-shadow: 0 4px 0 #ef4444;
+  animation: pulseMystery 0.8s infinite alternate;
+}
+
+.coin-counter {
+  background: #fffbeb;
+  border: 3px solid #f59e0b;
+  border-radius: 999px;
+  padding: 5px 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #b45309;
+  box-shadow: 0 4px 0 #d97706;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.streak-pill {
+  background: #fff1f2;
+  border: 2px solid #fda4af;
+  color: #e11d48;
+  font-weight: 900;
+  font-size: 0.9rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.prog-tag {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.82rem;
+  background: rgba(255, 255, 255, 0.28);
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+
+/* ==================== 🏡 學霸寵物養成小屋 (Pet Sanctuary) ==================== */
+.pet-sanctuary-card {
+  background: linear-gradient(145deg, #fdf4ff 0%, #eff6ff 55%, #f0fdf4 100%);
+  border: 4px solid #c084fc;
+  border-radius: 28px;
+  padding: 18px 16px;
+  margin-bottom: 22px;
+  box-shadow: 0 8px 0 #c084fc;
+  text-align: left;
+}
+
+.sanctuary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.sanctuary-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sanctuary-badge {
+  background: #9333ea;
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 0.85rem;
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+.sanctuary-title-group h2 {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #4c1d95;
+}
+
+.pet-switcher-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pet-switch-btn {
+  border: 2px solid #d8b4fe;
+  background: #ffffff;
+  color: #6b21a8;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 900;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.pet-switch-btn.active {
+  background: #7e22ce;
+  color: #ffffff;
+  border-color: #581c87;
+}
+
+.sanctuary-body {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+@media (max-width: 740px) {
+  .sanctuary-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pet-stage-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pet-stage-box {
+  background: radial-gradient(circle at 50% 35%, #ffffff 0%, #fae8ff 100%);
+  border: 3px solid #e9d5ff;
+  border-radius: 24px;
+  padding: 16px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 185px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.pet-stage-box:active {
+  transform: scale(0.96);
+}
+
+.pet-equipped-hat {
+  font-size: 2.3rem;
+  line-height: 1;
+  margin-bottom: -14px;
+  z-index: 3;
+  filter: drop-shadow(0 3px 4px rgba(0,0,0,0.15));
+}
+
+.pet-main-visual {
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 4px solid #f0abfc;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 14px rgba(147, 51, 234, 0.16);
+}
+
+.pet-main-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.companion-emoji {
+  font-size: 4.2rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.pet-equipped-item {
+  position: absolute;
+  right: 16px;
+  bottom: 42px;
+  font-size: 2.1rem;
+  z-index: 4;
+  animation: floatSlow 3s infinite alternate;
+}
+
+.pet-stage-rank {
+  margin-top: 8px;
+  background: #fef08a;
+  border: 2px solid #f59e0b;
+  color: #92400e;
+  font-weight: 900;
+  font-size: 0.86rem;
+  padding: 3px 12px;
+  border-radius: 999px;
+}
+
+.pet-speech-bar {
+  background: #ffffff;
+  border: 2px solid #e9d5ff;
+  border-radius: 14px;
+  padding: 8px 10px;
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: #581c87;
+  text-align: center;
+}
+
+.pet-care-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 22px;
+  padding: 12px 14px;
+  border: 2px solid #e9d5ff;
+}
+
+.pet-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 600px) {
+  .pet-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
+.stat-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: #475569;
+  display: flex;
+  justify-content: space-between;
+}
+
+.stat-bar {
+  height: 11px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+}
+
+.stat-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.35s ease;
+}
+
+.exp-fill { background: linear-gradient(90deg, #a855f7, #ec4899); }
+.hunger-fill { background: linear-gradient(90deg, #f97316, #eab308); }
+.mood-fill { background: linear-gradient(90deg, #ec4899, #f43f5e); }
+
+.shop-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.shop-tab {
+  border: 2px solid #cbd5e1;
+  background: #f8fafc;
+  color: #475569;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 900;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.shop-tab.active {
+  background: #ec4899;
+  color: #ffffff;
+  border-color: #be185d;
+}
+
+.pet-shop-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+  gap: 8px;
+}
+
+.shop-item-btn {
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #cbd5e1;
+  font-family: inherit;
+  transition: transform 0.12s;
+}
+
+.shop-item-btn:active {
+  transform: translateY(2px);
+}
+
+.shop-item-btn.owned {
+  border-color: #22c55e;
+  background: #f0fdf4;
+}
+
+.shop-item-btn.equipped {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  box-shadow: 0 3px 0 #f59e0b;
+}
+
+.shop-icon {
+  font-size: 1.8rem;
+}
+
+.shop-title {
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: #1e293b;
+}
+
+.shop-cost {
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: #b45309;
+  background: #fef3c7;
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+
+/* ==================== 🃏 12張高階英漢記憶配對網格 ==================== */
+.options-grid.memory-grid-12 {
+  grid-template-columns: repeat(4, 1fr);
+  max-width: 780px;
+  margin: 0 auto;
+  gap: 10px;
+}
+
+@media (max-width: 680px) {
+  .options-grid.memory-grid-12 {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+}
+
+.memory-card.compact-card {
+  min-height: 102px;
+  padding: 8px 6px;
+}
+
+/* ==================== 💵 鈔票與進階硬幣 (100元/50元/10元/5元/1元) ==================== */
+.coin-100 {
+  width: 78px;
+  height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #fecdd3, #f43f5e);
+  border: 3px solid #be123c;
+  color: #ffffff;
+  font-size: 1rem;
+  box-shadow: 0 3px 0 #881337;
+}
+
+.coin-50 {
+  width: 54px;
+  height: 54px;
+  background: radial-gradient(circle at 30% 30%, #fef08a, #ca8a04);
+  border: 3px solid #854d0e;
+  color: #422006;
+  font-size: 1rem;
+  box-shadow: 0 3px 0 #713f12;
+}
+
+.coin-10 {
+  width: 50px;
+  height: 50px;
+  background: radial-gradient(circle at 30% 30%, #f1f5f9, #94a3b8);
+  border: 3px solid #475569;
+  color: #0f172a;
+  font-size: 0.98rem;
+  box-shadow: 0 3px 0 #334155;
+}
+
+.btn-add-100 {
+  background: #f43f5e;
+  color: #ffffff;
+  box-shadow: 0 4px 0 #be123c;
+}
+
+.btn-add-50 {
+  background: #eab308;
+  color: #ffffff;
+  box-shadow: 0 4px 0 #a16207;
+}
+
+.btn-add-10 {
+  background: #cbd5e1;
+  color: #0f172a;
+  box-shadow: 0 4px 0 #64748b;
+}
+
+/* ==================== 📐 國小應用題、分數與周長面積視覺面板 ==================== */
+.word-problem-card {
+  background: #ffffff;
+  border: 3px solid #fdba74;
+  border-radius: 20px;
+  padding: 14px 18px;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #431407;
+  line-height: 1.5;
+  max-width: 640px;
+  text-align: left;
+  box-shadow: 0 4px 0 #fed7aa;
+}
+
+.geometry-rect-box {
+  border: 4px solid #0284c7;
+  background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+  border-radius: 12px;
+  padding: 18px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  color: #0369a1;
+  position: relative;
+  min-width: 180px;
+  min-height: 110px;
+}
+
+/* ==================== 🌙 20分鐘防沉迷護眼時間鎖定畫面 ==================== */
+.time-lock-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.time-lock-card {
+  background: #ffffff;
+  border: 5px solid #818cf8;
+  border-radius: 30px;
+  padding: 28px 22px;
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.45);
+}
+
+.lock-pets-sleeping {
+  font-size: 3.4rem;
+  margin-bottom: 10px;
+}
+
+.time-lock-card h2 {
+  font-size: 1.75rem;
+  color: #312e81;
+  margin-bottom: 10px;
+}
+
+.lock-desc {
+  font-size: 1.05rem;
+  color: #475569;
+  line-height: 1.55;
+  margin-bottom: 18px;
+  font-weight: 700;
+}
+
+.parent-unlock-box {
+  background: #f8fafc;
+  border: 2px dashed #94a3b8;
+  border-radius: 20px;
+  padding: 14px;
+}
+
+.parent-unlock-title {
+  font-weight: 900;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.parent-unlock-sub {
+  font-size: 0.88rem;
+  color: #64748b;
+  margin-bottom: 10px;
+}
+
+.parent-unlock-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.parent-unlock-row input {
+  padding: 9px 12px;
+  border: 2px solid #cbd5e1;
+  border-radius: 12px;
+  font-size: 1rem;
+  width: 180px;
+  text-align: center;
+}
+
+.unlock-error-msg {
+  color: #dc2626;
+  font-weight: 800;
+  font-size: 0.88rem;
+  margin-top: 8px;
+}
+
+/* 📊 存檔統計中心 */
+.progress-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.prog-stat-card {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #334155;
+}
+
+.prog-stat-card strong {
+  display: block;
+  font-size: 1.25rem;
+  color: #4f46e5;
+  margin-top: 2px;
+}
+
+.backup-section textarea {
+  width: 100%;
+  padding: 8px;
+  border-radius: 10px;
+  border: 2px solid #cbd5e1;
+  font-family: monospace;
+  font-size: 0.8rem;
+  resize: none;
+}
+
+.backup-btn-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}

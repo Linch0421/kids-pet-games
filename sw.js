@@ -1,10 +1,10 @@
-const CACHE_NAME = 'kids-pet-games-v7';
+const CACHE_NAME = 'kids-pet-games-v8';
 const ASSETS = [
   './',
   './index.html',
-  './style.css?v=7',
-  './app.js?v=7',
-  './manifest.json?v=7',
+  './style.css?v=8',
+  './app.js?v=8',
+  './manifest.json?v=8',
   './assets/corie.png',
   './assets/duncan.png',
   './assets/shannon.png',
