@@ -87,25 +87,26 @@
           <span class="highlight-corie" data-pet-name="corie">Corie</span> 和
           <span class="highlight-shannon" data-pet-name="shannon">Shannon</span> 一起探險！
         </h1>
-        <p class="welcome-sub">ABC 英文 5 大玩法 ‧ 123 數學與邏輯 6 大玩法 ‧ ⏰ 時鐘教室 ‧ 120 張閃亮貼紙 ✨</p>
+        <p class="welcome-sub">ABC 英文 6 大玩法（含 Rocket Girl Activity Book 1） ‧ 123 數學與邏輯 6 大玩法 ‧ ⏰ 時鐘教室 ✨</p>
 
         <!-- 遊戲選擇三大主題卡 -->
         <div class="game-cards-grid three-cols">
-          <!-- 🐶 英文探險（5 種玩法） -->
+          <!-- 🐶 英文探險（6 種玩法） -->
           <div class="game-mode-card english-card">
-            <div class="card-badge">ABC 英文（5 大遊戲‧104 單字）</div>
+            <div class="card-badge">ABC 英文（6 大遊戲‧Rocket Book 1）</div>
             <div class="card-character" onclick="startEnglishGame(1)">
               <img src="assets/duncan.png?v=7" alt="Duncan" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
               <span style="display:none; font-size:3.5rem;">🐶</span>
             </div>
             <h2><span data-pet-name="duncan">Duncan</span> 的英文探險</h2>
-            <p>認字、聽音填空、拼字、顏色形狀氣球＆記憶翻翻樂！</p>
+            <p>認字、聽音填空、拼字、氣球、翻翻樂＆Rocket Book 1 練習題！</p>
             <div class="level-select-group">
               <button class="lvl-btn lvl-1" onclick="startEnglishGame(1)">🌱 Lv.1 幼幼認字圖卡</button>
               <button class="lvl-btn lvl-2" onclick="startEnglishGame(2)">🎧 Lv.2 聽音找圖＆首字母</button>
               <button class="lvl-btn lvl-3" onclick="startEnglishGame(3)">🔤 Lv.3 大小寫＆單字拼拼樂</button>
-              <button class="lvl-btn lvl-4" onclick="startEnglishGame(4)">🎈 Lv.4 顏色形狀戳氣球 (NEW!)</button>
-              <button class="lvl-btn lvl-5" onclick="startEnglishGame(5)">🃏 Lv.5 肉球記憶翻翻樂 (NEW!)</button>
+              <button class="lvl-btn lvl-4" onclick="startEnglishGame(4)">🎈 Lv.4 顏色形狀戳氣球</button>
+              <button class="lvl-btn lvl-5" onclick="startEnglishGame(5)">🃏 Lv.5 肉球記憶翻翻樂</button>
+              <button class="lvl-btn lvl-6" onclick="startEnglishGame(6)">🚀 Lv.6 Rocket Girl Activity Book 1 (NEW!)</button>
             </div>
           </div>
 
@@ -166,6 +167,18 @@
           <button class="chip-btn" id="en-lvl-chip-3" onclick="switchEnglishLevel(3)">🔤 Lv.3 大小寫＆拼字</button>
           <button class="chip-btn" id="en-lvl-chip-4" onclick="switchEnglishLevel(4)">🎈 Lv.4 顏色形狀氣球</button>
           <button class="chip-btn" id="en-lvl-chip-5" onclick="switchEnglishLevel(5)">🃏 Lv.5 記憶翻翻樂</button>
+          <button class="chip-btn" id="en-lvl-chip-6" onclick="switchEnglishLevel(6)">🚀 Lv.6 Rocket Book 1</button>
+        </div>
+
+        <div id="rocket-unit-bar" class="rocket-unit-bar hidden">
+          <span class="bar-label">📚 課本單元：</span>
+          <button class="unit-chip active" id="rk-unit-all" onclick="switchRocketUnit('all')">🌟 全部綜合</button>
+          <button class="unit-chip" id="rk-unit-u1" onclick="switchRocketUnit('u1')">🎒 U1 上學用品</button>
+          <button class="unit-chip" id="rk-unit-u2" onclick="switchRocketUnit('u2')">👨‍👩‍👧 U2 我愛家人</button>
+          <button class="unit-chip" id="rk-unit-u3" onclick="switchRocketUnit('u3')">🐶 U3 我的寵物</button>
+          <button class="unit-chip" id="rk-unit-u4" onclick="switchRocketUnit('u4')">🧸 U4 我的玩具</button>
+          <button class="unit-chip" id="rk-unit-u5" onclick="switchRocketUnit('u5')">🍎 U5 美味水果</button>
+          <button class="unit-chip" id="rk-unit-rg" onclick="switchRocketUnit('rg')">🦸‍♀️ Rocket Girl 火箭女孩</button>
         </div>
 
         <div class="progress-bar-wrap">

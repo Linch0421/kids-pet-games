@@ -573,10 +573,14 @@ function switchEnglishLevel(lvl) {
 }
 
 function updateEnglishLevelChips() {
-  [1, 2, 3, 4, 5].forEach((n) => {
+  [1, 2, 3, 4, 5, 6].forEach((n) => {
     const chip = document.getElementById(`en-lvl-chip-${n}`);
     if (chip) chip.classList.toggle('active', n === englishLevel);
   });
+  const rocketBar = document.getElementById('rocket-unit-bar');
+  if (rocketBar) {
+    rocketBar.classList.toggle('hidden', englishLevel !== 6);
+  }
 }
 
 function pickUnusedWord(pool = ENGLISH_BANK) {
@@ -624,8 +628,10 @@ function nextEnglishRound() {
     }
   } else if (englishLevel === 4) {
     setupEnglishColorShapeParty();
-  } else {
+  } else if (englishLevel === 5) {
     setupEnglishMemoryMatch();
+  } else {
+    setupRocketBook1Game();
   }
 }
 
@@ -1053,6 +1059,191 @@ function handleMemoryCardClick(cardData, btnEl) {
   }
 }
 
+// ============================================================================
+// 🚀 Lv.6（新遊戲）：Rocket Girl & Activity Book 1 課本練習題庫
+// （涵蓋：幼兒園 Rocket Book 1 五大單元 + Little Fox Rocket Girl 火箭女孩）
+// ============================================================================
+let currentRocketUnit = 'all'; // 'all' | 'u1' | 'u2' | 'u3' | 'u4' | 'u5' | 'rg'
+
+const ROCKET_BOOK1_BANK = [
+  // 🎒 Unit 1: Ready For School（準備上學‧文具與禮貌問候）
+  { unit: 'u1', badge: '🎒 Unit 1: Ready For School', word: 'Bag', zh: '書包', emoji: '🎒', sentence: 'Pack your ___! Let\'s go to school!', fullSentence: 'Pack your bag! Let\'s go to school!', zhHint: '把你的「書包」收好，我們去上學吧！' },
+  { unit: 'u1', badge: '🎒 Unit 1: Ready For School', word: 'Book', zh: '書本', emoji: '📖', sentence: 'Open your ___ and read with me!', fullSentence: 'Open your book and read with me!', zhHint: '打開你的「書本」跟我一起讀！' },
+  { unit: 'u1', badge: '🎒 Unit 1: Ready For School', word: 'Pencil', zh: '鉛筆', emoji: '✏️', sentence: 'What is this? It is a ___.', fullSentence: 'What is this? It is a pencil.', zhHint: '這是什麼？這是一枝「鉛筆」。' },
+  { unit: 'u1', badge: '🎒 Unit 1: Ready For School', word: 'Crayon', zh: '蠟筆', emoji: '🖍️', sentence: 'Color the picture with a red ___.', fullSentence: 'Color the picture with a red crayon.', zhHint: '用紅色「蠟筆」把圖畫塗上顏色。' },
+  { unit: 'u1', badge: '🎒 Unit 1: Ready For School', word: 'Eraser', zh: '橡皮擦', emoji: '🧼', sentence: 'I have a pencil and an ___.', fullSentence: 'I have a pencil and an eraser.', zhHint: '我有一枝鉛筆和一個「橡皮擦」。' },
+  { unit: 'u1', badge: '🎒 Unit 1: Ready For School', word: 'Ruler', zh: '尺', emoji: '📏', sentence: 'Draw a straight line with a ___.', fullSentence: 'Draw a straight line with a ruler.', zhHint: '用「尺」畫出一條直直的線。' },
+  { unit: 'u1', badge: '🎒 Unit 1: Ready For School', word: 'Chair', zh: '椅子', emoji: '🪑', sentence: 'Sit down on your ___, please!', fullSentence: 'Sit down on your chair, please!', zhHint: '請在你的「椅子」上坐好！' },
+  { unit: 'u1', badge: '🎒 Unit 1: Everyday Talk', word: 'Good morning', zh: '早安！', emoji: '☀️', sentence: 'Teacher says: ___! How are you?', fullSentence: 'Good morning! How are you?', zhHint: '早上見到老師要很有精神說：「早安！」' },
+
+  // 👨‍👩‍👧 Unit 2: I Love You（我愛家人 Family）
+  { unit: 'u2', badge: '👨‍👩‍👧 Unit 2: I Love You', word: 'Daddy', zh: '爸爸', emoji: '👨', sentence: 'Who is he? He is my ___!', fullSentence: 'Who is he? He is my Daddy!', zhHint: '他是誰？他是我的「爸爸」！' },
+  { unit: 'u2', badge: '👨‍👩‍👧 Unit 2: I Love You', word: 'Mommy', zh: '媽媽', emoji: '👩', sentence: 'Who is she? She is my ___!', fullSentence: 'Who is she? She is my Mommy!', zhHint: '她是誰？她是我的「媽媽」！' },
+  { unit: 'u2', badge: '👨‍👩‍👧 Unit 2: I Love You', word: 'Baby', zh: '小寶寶', emoji: '👶', sentence: 'Look at the cute little ___!', fullSentence: 'Look at the cute little baby!', zhHint: '看看這個可愛的「小寶寶」！' },
+  { unit: 'u2', badge: '👨‍👩‍👧 Unit 2: I Love You', word: 'Brother', zh: '哥哥 / 弟弟', emoji: '👦', sentence: 'He is my ___. We play together!', fullSentence: 'He is my brother. We play together!', zhHint: '他是我的「哥哥/弟弟」，我們一起玩！' },
+  { unit: 'u2', badge: '👨‍👩‍👧 Unit 2: I Love You', word: 'Sister', zh: '姊姊 / 妹妹', emoji: '👧', sentence: 'She is my sweet ___!', fullSentence: 'She is my sweet sister!', zhHint: '她是我貼心的「姊姊/妹妹」！' },
+  { unit: 'u2', badge: '👨‍👩‍👧 Unit 2: I Love You', word: 'Grandpa', zh: '爺爺 / 外公', emoji: '👴', sentence: 'He is my kind ___!', fullSentence: 'He is my kind Grandpa!', zhHint: '他是我慈祥的「爺爺」！' },
+  { unit: 'u2', badge: '👨‍👩‍👧 Unit 2: I Love You', word: 'Grandma', zh: '奶奶 / 外婆', emoji: '👵', sentence: 'I love my sweet ___!', fullSentence: 'I love my sweet Grandma!', zhHint: '我愛我溫柔的「奶奶」！' },
+  { unit: 'u2', badge: '👨‍👩‍👧 Unit 2: Everyday Talk', word: 'I love you', zh: '我愛你！', emoji: '❤️', sentence: 'Hug Mommy and Daddy, say: ___!', fullSentence: 'I love you, Mommy and Daddy!', zhHint: '抱抱爸爸媽媽，大聲說：「我愛你！」' },
+
+  // 🐶 Unit 3: My Pets（我的可愛寵物）
+  { unit: 'u3', badge: '🐶 Unit 3: My Pets', word: 'Dog', zh: '小狗狗', emoji: '🐶', sentence: 'Woof, woof! It is a cute ___.', fullSentence: 'Woof, woof! It is a cute dog.', zhHint: '汪汪！這是一隻可愛的「小狗狗」。' },
+  { unit: 'u3', badge: '🐶 Unit 3: My Pets', word: 'Cat', zh: '小貓咪', emoji: '🐱', sentence: 'Meow, meow! Look at my orange ___.', fullSentence: 'Meow, meow! Look at my orange cat.', zhHint: '喵喵！看看我的橘色「小貓咪」。' },
+  { unit: 'u3', badge: '🐶 Unit 3: My Pets', word: 'Bird', zh: '小鳥', emoji: '🐦', sentence: 'Tweet! The little ___ can fly!', fullSentence: 'Tweet! The little bird can fly!', zhHint: '啾啾！這隻「小鳥」會在天空飛！' },
+  { unit: 'u3', badge: '🐶 Unit 3: My Pets', word: 'Fish', zh: '小魚', emoji: '🐟', sentence: 'Splash! The ___ can swim in water!', fullSentence: 'Splash! The fish can swim in water!', zhHint: '嘩啦！「小魚」會在水裡游泳！' },
+  { unit: 'u3', badge: '🐶 Unit 3: My Pets', word: 'Rabbit', zh: '小兔子', emoji: '🐰', sentence: 'Hop, hop! The ___ has long ears.', fullSentence: 'Hop, hop! The rabbit has long ears.', zhHint: '跳跳！「小兔子」有長長的耳朵。' },
+  { unit: 'u3', badge: '🐶 Unit 3: My Pets', word: 'Turtle', zh: '小烏龜', emoji: '🐢', sentence: 'The green ___ has a hard shell.', fullSentence: 'The green turtle has a hard shell.', zhHint: '綠色的「小烏龜」有硬硬的殼。' },
+  { unit: 'u3', badge: '🐶 Unit 3: My Pets', word: 'Hamster', zh: '小倉鼠', emoji: '🐹', sentence: 'My pet ___ is small and round!', fullSentence: 'My pet hamster is small and round!', zhHint: '我的寵物「小倉鼠」又小又圓滾滾！' },
+
+  // 🧸 Unit 4: My Toys（我的玩具箱）
+  { unit: 'u4', badge: '🧸 Unit 4: My Toys', word: 'Ball', zh: '球球', emoji: '⚽', sentence: 'Bounce the ___! Let\'s play!', fullSentence: 'Bounce the ball! Let\'s play!', zhHint: '拍拍「球球」，我們一起玩吧！' },
+  { unit: 'u4', badge: '🧸 Unit 4: My Toys', word: 'Doll', zh: '洋娃娃', emoji: '🪆', sentence: 'I have a pretty ___!', fullSentence: 'I have a pretty doll!', zhHint: '我有一個漂亮的「洋娃娃」！' },
+  { unit: 'u4', badge: '🧸 Unit 4: My Toys', word: 'Car', zh: '玩具汽車', emoji: '🚗', sentence: 'Vroom! Look at my fast toy ___!', fullSentence: 'Vroom! Look at my fast toy car!', zhHint: '轟隆隆！看看我跑得很快的「玩具汽車」！' },
+  { unit: 'u4', badge: '🧸 Unit 4: My Toys', word: 'Teddy bear', zh: '泰迪熊', emoji: '🧸', sentence: 'Hug the soft brown ___!', fullSentence: 'Hug the soft brown teddy bear!', zhHint: '抱抱軟綿綿的「泰迪熊」！' },
+  { unit: 'u4', badge: '🧸 Unit 4: My Toys', word: 'Kite', zh: '風箏', emoji: '🪁', sentence: 'Let\'s fly a ___ in the sky!', fullSentence: 'Let\'s fly a kite in the sky!', zhHint: '我們去把「風箏」放到高高的天空吧！' },
+  { unit: 'u4', badge: '🧸 Unit 4: My Toys', word: 'Blocks', zh: '積木', emoji: '🧱', sentence: 'Let\'s build a castle with ___!', fullSentence: 'Let\'s build a castle with blocks!', zhHint: '我們一起用「積木」蓋城堡吧！' },
+  { unit: 'u4', badge: '🧸 Unit 4: My Toys', word: 'Robot', zh: '機器人玩具', emoji: '🤖', sentence: 'Beep, beep! This is my toy ___.', fullSentence: 'Beep, beep! This is my toy robot.', zhHint: '嗶嗶！這是我的「機器人玩具」。' },
+  { unit: 'u4', badge: '🧸 Unit 4: Everyday Talk', word: 'Thank you', zh: '謝謝你！', emoji: '🤝', sentence: 'Friend shares a toy: Here you are! You say: ___!', fullSentence: 'Here you are! Thank you!', zhHint: '好朋友分玩具給你時，要禮貌說：「謝謝你！」' },
+
+  // 🍎 Unit 5: Fruit（美味水果派對）
+  { unit: 'u5', badge: '🍎 Unit 5: Yummy Fruit', word: 'Apple', zh: '紅蘋果', emoji: '🍎', sentence: 'Crunch! I like sweet red ___!', fullSentence: 'Crunch! I like sweet red apples!', zhHint: '咔滋！我喜歡甜甜的「紅蘋果」！' },
+  { unit: 'u5', badge: '🍎 Unit 5: Yummy Fruit', word: 'Banana', zh: '黃香蕉', emoji: '🍌', sentence: 'Monkeys love to eat yellow ___!', fullSentence: 'Monkeys love to eat yellow bananas!', zhHint: '小猴子最愛吃彎彎的「黃香蕉」！' },
+  { unit: 'u5', badge: '🍎 Unit 5: Yummy Fruit', word: 'Orange', zh: '香甜柳丁', emoji: '🍊', sentence: 'This round ___ is juicy and sweet!', fullSentence: 'This round orange is juicy and sweet!', zhHint: '這顆圓圓的「柳丁」好多汁好甜！' },
+  { unit: 'u5', badge: '🍎 Unit 5: Yummy Fruit', word: 'Peach', zh: '粉紅水蜜桃', emoji: '🍑', sentence: 'Do you like pink ___? Yes, I do!', fullSentence: 'Do you like pink peaches? Yes, I do!', zhHint: '你喜歡粉紅色的「水蜜桃」嗎？喜歡！' },
+  { unit: 'u5', badge: '🍎 Unit 5: Yummy Fruit', word: 'Watermelon', zh: '大西瓜', emoji: '🍉', sentence: 'This big green ___ is red inside!', fullSentence: 'This big green watermelon is red inside!', zhHint: '這顆綠色的「大西瓜」裡面紅通通的！' },
+  { unit: 'u5', badge: '🍎 Unit 5: Yummy Fruit', word: 'Grapes', zh: '紫葡萄', emoji: '🍇', sentence: 'Yummy, yummy purple ___!', fullSentence: 'Yummy, yummy purple grapes!', zhHint: '好吃的紫色「葡萄」！' },
+  { unit: 'u5', badge: '🍎 Unit 5: Yummy Fruit', word: 'Strawberry', zh: '草莓', emoji: '🍓', sentence: 'Put a sweet red ___ on the cake!', fullSentence: 'Put a sweet red strawberry on the cake!', zhHint: '在蛋糕上放一顆甜甜的「草莓」！' },
+  { unit: 'u5', badge: '🍎 Unit 5: Everyday Talk', word: 'Goodbye', zh: '再見！', emoji: '👋', sentence: 'School is over! Wave your hand and say: ___!', fullSentence: 'Goodbye! See you tomorrow!', zhHint: '放學囉！揮揮手跟大家說：「再見！」' },
+
+  // 🦸‍♀️ Little Fox & Oxford: Rocket Girl – Activity Book 1（火箭女孩 Roxy 英雄冒險）
+  { unit: 'rg', badge: '🦸‍♀️ Rocket Girl: Book 1', word: 'Rocket Girl', zh: '火箭女孩 Roxy', emoji: '🦸‍♀️', sentence: 'Who protects Metro City? ___ protects the city!', fullSentence: 'Rocket Girl protects Metro City!', zhHint: '誰在保護大都會城市？是「火箭女孩 Roxy」！' },
+  { unit: 'rg', badge: '🦸‍♀️ Rocket Girl: Book 1', word: 'Superhero', zh: '超級英雄', emoji: '🦸', sentence: 'Roxy has super powers! She is a ___!', fullSentence: 'Roxy has super powers! She is a superhero!', zhHint: 'Roxy 擁有超能力，她是一位「超級英雄」！' },
+  { unit: 'rg', badge: '🦸‍♀️ Rocket Girl: Book 1', word: 'Fly', zh: '在天空飛翔', emoji: '🚀', sentence: 'Up, up and away! Rocket Girl can ___ in the sky!', fullSentence: 'Rocket Girl can fly high in the sky!', zhHint: '衝上雲霄！火箭女孩可以在天空中「飛翔」！' },
+  { unit: 'rg', badge: '🦸‍♀️ Rocket Girl: Book 1', word: 'Super strength', zh: '超級大力氣', emoji: '💪', sentence: 'Rocket Girl uses her ___ to lift a heavy bus!', fullSentence: 'Rocket Girl uses her super strength to lift a heavy bus!', zhHint: '火箭女孩用她的「超級大力氣」舉起大公車！' },
+  { unit: 'rg', badge: '🦸‍♀️ Rocket Girl: Book 1', word: 'Laser beams', zh: '雷射光束', emoji: '⚡', sentence: 'Zap! Rocket Girl shoots ___ from her eyes!', fullSentence: 'Rocket Girl shoots laser beams from her eyes!', zhHint: '滋滋！火箭女孩從眼睛發射「雷射光束」！' },
+  { unit: 'rg', badge: '🦸‍♀️ Rocket Girl: Book 1', word: 'Alien', zh: '外星人', emoji: '👽', sentence: 'Oh no! A little green ___ from space is here!', fullSentence: 'A little green alien from space is here!', zhHint: '糟糕！從外太空來的綠色「外星人」出現了！' },
+  { unit: 'rg', badge: '🦸‍♀️ Rocket Girl: Book 1', word: 'Spaceship', zh: '太空船', emoji: '🛸', sentence: 'The aliens fly in a big silver ___!', fullSentence: 'The aliens fly in a big silver spaceship!', zhHint: '外星人坐著銀色的大「太空船」飛過來！' },
+  { unit: 'rg', badge: '🦸‍♀️ Rocket Girl: Book 1', word: 'Monster', zh: '大怪獸', emoji: '👾', sentence: 'Rocket Girl is brave! She stops the big ___!', fullSentence: 'Rocket Girl is brave! She stops the big monster!', zhHint: '火箭女孩很勇敢，她阻止了「大怪獸」！' },
+  { unit: 'rg', badge: '🦸‍♀️ Rocket Girl: Book 1', word: 'Mayor', zh: '市長先生', emoji: '🎩', sentence: '___ Bloom calls Rocket Girl for help!', fullSentence: 'Mayor Bloom calls Rocket Girl for help!', zhHint: '布魯「市長先生」打電話請火箭女孩幫忙！' },
+  { unit: 'rg', badge: '🦸‍♀️ Rocket Girl: Book 1', word: 'Metro City', zh: '大都會城市', emoji: '🏙️', sentence: 'Roxy and her friends live in ___.', fullSentence: 'Roxy and her friends live in Metro City.', zhHint: 'Roxy 和好朋友們住在「大都會城市」。' },
+  { unit: 'rg', badge: '🦸‍♀️ Rocket Girl: Book 1', word: 'Rescue', zh: '拯救大家', emoji: '🛟', sentence: 'Rocket Girl is here to ___ the people!', fullSentence: 'Rocket Girl is here to rescue the people!', zhHint: '火箭女孩趕來「拯救大家」了！' },
+  { unit: 'rg', badge: '🦸‍♀️ Rocket Girl: Book 1', word: 'Fire truck', zh: '消防車', emoji: '🚒', sentence: 'Wee-oo! Rocket Girl helps the red ___!', fullSentence: 'Rocket Girl helps the red fire truck!', zhHint: '喔伊喔伊！火箭女孩幫忙紅色的「消防車」！' },
+];
+
+function switchRocketUnit(unitId) {
+  currentRocketUnit = unitId;
+  ['all', 'u1', 'u2', 'u3', 'u4', 'u5', 'rg'].forEach((id) => {
+    const btn = document.getElementById(`rk-unit-${id}`);
+    if (btn) btn.classList.toggle('active', id === unitId);
+  });
+  currentRound = 1;
+  usedEnglishWords.clear();
+  nextEnglishRound();
+}
+
+function setupRocketBook1Game() {
+  const pool = currentRocketUnit === 'all'
+    ? ROCKET_BOOK1_BANK
+    : ROCKET_BOOK1_BANK.filter((item) => item.unit === currentRocketUnit);
+
+  let available = pool.filter((item) => !usedEnglishWords.has(item.word));
+  if (available.length < 1) {
+    usedEnglishWords.clear();
+    available = [...pool];
+  }
+  const target = available[Math.floor(Math.random() * available.length)];
+  usedEnglishWords.add(target.word);
+
+  const distractorPool = ROCKET_BOOK1_BANK.filter((item) => item.word !== target.word);
+  const sameUnitDistractors = distractorPool.filter((item) => item.unit === target.unit);
+  const sourceForWrong = sameUnitDistractors.length >= 3 ? sameUnitDistractors : distractorPool;
+  const distractors = [...sourceForWrong].sort(() => Math.random() - 0.5).slice(0, 3);
+  const choices = [target, ...distractors].sort(() => Math.random() - 0.5);
+
+  // 50% Word Fun & Say-and-Paste（聽音看圖選單字）, 50% Sentence Blank / Story Quiz（句子填空問答）
+  const isSentenceMode = Math.random() < 0.55;
+
+  currentEnglishQ = {
+    mode: 'rocket_book1',
+    isSentenceMode,
+    target,
+    choices,
+  };
+
+  if (isSentenceMode) {
+    document.getElementById('en-target-letter').innerHTML = `
+      <div class="rocket-unit-badge">${target.badge}</div>
+      <div>${target.emoji}</div>
+    `;
+    document.getElementById('en-target-subword').innerHTML = `
+      <div class="rocket-sentence-text">${target.sentence}</div>
+    `;
+    document.getElementById('en-prompt-text').innerHTML =
+      `<b>Rocket Activity Book 1</b> 句型填空：${target.zhHint}<br/>請選出正確的英文單字填進 <b>___</b> 裡！`;
+  } else {
+    document.getElementById('en-target-letter').innerHTML = `
+      <div class="rocket-unit-badge">${target.badge}</div>
+      <div>${target.emoji} ${target.word}</div>
+    `;
+    document.getElementById('en-target-subword').textContent = target.fullSentence;
+    document.getElementById('en-prompt-text').innerHTML =
+      `<b>Rocket Activity Book 1 (Say & Paste)</b>：請找出「<b>${target.word}（${target.zh}）</b>」的貼紙圖卡！`;
+  }
+
+  const container = document.getElementById('en-options-container');
+  container.innerHTML = '';
+  choices.forEach((choice) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-card';
+    btn.innerHTML = `
+      <div class="option-emoji">${choice.emoji}</div>
+      <div class="option-word">${choice.word}</div>
+      <div class="option-zh">${choice.zh}</div>
+    `;
+    btn.onclick = () => {
+      if (choice.word === target.word && isSentenceMode) {
+        document.getElementById('en-target-subword').innerHTML = `
+          <div class="rocket-sentence-text" style="color:#15803d;">${target.fullSentence}</div>
+        `;
+      }
+      verifyRocketBookChoice(choice.word === target.word, choice, btn);
+    };
+    container.appendChild(btn);
+  });
+
+  repeatEnglishPrompt();
+}
+
+function verifyRocketBookChoice(isCorrect, chosenItem, btnEl) {
+  if (isLocked) return;
+  const { target } = currentEnglishQ;
+
+  if (isCorrect) {
+    isLocked = true;
+    btnEl.classList.add('correct');
+    playSuccessJingle();
+    spawnConfetti(20);
+    totalStars += 1;
+    updateStarsUI();
+
+    speakSequence([
+      { text: target.word, lang: 'en-US', pauseAfter: 300 },
+      { text: target.fullSentence, lang: 'en-US', pauseAfter: 350 },
+      { text: `答對了！是 ${target.zh}，太棒了！`, lang: 'zh-TW' },
+    ]);
+
+    advanceOrFinishEnglish();
+  } else {
+    btnEl.classList.add('wrong');
+    playTryAgainSound();
+    speakSequence([
+      { text: chosenItem.word, lang: 'en-US', pauseAfter: 320 },
+      { text: `這是 ${chosenItem.zh}，我們再試一次喔！`, lang: 'zh-TW' },
+    ]);
+    setTimeout(() => btnEl.classList.remove('wrong'), 650);
+  }
+}
+
 function repeatEnglishPrompt() {
   if (!currentEnglishQ) return;
   const { mode, target } = currentEnglishQ;
@@ -1086,6 +1277,12 @@ function repeatEnglishPrompt() {
   } else if (mode === 'memory') {
     speakSequence([
       { text: '點點看腳印卡片，找出兩張一樣的英文單字喔！', lang: 'zh-TW' },
+    ]);
+  } else if (mode === 'rocket_book1') {
+    speakSequence([
+      { text: target.fullSentence, lang: 'en-US', pauseAfter: 380 },
+      { text: target.word, lang: 'en-US', pauseAfter: 350 },
+      { text: target.zhHint, lang: 'zh-TW' },
     ]);
   } else {
     speakSequence([
