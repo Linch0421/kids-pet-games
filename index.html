@@ -13,10 +13,10 @@
   <meta name="theme-color" content="#fff5f9" />
   <link rel="apple-touch-icon" href="assets/corie.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="assets/corie.png" />
-  <link rel="manifest" href="manifest.json?v=6" />
+  <link rel="manifest" href="manifest.json?v=7" />
 
-  <title>Corie、Duncan、Shannon & 鐵牛 的快樂學習樂園</title>
-  <link rel="stylesheet" href="style.css?v=6" />
+  <title>Corie、Duncan & Shannon 的快樂學習樂園</title>
+  <link rel="stylesheet" href="style.css?v=7" />
 </head>
 <body>
   <!-- 飄浮背景裝飾 -->
@@ -53,111 +53,94 @@
     <!-- ==================== 1. 首頁大廳 ==================== -->
     <section id="screen-home" class="screen active">
       <div class="hero-card">
-        <div class="characters-showcase">
-          <div class="pet-avatar-card corie-theme" onclick="petSpeak('corie')">
-            <div class="avatar-img-wrap">
-              <img src="assets/corie.png?v=6" alt="橘貓 Corie" id="img-corie-home" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-              <div class="avatar-fallback" style="display:none;">🐱</div>
-            </div>
-            <div class="pet-name-badge" data-pet-name="corie">Corie</div>
-            <div class="speech-mini">點我算數學！🐾</div>
-          </div>
-
+        <div class="characters-showcase three-pets">
           <div class="pet-avatar-card duncan-theme" onclick="petSpeak('duncan')">
             <div class="avatar-img-wrap">
-              <img src="assets/duncan.png?v=6" alt="邊牧 Duncan" id="img-duncan-home" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+              <img src="assets/duncan.png?v=7" alt="邊牧 Duncan" id="img-duncan-home" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
               <div class="avatar-fallback" style="display:none;">🐶</div>
             </div>
             <div class="pet-name-badge" data-pet-name="duncan">Duncan</div>
             <div class="speech-mini">汪汪！玩英文！🎾</div>
           </div>
 
+          <div class="pet-avatar-card corie-theme" onclick="petSpeak('corie')">
+            <div class="avatar-img-wrap">
+              <img src="assets/corie.png?v=7" alt="橘貓 Corie" id="img-corie-home" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+              <div class="avatar-fallback" style="display:none;">🐱</div>
+            </div>
+            <div class="pet-name-badge" data-pet-name="corie">Corie</div>
+            <div class="speech-mini">點我算數學！🐾</div>
+          </div>
+
           <div class="pet-avatar-card shannon-theme" onclick="petSpeak('shannon')">
             <div class="avatar-img-wrap">
-              <img src="assets/shannon.png?v=6" alt="比奇堡魚 Shannon" id="img-shannon-home" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+              <img src="assets/shannon.png?v=7" alt="比奇堡魚 Shannon" id="img-shannon-home" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
               <div class="avatar-fallback" style="display:none;">🐟</div>
             </div>
             <div class="pet-name-badge" data-pet-name="shannon">Shannon</div>
             <div class="speech-mini">咕嚕！看時鐘！⏰</div>
           </div>
-
-          <div class="pet-avatar-card tieniu-theme" onclick="petSpeak('tieniu')">
-            <div class="avatar-img-wrap">
-              <img src="assets/tieniu.png?v=6" alt="機器人 鐵牛" id="img-tieniu-home" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-              <div class="avatar-fallback" style="display:none;">🤖</div>
-            </div>
-            <div class="pet-name-badge" data-pet-name="tieniu">鐵牛</div>
-            <div class="speech-mini">嗶嗶！學注音！ㄅ</div>
-          </div>
         </div>
 
         <h1 class="welcome-heading">
-          跟 <span class="highlight-corie" data-pet-name="corie">Corie</span>、
-          <span class="highlight-duncan" data-pet-name="duncan">Duncan</span>、
-          <span class="highlight-shannon" data-pet-name="shannon">Shannon</span> 和
-          <span class="highlight-tieniu" data-pet-name="tieniu">鐵牛</span> 一起探險！
+          跟 <span class="highlight-duncan" data-pet-name="duncan">Duncan</span>、
+          <span class="highlight-corie" data-pet-name="corie">Corie</span> 和
+          <span class="highlight-shannon" data-pet-name="shannon">Shannon</span> 一起探險！
         </h1>
-        <p class="welcome-sub">ABC 英文 ‧ ㄅㄆㄇ 注音 ‧ 123 數學 ‧ ⏰ 時鐘 ‧ 120 張閃亮貼紙 ✨</p>
+        <p class="welcome-sub">ABC 英文 5 大玩法 ‧ 123 數學與邏輯 6 大玩法 ‧ ⏰ 時鐘教室 ‧ 120 張閃亮貼紙 ✨</p>
 
-        <!-- 遊戲選擇四大卡 -->
-        <div class="game-cards-grid four-cols">
+        <!-- 遊戲選擇三大主題卡 -->
+        <div class="game-cards-grid three-cols">
+          <!-- 🐶 英文探險（5 種玩法） -->
           <div class="game-mode-card english-card">
-            <div class="card-badge">ABC 英文（104 單字庫）</div>
+            <div class="card-badge">ABC 英文（5 大遊戲‧104 單字）</div>
             <div class="card-character" onclick="startEnglishGame(1)">
-              <img src="assets/duncan.png?v=6" alt="Duncan" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
+              <img src="assets/duncan.png?v=7" alt="Duncan" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
               <span style="display:none; font-size:3.5rem;">🐶</span>
             </div>
             <h2><span data-pet-name="duncan">Duncan</span> 的英文探險</h2>
-            <p>認識單字、聽音找圖、首字母填空、拼字接龍！</p>
+            <p>認字、聽音填空、拼字、顏色形狀氣球＆記憶翻翻樂！</p>
             <div class="level-select-group">
-              <button class="lvl-btn lvl-1" onclick="startEnglishGame(1)">🌱 幼幼認字</button>
-              <button class="lvl-btn lvl-2" onclick="startEnglishGame(2)">🌟 聽音＆填空</button>
-              <button class="lvl-btn lvl-3" onclick="startEnglishGame(3)">🏆 大小寫＆拼字</button>
+              <button class="lvl-btn lvl-1" onclick="startEnglishGame(1)">🌱 Lv.1 幼幼認字圖卡</button>
+              <button class="lvl-btn lvl-2" onclick="startEnglishGame(2)">🎧 Lv.2 聽音找圖＆首字母</button>
+              <button class="lvl-btn lvl-3" onclick="startEnglishGame(3)">🔤 Lv.3 大小寫＆單字拼拼樂</button>
+              <button class="lvl-btn lvl-4" onclick="startEnglishGame(4)">🎈 Lv.4 顏色形狀戳氣球 (NEW!)</button>
+              <button class="lvl-btn lvl-5" onclick="startEnglishGame(5)">🃏 Lv.5 肉球記憶翻翻樂 (NEW!)</button>
             </div>
           </div>
 
-          <div class="game-mode-card zhuyin-card">
-            <div class="card-badge">ㄅㄆㄇ 注音（37 符號＆拼音）</div>
-            <div class="card-character" onclick="startZhuyinGame(1)">
-              <img src="assets/tieniu.png?v=6" alt="鐵牛" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
-              <span style="display:none; font-size:3.5rem;">🤖</span>
-            </div>
-            <h2><span data-pet-name="tieniu">鐵牛</span> 的注音樂園</h2>
-            <p>37 個注音符號發音、聽音辨字、聲母填空與拼音組合！</p>
-            <div class="level-select-group">
-              <button class="lvl-btn lvl-1" onclick="startZhuyinGame(1)">🌱 認識 ㄅㄆㄇ</button>
-              <button class="lvl-btn lvl-2" onclick="startZhuyinGame(2)">🌟 聽音＆聲母填空</button>
-              <button class="lvl-btn lvl-3" onclick="startZhuyinGame(3)">🏆 注音接龍＆拼音</button>
-            </div>
-          </div>
-
+          <!-- 🐱 數學冒險（6 種玩法） -->
           <div class="game-mode-card math-card">
-            <div class="card-badge">123 數學（加減法＆邏輯）</div>
+            <div class="card-badge">123 數學（6 大遊戲‧生活與邏輯）</div>
             <div class="card-character" onclick="startMathGame(1)">
-              <img src="assets/corie.png?v=6" alt="Corie" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
+              <img src="assets/corie.png?v=7" alt="Corie" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
               <span style="display:none; font-size:3.5rem;">🐱</span>
             </div>
             <h2><span data-pet-name="corie">Corie</span> 的數學冒險</h2>
-            <p>視覺化加法、吃點心減法、20 以內湊十、填空與比大小！</p>
+            <p>加減法、比大小、買點心湊硬幣、規律火車、湊10盒＆平分！</p>
             <div class="level-select-group">
-              <button class="lvl-btn lvl-1" onclick="startMathGame(1)">🌱 10以內加減</button>
-              <button class="lvl-btn lvl-2" onclick="startMathGame(2)">🌟 20以內＆比大小</button>
-              <button class="lvl-btn lvl-3" onclick="startMathGame(3)">🏆 填空＆連加挑戰</button>
+              <button class="lvl-btn lvl-1" onclick="startMathGame(1)">🌱 Lv.1 10以內加減基礎</button>
+              <button class="lvl-btn lvl-2" onclick="startMathGame(2)">🌟 Lv.2 20以內＆比大小</button>
+              <button class="lvl-btn lvl-3" onclick="startMathGame(3)">🏆 Lv.3 未知數填空＆連加</button>
+              <button class="lvl-btn lvl-4" onclick="startMathGame(4)">🛒 Lv.4 小小收銀員湊硬幣 (NEW!)</button>
+              <button class="lvl-btn lvl-5" onclick="startMathGame(5)">🚂 Lv.5 規律小火車＆接龍 (NEW!)</button>
+              <button class="lvl-btn lvl-6" onclick="startMathGame(6)">🍱 Lv.6 湊10魔法盒＆平分 (NEW!)</button>
             </div>
           </div>
 
+          <!-- 🐟 時鐘教室（3 種玩法） -->
           <div class="game-mode-card clock-card">
             <div class="card-badge">⏰ 時鐘（整點‧半點‧撥針）</div>
             <div class="card-character" onclick="startClockGame(1)">
-              <img src="assets/shannon.png?v=6" alt="Shannon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
+              <img src="assets/shannon.png?v=7" alt="Shannon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
               <span style="display:none; font-size:3.5rem;">🐟</span>
             </div>
             <h2><span data-pet-name="shannon">Shannon</span> 的時鐘教室</h2>
             <p>分辨紅短針與藍長針，學會整點、半點與動手調鬧鐘！</p>
             <div class="level-select-group">
-              <button class="lvl-btn lvl-1" onclick="startClockGame(1)">🌱 整點報時 (O'clock)</button>
-              <button class="lvl-btn lvl-2" onclick="startClockGame(2)">🌟 半點＆一刻鐘 (:30/:15)</button>
-              <button class="lvl-btn lvl-3" onclick="startClockGame(3)">🏆 5分刻度＆動手撥針</button>
+              <button class="lvl-btn lvl-1" onclick="startClockGame(1)">🌱 Lv.1 整點報時 (O'clock)</button>
+              <button class="lvl-btn lvl-2" onclick="startClockGame(2)">🌟 Lv.2 半點＆一刻鐘 (:30/:15)</button>
+              <button class="lvl-btn lvl-3" onclick="startClockGame(3)">🏆 Lv.3 5分刻度＆動手撥針</button>
             </div>
           </div>
         </div>
@@ -177,10 +160,12 @@
     <section id="screen-english" class="screen">
       <div class="game-board english-board">
         <div class="in-game-level-bar">
-          <span class="bar-label">難度：</span>
+          <span class="bar-label">玩法：</span>
           <button class="chip-btn" id="en-lvl-chip-1" onclick="switchEnglishLevel(1)">🌱 Lv.1 認字</button>
-          <button class="chip-btn" id="en-lvl-chip-2" onclick="switchEnglishLevel(2)">🌟 Lv.2 聽音＆填空</button>
-          <button class="chip-btn" id="en-lvl-chip-3" onclick="switchEnglishLevel(3)">🏆 Lv.3 大小寫＆拼字</button>
+          <button class="chip-btn" id="en-lvl-chip-2" onclick="switchEnglishLevel(2)">🎧 Lv.2 聽音＆填空</button>
+          <button class="chip-btn" id="en-lvl-chip-3" onclick="switchEnglishLevel(3)">🔤 Lv.3 大小寫＆拼字</button>
+          <button class="chip-btn" id="en-lvl-chip-4" onclick="switchEnglishLevel(4)">🎈 Lv.4 顏色形狀氣球</button>
+          <button class="chip-btn" id="en-lvl-chip-5" onclick="switchEnglishLevel(5)">🃏 Lv.5 記憶翻翻樂</button>
         </div>
 
         <div class="progress-bar-wrap">
@@ -192,7 +177,7 @@
 
         <div class="host-area">
           <div class="host-avatar duncan-host" onclick="repeatEnglishPrompt()">
-            <img src="assets/duncan.png?v=6" alt="Duncan" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <img src="assets/duncan.png?v=7" alt="Duncan" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
             <div class="avatar-fallback" style="display:none;">🐶</div>
           </div>
           <div class="host-bubble">
@@ -214,55 +199,17 @@
       </div>
     </section>
 
-    <!-- ==================== 3. 注音遊戲：鐵牛的注音樂園 ==================== -->
-    <section id="screen-zhuyin" class="screen">
-      <div class="game-board zhuyin-board">
-        <div class="in-game-level-bar">
-          <span class="bar-label">難度：</span>
-          <button class="chip-btn" id="zy-lvl-chip-1" onclick="switchZhuyinLevel(1)">🌱 Lv.1 認識ㄅㄆㄇ</button>
-          <button class="chip-btn" id="zy-lvl-chip-2" onclick="switchZhuyinLevel(2)">🌟 Lv.2 聽音＆填空</button>
-          <button class="chip-btn" id="zy-lvl-chip-3" onclick="switchZhuyinLevel(3)">🏆 Lv.3 順序＆拼音</button>
-        </div>
-
-        <div class="progress-bar-wrap">
-          <div class="round-indicator" id="zy-round-text">第 1 / 8 題</div>
-          <div class="progress-track">
-            <div class="progress-fill zhuyin-fill" id="zy-progress-fill" style="width: 12.5%"></div>
-          </div>
-        </div>
-
-        <div class="host-area">
-          <div class="host-avatar tieniu-host" onclick="repeatZhuyinPrompt()">
-            <img src="assets/tieniu.png?v=6" alt="鐵牛" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-            <div class="avatar-fallback" style="display:none;">🤖</div>
-          </div>
-          <div class="host-bubble">
-            <div class="bubble-text" id="zy-prompt-text">請找出正確的注音符號！</div>
-            <button class="sound-replay-btn zhuyin-replay" onclick="repeatZhuyinPrompt()">
-              🔊 再聽一次發音
-            </button>
-          </div>
-        </div>
-
-        <div class="target-letter-stage zhuyin-stage" id="zy-stage-box" onclick="repeatZhuyinPrompt()">
-          <div class="big-letter zhuyin-big" id="zy-target-symbol">ㄅ</div>
-          <div class="target-subword" id="zy-target-subword">ㄅㄠ ㄅㄠ（包包）</div>
-          <div class="target-hint" id="zy-target-hint">🔊 點擊聽注音發音</div>
-        </div>
-
-        <div id="zy-spelling-slots" class="spelling-slots hidden"></div>
-        <div class="options-grid zhuyin-options" id="zy-options-container"></div>
-      </div>
-    </section>
-
-    <!-- ==================== 4. 數學遊戲：Corie 的數學冒險 ==================== -->
+    <!-- ==================== 3. 數學遊戲：Corie 的數學冒險 ==================== -->
     <section id="screen-math" class="screen">
       <div class="game-board math-board">
         <div class="in-game-level-bar">
-          <span class="bar-label">難度：</span>
-          <button class="chip-btn" id="math-lvl-chip-1" onclick="switchMathLevel(1)">🌱 Lv.1 加減基礎</button>
+          <span class="bar-label">玩法：</span>
+          <button class="chip-btn" id="math-lvl-chip-1" onclick="switchMathLevel(1)">🌱 Lv.1 10以內加減</button>
           <button class="chip-btn" id="math-lvl-chip-2" onclick="switchMathLevel(2)">🌟 Lv.2 20以內＆比大小</button>
           <button class="chip-btn" id="math-lvl-chip-3" onclick="switchMathLevel(3)">🏆 Lv.3 填空＆連加</button>
+          <button class="chip-btn" id="math-lvl-chip-4" onclick="switchMathLevel(4)">🛒 Lv.4 小小收銀員</button>
+          <button class="chip-btn" id="math-lvl-chip-5" onclick="switchMathLevel(5)">🚂 Lv.5 規律小火車</button>
+          <button class="chip-btn" id="math-lvl-chip-6" onclick="switchMathLevel(6)">🍱 Lv.6 湊10＆平分</button>
         </div>
 
         <div class="progress-bar-wrap">
@@ -274,7 +221,7 @@
 
         <div class="host-area">
           <div class="host-avatar corie-host" onclick="repeatMathPrompt()">
-            <img src="assets/corie.png?v=6" alt="Corie" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <img src="assets/corie.png?v=7" alt="Corie" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
             <div class="avatar-fallback" style="display:none;">🐱</div>
           </div>
           <div class="host-bubble">
@@ -291,7 +238,7 @@
       </div>
     </section>
 
-    <!-- ==================== 5. 時鐘遊戲：Shannon 的時鐘教室 ==================== -->
+    <!-- ==================== 4. 時鐘遊戲：Shannon 的時鐘教室 ==================== -->
     <section id="screen-clock" class="screen">
       <div class="game-board clock-board">
         <div class="in-game-level-bar">
@@ -310,7 +257,7 @@
 
         <div class="host-area">
           <div class="host-avatar shannon-host" onclick="repeatClockPrompt()">
-            <img src="assets/shannon.png?v=6" alt="Shannon" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <img src="assets/shannon.png?v=7" alt="Shannon" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
             <div class="avatar-fallback" style="display:none;">🐟</div>
           </div>
           <div class="host-bubble">
@@ -344,12 +291,12 @@
       </div>
     </section>
 
-    <!-- ==================== 6. 過關慶祝畫面 ==================== -->
+    <!-- ==================== 5. 過關慶祝畫面 ==================== -->
     <section id="screen-celebrate" class="screen">
       <div class="celebrate-card">
         <div class="celebrate-banner">
-          <img src="assets/friends.png?v=6" alt="好朋友一起慶祝" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-          <div class="celebrate-fallback" style="display:none;">🐱 🎉 🐶 🎉 🐟 🎉 🤖</div>
+          <img src="assets/friends.png?v=7" alt="好朋友一起慶祝" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <div class="celebrate-fallback" style="display:none;">🐱 🎉 🐶 🎉 🐟</div>
         </div>
         <h2 class="celebrate-title">太棒了！全部過關！🎉</h2>
         <p class="celebrate-desc" id="celebrate-message">
@@ -396,7 +343,7 @@
   <div id="settings-modal" class="modal-backdrop hidden">
     <div class="modal-card">
       <h3>⚙️ 角色名字與語音倍速設定</h3>
-      <p class="modal-hint">可隨時修改四位主角的名字，並自由調整語音速度（最高支援 1.5x 快速播放）！</p>
+      <p class="modal-hint">可隨時修改三位主角的名字，並自由調整語音速度（最高支援 1.5x 快速播放）！</p>
 
       <label class="form-field">
         <span>🐱 橘貓的名字（數學關主）：</span>
@@ -411,11 +358,6 @@
       <label class="form-field">
         <span>🐟 比奇堡魚姊姊的名字（時鐘關主）：</span>
         <input type="text" id="input-shannon-name" value="Shannon" maxlength="20" />
-      </label>
-
-      <label class="form-field">
-        <span>🤖 機器人的名字（注音關主）：</span>
-        <input type="text" id="input-tieniu-name" value="鐵牛" maxlength="20" />
       </label>
 
       <label class="form-field">
@@ -459,6 +401,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>
