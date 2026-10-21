@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="referrer" content="no-referrer" />
+
+  <!-- 🍎 Apple iPhone / iPad full-screen app mode -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Pet Play School" />
+  <meta name="theme-color" content="#fff5f9" />
+  <link rel="apple-touch-icon" href="assets/corie.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/corie.png" />
+  <link rel="manifest" href="manifest.json?v=9" />
+
+  <title>Corie, Duncan &amp; Shannon's Pet Play School (Age 5-12)</title>
+  <link rel="stylesheet" href="style.css?v=9" />
+</head>
+<body>
+  <!-- Floating background decorations -->
+  <div class="bg-decorations" aria-hidden="true">
+    <span class="floating-cloud c1">☁️</span>
+    <span class="floating-cloud c2">☁️</span>
+    <span class="floating-star s1">⭐</span>
+    <span class="floating-star s2">✨</span>
+    <span class="floating-star s3">🫧</span>
+  </div>
+
+  <!-- Top bar: home, eye-care timer, coins, stars & parent settings -->
+  <header class="top-bar">
+    <div class="top-left-group">
+      <button id="btn-home" class="nav-btn hidden" onclick="showScreen('home')" aria-label="Home">
+        🏠 Home
+      </button>
+      <div class="brand-title" id="header-title">🎓 Pet Play School</div>
+    </div>
+
+    <div class="top-right-controls">
+      <!-- ⏳ Play time left -->
+      <div class="timer-pill" id="playtime-pill" onclick="openParentTimeModal()" title="Play time left (parents can change it)">
+        <span>⏳</span>
+        <span id="timer-display">20:00</span>
+      </div>
+
+      <!-- 🪙 Coins -->
+      <div class="coin-counter" onclick="scrollToPetHouse()" title="Coins (tap to visit your pet!)">
+        <span>🪙</span>
+        <span id="coin-count">0</span>
+      </div>
+
+      <!-- ⭐ Stars -->
+      <div class="star-counter" title="Stars">
+        <span class="star-icon">⭐</span>
+        <span id="star-count">0</span>
+      </div>
+
+      <button id="btn-progress" class="icon-btn" onclick="openProgressModal()" title="My progress">
+        📊
+      </button>
+
+      <button id="btn-install-guide" class="install-pill-btn" onclick="openInstallModal()" title="Add to iPhone home screen">
+        📲 App
+      </button>
+
+      <button id="btn-settings" class="icon-btn" onclick="openSettingsModal()" title="Parent settings">
+        ⚙️
+      </button>
+    </div>
+  </header>
+
+  <!-- Main container -->
+  <main class="main-container">
+    <!-- ==================== 1. Home ==================== -->
+    <section id="screen-home" class="screen active">
+      <div class="hero-card">
+
+        <!-- 🏡 Pet House -->
+        <div class="pet-sanctuary-card" id="pet-sanctuary">
+          <div class="sanctuary-header">
+            <div class="sanctuary-title-group">
+              <span class="sanctuary-badge">🏡 My Pet House</span>
+              <h2 id="active-pet-title">Corie the Cat</h2>
+            </div>
+            <button class="daily-gift-btn" id="daily-gift-btn" onclick="claimDailyGift()">🎁 Daily Gift</button>
+          </div>
+
+          <!-- Pet picker (built by app.js) -->
+          <div class="pet-switcher-pills" id="pet-switcher"></div>
+
+          <div class="sanctuary-body">
+            <!-- Left: pet stage -->
+            <div class="pet-stage-column">
+              <div class="pet-stage-box" id="pet-stage-box" onclick="interactWithCompanion()">
+                <div class="pet-room-deco" id="pet-room-deco"></div>
+                <div class="pet-equipped-hat" id="pet-equipped-hat"></div>
+                <div class="pet-main-visual" id="pet-main-visual">
+                  <img src="assets/corie.png?v=9" alt="Pet" id="companion-img" onerror="this.style.display='none'; document.getElementById('companion-emoji').style.display='flex';" />
+                  <div id="companion-emoji" class="companion-emoji" style="display:none;">🐱</div>
+                </div>
+                <div class="pet-equipped-item" id="pet-equipped-item"></div>
+                <div class="pet-stage-rank" id="pet-stage-rank">🌱 Lv.1 Little Helper</div>
+                <div class="pet-hearts-layer" id="pet-hearts-layer"></div>
+              </div>
+              <div class="pet-speech-bar" id="companion-speech">
+                💬 "Win coins in the games. Then you can feed me and buy me fun hats!"
+              </div>
+            </div>
+
+            <!-- Right: stats & shop -->
+            <div class="pet-care-column">
+              <div class="pet-stats-grid">
+                <div class="stat-row">
+                  <span class="stat-label">✨ Level <strong id="pet-lvl-text">Lv.1 (0/100)</strong></span>
+                  <div class="stat-bar"><div class="stat-fill exp-fill" id="pet-exp-bar" style="width: 10%"></div></div>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">🍖 Food <strong id="pet-hunger-text">80%</strong></span>
+                  <div class="stat-bar"><div class="stat-fill hunger-fill" id="pet-hunger-bar" style="width: 80%"></div></div>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">💖 Happy <strong id="pet-mood-text">85%</strong></span>
+                  <div class="stat-bar"><div class="stat-fill mood-fill" id="pet-mood-bar" style="width: 85%"></div></div>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">🛁 Clean <strong id="pet-clean-text">80%</strong></span>
+                  <div class="stat-bar"><div class="stat-fill clean-fill" id="pet-clean-bar" style="width: 80%"></div></div>
+                </div>
+              </div>
+
+              <!-- Shop tabs -->
+              <div class="shop-tabs">
+                <button class="shop-tab active" id="tab-btn-food" onclick="switchPetShopTab('food')">🍖 Food</button>
+                <button class="shop-tab" id="tab-btn-play" onclick="switchPetShopTab('play')">🎾 Play</button>
+                <button class="shop-tab" id="tab-btn-care" onclick="switchPetShopTab('care')">🛁 Care</button>
+                <button class="shop-tab" id="tab-btn-hats" onclick="switchPetShopTab('hats')">🎩 Hats</button>
+                <button class="shop-tab" id="tab-btn-toys" onclick="switchPetShopTab('toys')">🧸 Toys</button>
+                <button class="shop-tab" id="tab-btn-rooms" onclick="switchPetShopTab('rooms')">🏠 Rooms</button>
+              </div>
+
+              <!-- Shop items -->
+              <div class="pet-shop-items" id="pet-shop-items"></div>
+            </div>
+          </div>
+        </div>
+
+        <h1 class="welcome-heading">🎯 Pick a game and win stars! 💾</h1>
+        <p class="welcome-sub">Answer questions to win 🪙 coins and ⭐ stars. Your progress saves by itself.</p>
+
+        <!-- 👶 / 🎓 Age switcher -->
+        <div class="age-switcher" role="tablist" aria-label="Choose age">
+          <button class="age-btn" id="age-btn-little" onclick="setAgeTrack('little')">
+            <span class="age-icon">🐣</span>
+            <span class="age-text"><strong>Little Stars</strong><small>Age 5–6 · Easy</small></span>
+          </button>
+          <button class="age-btn" id="age-btn-big" onclick="setAgeTrack('big')">
+            <span class="age-icon">🎓</span>
+            <span class="age-text"><strong>Big Stars</strong><small>Age 6–12 · Hard</small></span>
+          </button>
+        </div>
+
+        <!-- Three game cards (level buttons are built by app.js) -->
+        <div class="game-cards-grid three-cols">
+          <!-- 🐶 English -->
+          <div class="game-mode-card english-card">
+            <div class="card-badge">🔤 English</div>
+            <div class="card-character" onclick="startFirstLevel('en')">
+              <img src="assets/duncan.png?v=9" alt="Duncan" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
+              <span style="display:none; font-size:3.5rem;">🐶</span>
+            </div>
+            <h2><span data-pet-name="duncan">Duncan</span>'s English Fun</h2>
+            <p id="card-desc-en">Letters, words, colors and animal sounds!</p>
+            <div class="level-select-group" id="levels-en"></div>
+          </div>
+
+          <!-- 🐱 Math -->
+          <div class="game-mode-card math-card">
+            <div class="card-badge">🔢 Math</div>
+            <div class="card-character" onclick="startFirstLevel('math')">
+              <img src="assets/corie.png?v=9" alt="Corie" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
+              <span style="display:none; font-size:3.5rem;">🐱</span>
+            </div>
+            <h2><span data-pet-name="corie">Corie</span>'s Math Fun</h2>
+            <p id="card-desc-math">Count, add, take away and shop!</p>
+            <div class="level-select-group" id="levels-math"></div>
+          </div>
+
+          <!-- 🐟 Clock -->
+          <div class="game-mode-card clock-card">
+            <div class="card-badge">⏰ Time</div>
+            <div class="card-character" onclick="startFirstLevel('clock')">
+              <img src="assets/shannon.png?v=9" alt="Shannon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
+              <span style="display:none; font-size:3.5rem;">🐟</span>
+            </div>
+            <h2><span data-pet-name="shannon">Shannon</span>'s Clock Fun</h2>
+            <p id="card-desc-clock">O'clock, half past and my day!</p>
+            <div class="level-select-group" id="levels-clock"></div>
+          </div>
+        </div>
+
+        <!-- Sticker book -->
+        <div class="sticker-shelf">
+          <div class="shelf-header-row">
+            <div class="shelf-title">🎁 Sticker Book (every 3 ⭐ opens a new sticker!)</div>
+            <div class="shelf-progress" id="sticker-progress-text">0 / 120 stickers</div>
+          </div>
+          <div id="sticker-list" class="sticker-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 2. English game ==================== -->
+    <section id="screen-english" class="screen">
+      <div class="game-board english-board">
+        <div class="in-game-level-bar" id="en-level-chips"></div>
+
+        <div id="rocket-unit-bar" class="rocket-unit-bar hidden">
+          <span class="bar-label">📚 Topic:</span>
+          <button class="unit-chip active" id="rk-unit-all" onclick="switchRocketUnit('all')">🌟 All</button>
+          <button class="unit-chip" id="rk-unit-u1" onclick="switchRocketUnit('u1')">🎒 School</button>
+          <button class="unit-chip" id="rk-unit-u2" onclick="switchRocketUnit('u2')">👨‍👩‍👧 Family &amp; Jobs</button>
+          <button class="unit-chip" id="rk-unit-u3" onclick="switchRocketUnit('u3')">🐶 Animals</button>
+          <button class="unit-chip" id="rk-unit-u4" onclick="switchRocketUnit('u4')">🧸 Hobbies</button>
+          <button class="unit-chip" id="rk-unit-u5" onclick="switchRocketUnit('u5')">🍎 Food</button>
+          <button class="unit-chip" id="rk-unit-rg" onclick="switchRocketUnit('rg')">🦸‍♀️ Rocket Girl</button>
+        </div>
+
+        <div class="progress-bar-wrap">
+          <div class="round-indicator" id="en-round-text">1 / 8</div>
+          <div class="progress-track">
+            <div class="progress-fill" id="en-progress-fill" style="width: 12.5%"></div>
+          </div>
+          <div class="streak-pill" id="en-streak-pill">🔥 0</div>
+        </div>
+
+        <div class="host-area">
+          <div class="host-avatar duncan-host" onclick="repeatEnglishPrompt()">
+            <img src="assets/duncan.png?v=9" alt="Duncan" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <div class="avatar-fallback" style="display:none;">🐶</div>
+          </div>
+          <div class="host-bubble">
+            <div class="bubble-text" id="en-prompt-text">Find the right answer!</div>
+            <button class="sound-replay-btn" onclick="repeatEnglishPrompt()">
+              🔊 Listen again
+            </button>
+          </div>
+        </div>
+
+        <div class="target-letter-stage" id="en-stage-box" onclick="repeatEnglishPrompt()">
+          <div class="big-letter" id="en-target-letter">A a</div>
+          <div class="target-subword" id="en-target-subword"></div>
+          <div class="target-hint" id="en-target-hint">🔊 Tap to listen</div>
+        </div>
+
+        <div id="en-spelling-slots" class="spelling-slots hidden"></div>
+        <div class="options-grid english-options" id="en-options-container"></div>
+      </div>
+    </section>
+
+    <!-- ==================== 3. Math game ==================== -->
+    <section id="screen-math" class="screen">
+      <div class="game-board math-board">
+        <div class="in-game-level-bar" id="math-level-chips"></div>
+
+        <div class="progress-bar-wrap">
+          <div class="round-indicator" id="math-round-text">1 / 8</div>
+          <div class="progress-track">
+            <div class="progress-fill math-fill" id="math-progress-fill" style="width: 12.5%"></div>
+          </div>
+          <div class="streak-pill" id="math-streak-pill">🔥 0</div>
+        </div>
+
+        <div class="host-area">
+          <div class="host-avatar corie-host" onclick="repeatMathPrompt()">
+            <img src="assets/corie.png?v=9" alt="Corie" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <div class="avatar-fallback" style="display:none;">🐱</div>
+          </div>
+          <div class="host-bubble">
+            <div class="bubble-text" id="math-prompt-text">Let's think! What is the answer?</div>
+            <button class="sound-replay-btn math-replay" onclick="repeatMathPrompt()">
+              🔊 Listen again
+            </button>
+          </div>
+        </div>
+
+        <div class="math-visual-stage" id="math-visual-stage"></div>
+        <div class="math-equation-numbers" id="math-equation-bar"></div>
+        <div class="options-grid math-options" id="math-options-container"></div>
+      </div>
+    </section>
+
+    <!-- ==================== 4. Clock game ==================== -->
+    <section id="screen-clock" class="screen">
+      <div class="game-board clock-board">
+        <div class="in-game-level-bar" id="clock-level-chips"></div>
+
+        <div class="progress-bar-wrap">
+          <div class="round-indicator" id="clock-round-text">1 / 8</div>
+          <div class="progress-track">
+            <div class="progress-fill clock-fill" id="clock-progress-fill" style="width: 12.5%"></div>
+          </div>
+          <div class="streak-pill" id="clock-streak-pill">🔥 0</div>
+        </div>
+
+        <div class="host-area">
+          <div class="host-avatar shannon-host" onclick="repeatClockPrompt()">
+            <img src="assets/shannon.png?v=9" alt="Shannon" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <div class="avatar-fallback" style="display:none;">🐟</div>
+          </div>
+          <div class="host-bubble">
+            <div class="bubble-text" id="clock-prompt-text">Look at the clock!</div>
+            <button class="sound-replay-btn clock-replay" onclick="repeatClockPrompt()">
+              🔊 Listen again
+            </button>
+          </div>
+        </div>
+
+        <div class="clock-legend">
+          <span class="legend-pill hour-pill">🔴 Short red hand = Hour</span>
+          <span class="legend-pill minute-pill">🔵 Long blue hand = Minute</span>
+        </div>
+
+        <div class="clock-stage-wrap">
+          <svg id="analog-clock-svg" class="analog-clock-svg" viewBox="0 0 260 260" aria-label="Clock"></svg>
+          <div id="clock-activity-badge" class="clock-activity-badge">☀️ Clock time</div>
+        </div>
+
+        <div id="clock-set-controls" class="clock-set-controls hidden">
+          <div class="set-btn-group" id="clock-dial-group"></div>
+          <button class="submit-clock-btn" onclick="checkInteractiveClockAnswer()">✅ Done!</button>
+        </div>
+
+        <div class="options-grid clock-options" id="clock-options-container"></div>
+      </div>
+    </section>
+
+    <!-- ==================== 5. Celebrate ==================== -->
+    <section id="screen-celebrate" class="screen">
+      <div class="celebrate-card">
+        <div class="celebrate-banner">
+          <img src="assets/friends.png?v=9" alt="Friends party" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <div class="celebrate-fallback" style="display:none;">🐱 🎉 🐶 🎉 🐟</div>
+        </div>
+        <h2 class="celebrate-title">You did it! Great job! 🎉</h2>
+        <p class="celebrate-desc" id="celebrate-message">
+          You won lots of coins and stars. Go feed your pet!
+        </p>
+        <div class="reward-stars-row">⭐ +2 bonus stars · 🪙 +30 bonus coins</div>
+        <div class="celebrate-actions">
+          <button class="big-action-btn primary-btn" id="btn-play-again">🔄 Play again</button>
+          <button class="big-action-btn secondary-btn" onclick="showScreen('home')">🏡 Back to my pet</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Confetti layer -->
+  <div id="confetti-container" aria-hidden="true"></div>
+
+  <!-- ==================== 🌙 Eye-rest lock screen ==================== -->
+  <div id="time-lock-overlay" class="time-lock-overlay hidden">
+    <div class="time-lock-card">
+      <div class="lock-pets-sleeping">🐱💤 🐶💤 🐟💤</div>
+      <h2>🌙 Time to rest your eyes!</h2>
+      <p class="lock-desc">
+        You played and learned for <strong id="locked-minutes-label">20</strong> minutes today. Great job!<br/>
+        <span data-pet-name="corie">Corie</span>, <span data-pet-name="duncan">Duncan</span> and <span data-pet-name="shannon">Shannon</span> are taking a nap. Drink some water and look far away. 👀✨
+      </p>
+
+      <div class="parent-unlock-box">
+        <div class="parent-unlock-title">🔒 For grown-ups</div>
+        <p class="parent-unlock-sub" id="parent-math-prompt">Type the parent PIN (default 1234) or solve the math below to add more time:</p>
+        <div class="parent-unlock-row">
+          <input type="password" id="parent-unlock-input" placeholder="Parent PIN (default 1234)" maxlength="10" />
+          <button class="modal-btn save-btn" onclick="verifyParentUnlock(10)">➕ Add 10 min</button>
+          <button class="modal-btn test-btn" onclick="verifyParentUnlock(20)">🔄 Add 20 min</button>
+        </div>
+        <div id="parent-unlock-error" class="unlock-error-msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 📊 Progress & backup ==================== -->
+  <div id="progress-modal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h3>📊 My Progress</h3>
+      <p class="modal-hint">Your coins, stars, pets and level wins are saved on this device.</p>
+
+      <div class="progress-summary-grid" id="progress-summary-grid"></div>
+
+      <div class="backup-section">
+        <label class="form-field">
+          <span>📦 Backup code (copy it to another phone or computer):</span>
+          <textarea id="save-code-textarea" rows="3" readonly onclick="this.select()"></textarea>
+        </label>
+        <div class="backup-btn-row">
+          <button type="button" class="speed-chip" onclick="copySaveCode()">📋 Copy code</button>
+          <button type="button" class="speed-chip" onclick="promptImportSaveCode()">📥 Paste a code</button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="modal-btn save-btn" style="width:100%" onclick="closeProgressModal()">✅ Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📲 Add to iPhone / iPad home screen -->
+  <div id="install-modal" class="modal-backdrop hidden">
+    <div class="modal-card install-guide-card">
+      <h3>🍎 Make it an iPhone app</h3>
+      <p class="modal-hint">Just 3 steps! Then it opens full screen like a real app.</p>
+      <ol class="install-steps-list">
+        <li>
+          <span class="step-num">1</span>
+          <div>Open this page in <b>Safari</b>:<br/><code class="url-code">https://linch0421.github.io/kids-pet-games/</code></div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div>Tap the <b>Share button 📤</b> at the bottom.</div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <div>Tap <b>"Add to Home Screen ➕"</b>, then tap <b>"Add"</b>. Done!</div>
+        </li>
+      </ol>
+      <div class="modal-actions">
+        <button class="modal-btn save-btn" style="width:100%" onclick="closeInstallModal()">✨ Got it!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⚙️ Parent settings -->
+  <div id="settings-modal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h3>⚙️ Parent Settings</h3>
+      <p class="modal-hint">Set the play time limit, the parent PIN, pet names and voice speed.</p>
+
+      <label class="form-field">
+        <span>⏳ Play time each day (the screen locks when time is up):</span>
+        <select id="select-time-limit">
+          <option value="10">⏰ 10 minutes</option>
+          <option value="15">⏰ 15 minutes</option>
+          <option value="20" selected>⏰ 20 minutes (best for eyes)</option>
+          <option value="30">⏰ 30 minutes</option>
+          <option value="45">⏰ 45 minutes</option>
+          <option value="60">⏰ 60 minutes</option>
+          <option value="0">🔓 No limit</option>
+        </select>
+      </label>
+
+      <label class="form-field">
+        <span>🔑 Parent PIN (default 1234):</span>
+        <input type="text" id="input-parent-pin" value="1234" maxlength="10" />
+      </label>
+
+      <div class="test-voice-row">
+        <button type="button" class="modal-btn test-btn" onclick="resetDailyTimerFromSettings()">🔄 Reset today's play time</button>
+      </div>
+
+      <label class="form-field">
+        <span>🐱 Cat's name (Math):</span>
+        <input type="text" id="input-corie-name" value="Corie" maxlength="20" />
+      </label>
+
+      <label class="form-field">
+        <span>🐶 Dog's name (English):</span>
+        <input type="text" id="input-duncan-name" value="Duncan" maxlength="20" />
+      </label>
+
+      <label class="form-field">
+        <span>🐟 Fish's name (Clock):</span>
+        <input type="text" id="input-shannon-name" value="Shannon" maxlength="20" />
+      </label>
+
+      <label class="form-field">
+        <span>🎙️ Voice mode:</span>
+        <select id="select-tts-mode">
+          <option value="auto">✨ Auto (best voice on this device)</option>
+          <option value="native">💻 Device voice</option>
+        </select>
+      </label>
+
+      <div class="form-field">
+        <span>🚀 Voice speed: <strong id="speed-label-val">1.00x</strong></span>
+        <input type="range" id="input-speech-rate" min="0.75" max="1.50" step="0.05" value="1.00" oninput="updateSpeedLabel(this.value)" />
+        <div class="speed-preset-row">
+          <button type="button" class="speed-chip" onclick="setSpeedPreset(0.80)">🐢 0.8x Slow</button>
+          <button type="button" class="speed-chip" onclick="setSpeedPreset(1.00)">✨ 1.0x Normal</button>
+          <button type="button" class="speed-chip" onclick="setSpeedPreset(1.25)">🐇 1.25x Fast</button>
+          <button type="button" class="speed-chip" onclick="setSpeedPreset(1.50)">⚡ 1.5x Super fast</button>
+        </div>
+      </div>
+
+      <label class="form-field">
+        <span>🔤 English voice:</span>
+        <select id="select-en-voice"></select>
+      </label>
+
+      <div class="test-voice-row">
+        <button type="button" class="modal-btn test-btn" onclick="testVoicePreview()">🔊 Test the voice</button>
+      </div>
+
+      <div class="modal-actions">
+        <button class="modal-btn cancel-btn" onclick="closeSettingsModal()">Cancel</button>
+        <button class="modal-btn save-btn" onclick="saveSettings()">💾 Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=9"></script>
+</body>
+</html>
