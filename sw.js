@@ -1,10 +1,10 @@
-const CACHE_NAME = 'kids-pet-games-v8';
+const CACHE_NAME = 'kids-pet-games-v9';
 const ASSETS = [
   './',
   './index.html',
-  './style.css?v=8',
-  './app.js?v=8',
-  './manifest.json?v=8',
+  './style.css?v=9',
+  './app.js?v=9',
+  './manifest.json?v=9',
   './assets/corie.png',
   './assets/duncan.png',
   './assets/shannon.png',
@@ -27,7 +27,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// 網路優先策略（有網路時永遠抓最新版，沒網路時使用快取離線玩）
+// Network first, fallback to cache when offline
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   event.respondWith(

@@ -1,7 +1,7 @@
 {
-  "name": "快樂學習樂園 - Corie & Duncan",
-  "short_name": "快樂樂園",
-  "description": "專為 5 歲小女孩設計的英文、注音、數學與時鐘互動遊戲 App",
+  "name": "Pet Play School - Corie, Duncan & Shannon",
+  "short_name": "Pet Play School",
+  "description": "Fun English, Math & Clock games with virtual pets for kids age 5 to 12!",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

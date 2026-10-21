@@ -7,15 +7,36 @@ const PET_CONFIG = {
   shannonName: localStorage.getItem('pet_shannon_name') || 'Shannon',
   ttsMode: localStorage.getItem('pet_tts_mode') || 'auto',
   speechRate: parseFloat(localStorage.getItem('pet_speech_rate') || '1.00'),
-  zhVoiceURI: localStorage.getItem('pet_zh_voice') || '',
   enVoiceURI: localStorage.getItem('pet_en_voice') || '',
   timeLimitMinutes: parseInt(localStorage.getItem('pet_time_limit_mins') || '20', 10),
   parentPin: localStorage.getItem('pet_parent_pin') || '1234',
 };
 
 // ============================================================================
+// 🐾 All pets in the Pet House (first 5 are free, the rest can be adopted)
+// ============================================================================
+const PET_LIST = [
+  { id: 'corie', emoji: '🐱', img: 'assets/corie.png', kind: 'Cat', cost: 0 },
+  { id: 'duncan', emoji: '🐶', img: 'assets/duncan.png', kind: 'Dog', cost: 0 },
+  { id: 'shannon', emoji: '🐟', img: 'assets/shannon.png', kind: 'Fish', cost: 0 },
+  { id: 'dragon', emoji: '🐲', name: 'Draco', kind: 'Star Dragon', cost: 0 },
+  { id: 'unicorn', emoji: '🦄', name: 'Stella', kind: 'Rainbow Unicorn', cost: 0 },
+  { id: 'bunny', emoji: '🐰', name: 'Bobo', kind: 'Bunny', cost: 80 },
+  { id: 'panda', emoji: '🐼', name: 'Pom Pom', kind: 'Panda', cost: 120 },
+  { id: 'penguin', emoji: '🐧', name: 'Pip', kind: 'Penguin', cost: 150 },
+  { id: 'fox', emoji: '🦊', name: 'Foxy', kind: 'Fox', cost: 180 },
+  { id: 'dino', emoji: '🦖', name: 'Rexy', kind: 'Baby Dino', cost: 250 },
+  { id: 'owl', emoji: '🦉', name: 'Hoot', kind: 'Wise Owl', cost: 300 },
+];
+const FREE_PET_IDS = PET_LIST.filter((p) => p.cost === 0).map((p) => p.id);
+
+// ============================================================================
 // 💾 玩家完整學習進度與寵物養成存檔系統 (SAVE_DATA)
 // ============================================================================
+function makeDefaultPet() {
+  return { level: 1, exp: 0, hunger: 80, mood: 85, clean: 80, hat: '', item: '', room: 'room_home' };
+}
+
 const DEFAULT_SAVE = {
   totalStars: parseInt(localStorage.getItem('kids_total_stars') || '0', 10),
   coins: 60, // 初始贈送 60 金幣讓小朋友體驗餵食
@@ -24,34 +45,46 @@ const DEFAULT_SAVE = {
   bestStreak: 0,
   activePetId: 'corie',
   currentShopTab: 'food',
-  levelClears: {}, // e.g., { 'en_1': 2, 'math_4': 1 }
+  ageTrack: 'little', // 'little' = age 5-6, 'big' = age 6-12
+  levelClears: {}, // e.g., { 'en_1': 2, 'math_e4': 1 }
   savedSession: null, // 自動記錄未完局的關卡與題號
-  pets: {
-    corie: { level: 1, exp: 0, hunger: 80, mood: 85, hat: '', item: '' },
-    duncan: { level: 1, exp: 0, hunger: 80, mood: 85, hat: '', item: '' },
-    shannon: { level: 1, exp: 0, hunger: 80, mood: 85, hat: '', item: '' },
-    dragon: { level: 1, exp: 0, hunger: 75, mood: 80, hat: '', item: '' },
-    unicorn: { level: 1, exp: 0, hunger: 75, mood: 80, hat: '', item: '' },
-  },
+  pets: {},
+  adoptedPets: [...FREE_PET_IDS],
   ownedItems: [],
+  lastGiftDate: '',
 };
+
+function normalizeSave(parsed) {
+  const src = parsed && typeof parsed === 'object' ? parsed : {};
+  const out = {
+    ...JSON.parse(JSON.stringify(DEFAULT_SAVE)),
+    ...src,
+    levelClears: { ...(src.levelClears || {}) },
+    ownedItems: Array.isArray(src.ownedItems) ? src.ownedItems : [],
+  };
+  const adopted = new Set([...(Array.isArray(src.adoptedPets) ? src.adoptedPets : []), ...FREE_PET_IDS]);
+  out.adoptedPets = [...adopted];
+  out.pets = {};
+  PET_LIST.forEach((p) => {
+    out.pets[p.id] = { ...makeDefaultPet(), ...((src.pets || {})[p.id] || {}) };
+  });
+  if (!PET_LIST.some((p) => p.id === out.activePetId) || !out.adoptedPets.includes(out.activePetId)) {
+    out.activePetId = 'corie';
+  }
+  if (out.currentShopTab === 'dress') out.currentShopTab = 'hats';
+  if (out.ageTrack !== 'big') out.ageTrack = 'little';
+  return out;
+}
 
 let SAVE_DATA = loadSaveData();
 
 function loadSaveData() {
   try {
     const raw = localStorage.getItem('kids_scholar_save_v8');
-    if (!raw) return JSON.parse(JSON.stringify(DEFAULT_SAVE));
-    const parsed = JSON.parse(raw);
-    return {
-      ... DEFAULT_SAVE,
-      ...parsed,
-      pets: { ...DEFAULT_SAVE.pets, ...(parsed.pets || {}) },
-      levelClears: { ...(parsed.levelClears || {}) },
-      ownedItems: Array.isArray(parsed.ownedItems) ? parsed.ownedItems : [],
-    };
+    if (!raw) return normalizeSave({});
+    return normalizeSave(JSON.parse(raw));
   } catch (e) {
-    return JSON.parse(JSON.stringify(DEFAULT_SAVE));
+    return normalizeSave({});
   }
 }
 
@@ -61,86 +94,205 @@ function saveProgress() {
 }
 
 // ============================================================================
-// 🏡 寵物養成商店資料（餐廳食物、特訓陪玩、穿戴造型）
+// 🏡 寵物養成商店資料（食物、陪玩、清潔、帽子、玩具配件、房間背景）
 // ============================================================================
 const PET_SHOP_CATALOG = {
   food: [
-    { id: 'food_bone', icon: '🍖', title: '香烤大雞腿', cost: 15, hunger: 20, mood: 5, exp: 25, msg: '阿姆阿姆！香烤雞腿超多汁，體力滿滿！' },
-    { id: 'food_sushi', icon: '🍣', title: '頂級鮭魚壽司', cost: 25, hunger: 30, mood: 10, exp: 45, msg: '哇！新鮮鮭魚壽司，腦力瞬間提升！' },
-    { id: 'food_tart', icon: '🍓', title: '皇家草莓塔', cost: 35, hunger: 25, mood: 25, exp: 65, msg: '酸酸甜甜的草莓塔，心情變成一百分！' },
-    { id: 'food_steak', icon: '🥩', title: '威靈頓牛排', cost: 50, hunger: 50, mood: 30, exp: 100, msg: '太豪華了吧！吃完直接升等變學霸！' },
+    { id: 'food_carrot', icon: '🥕', title: 'Carrot', cost: 8, hunger: 10, mood: 2, exp: 12, msg: 'Crunch crunch! Carrots are good for me!' },
+    { id: 'food_apple', icon: '🍎', title: 'Red Apple', cost: 10, hunger: 12, mood: 4, exp: 15, msg: 'Yum! A sweet red apple!' },
+    { id: 'food_bone', icon: '🍖', title: 'Chicken Leg', cost: 15, hunger: 20, mood: 5, exp: 25, msg: 'Yummy! I feel so strong!' },
+    { id: 'food_icecream', icon: '🍦', title: 'Ice Cream', cost: 20, hunger: 10, mood: 20, exp: 30, msg: 'Cold and sweet! I love ice cream!' },
+    { id: 'food_sushi', icon: '🍣', title: 'Fish Sushi', cost: 25, hunger: 30, mood: 10, exp: 45, msg: 'Fresh sushi! My brain feels smart!' },
+    { id: 'food_pizza', icon: '🍕', title: 'Cheese Pizza', cost: 30, hunger: 35, mood: 15, exp: 55, msg: 'Pizza party! So much cheese!' },
+    { id: 'food_tart', icon: '🍓', title: 'Strawberry Cake', cost: 35, hunger: 25, mood: 25, exp: 65, msg: 'Sweet strawberries! I am so happy!' },
+    { id: 'food_steak', icon: '🥩', title: 'Big Steak', cost: 50, hunger: 50, mood: 30, exp: 100, msg: 'Wow, a big dinner! I feel super!' },
+    { id: 'food_cake', icon: '🎂', title: 'Party Cake', cost: 60, hunger: 40, mood: 45, exp: 125, msg: 'A party cake! Is it my birthday?' },
   ],
   play: [
-    { id: 'play_frisbee', icon: '🥏', title: '極限飛盤特訓', cost: 15, hunger: -5, mood: 25, exp: 35, msg: '咻—啪！精準接住飛盤，反應力大提升！' },
-    { id: 'play_chess', icon: '♟️', title: '西洋棋腦力賽', cost: 25, hunger: -5, mood: 20, exp: 55, msg: '動動腦下西洋棋，邏輯推理變超強！' },
-    { id: 'play_skate', icon: '🛹', title: '火箭滑板衝刺', cost: 35, hunger: -10, mood: 35, exp: 75, msg: '帥氣翻轉滑板！全場為你歡呼！' },
-    { id: 'play_space', icon: '🚀', title: '太空無重力探險', cost: 50, hunger: -10, mood: 50, exp: 110, msg: '飛向宇宙浩瀚無垠！獲得滿滿經驗值！' },
+    { id: 'play_balloon', icon: '🎈', title: 'Balloon Game', cost: 10, hunger: -3, mood: 15, exp: 20, msg: 'Pop! Pop! Balloons are so fun!' },
+    { id: 'play_ball', icon: '⚽', title: 'Kick the Ball', cost: 15, hunger: -5, mood: 20, exp: 30, msg: 'Goal! I kicked the ball!' },
+    { id: 'play_frisbee', icon: '🥏', title: 'Catch the Frisbee', cost: 15, hunger: -5, mood: 25, exp: 35, msg: 'Whoosh! I caught it!' },
+    { id: 'play_puzzle', icon: '🧩', title: 'Puzzle Time', cost: 20, hunger: -3, mood: 18, exp: 45, msg: 'I did the puzzle! I am so smart!' },
+    { id: 'play_chess', icon: '♟️', title: 'Chess Game', cost: 25, hunger: -5, mood: 20, exp: 55, msg: 'Thinking hard makes my brain strong!' },
+    { id: 'play_skate', icon: '🛹', title: 'Skateboard', cost: 35, hunger: -10, mood: 35, exp: 75, msg: 'Look at me go! So cool!' },
+    { id: 'play_carousel', icon: '🎠', title: 'Merry-Go-Round', cost: 40, hunger: -8, mood: 40, exp: 85, msg: 'Round and round we go! Wheee!' },
+    { id: 'play_space', icon: '🚀', title: 'Space Trip', cost: 50, hunger: -10, mood: 50, exp: 110, msg: 'Up, up to the stars! What a trip!' },
   ],
-  dress: [
-    { id: 'hat_crown', slot: 'hat', icon: '👑', title: '黃金學霸皇冠', cost: 60, msg: '戴上閃亮亮的黃金皇冠，太有氣勢了！' },
-    { id: 'hat_grad', slot: 'hat', icon: '🎓', title: '博士畢業方帽', cost: 50, msg: '戴上博士帽，看起來就像大學教授！' },
-    { id: 'hat_wizard', slot: 'hat', icon: '🧙', title: '星辰魔法帽', cost: 70, msg: '充滿魔力的星辰巫師帽！' },
-    { id: 'hat_ribbon', slot: 'hat', icon: '🎀', title: '皇家粉紅蝴蝶結', cost: 40, msg: '超可愛的皇家蝴蝶結！' },
-    { id: 'item_glasses', slot: 'item', icon: '🕶️', title: '特務帥氣墨鏡', cost: 45, msg: '戴上特務墨鏡，帥度破表！' },
-    { id: 'item_wand', slot: 'item', icon: '🪄', title: '仙女星光魔杖', cost: 65, msg: '揮動星光魔杖，難題通通迎刃而解！' },
-    { id: 'item_medal', slot: 'item', icon: '🏅', title: '奧林匹亞金牌', cost: 80, msg: '榮耀的奧林匹亞金牌得主！' },
-    { id: 'item_trophy', slot: 'item', icon: '🏆', title: '傳奇大宗師獎盃', cost: 120, msg: '最高榮譽傳奇獎盃！你是最強小學霸！' },
+  care: [
+    { id: 'care_teeth', icon: '🪥', title: 'Brush Teeth', cost: 8, clean: 15, mood: 3, exp: 12, msg: 'Brush, brush! My teeth are shiny!' },
+    { id: 'care_nap', icon: '😴', title: 'Nap Time', cost: 10, clean: 0, mood: 15, hunger: -3, exp: 20, msg: 'Zzz... I feel so rested now!' },
+    { id: 'care_shampoo', icon: '🧴', title: 'Shampoo', cost: 12, clean: 25, mood: 5, exp: 20, msg: 'Bubbles on my head! So soft!' },
+    { id: 'care_bath', icon: '🛁', title: 'Bubble Bath', cost: 15, clean: 40, mood: 10, exp: 30, msg: 'Splash splash! I am clean now!' },
+    { id: 'care_vitamin', icon: '💊', title: 'Vitamins', cost: 15, clean: 0, hunger: 5, mood: 5, exp: 30, msg: 'Vitamins make me healthy and strong!' },
+    { id: 'care_haircut', icon: '✂️', title: 'New Haircut', cost: 20, clean: 30, mood: 10, exp: 35, msg: 'Snip snip! Do you like my new look?' },
+    { id: 'care_spa', icon: '💅', title: 'Spa Day', cost: 35, clean: 50, mood: 25, exp: 60, msg: 'A spa day! I feel like a star!' },
+  ],
+  hats: [
+    { id: 'hat_flower', slot: 'hat', icon: '🌸', title: 'Flower', cost: 25, msg: 'A pretty pink flower for me!' },
+    { id: 'hat_cap', slot: 'hat', icon: '🧢', title: 'Sport Cap', cost: 30, msg: 'Ready to play ball!' },
+    { id: 'hat_sun', slot: 'hat', icon: '👒', title: 'Sun Hat', cost: 35, msg: 'A sun hat for a sunny day!' },
+    { id: 'hat_ribbon', slot: 'hat', icon: '🎀', title: 'Pink Bow', cost: 40, msg: 'I look so cute with my bow!' },
+    { id: 'hat_helmet', slot: 'hat', icon: '⛑️', title: 'Helper Helmet', cost: 45, msg: 'I am ready to help!' },
+    { id: 'hat_grad', slot: 'hat', icon: '🎓', title: 'Smart Cap', cost: 50, msg: 'I look like a teacher now!' },
+    { id: 'hat_top', slot: 'hat', icon: '🎩', title: 'Magic Top Hat', cost: 55, msg: 'Ta-da! A fancy top hat!' },
+    { id: 'hat_crown', slot: 'hat', icon: '👑', title: 'Gold Crown', cost: 60, msg: 'A shiny gold crown! I am a king!' },
+    { id: 'hat_wizard', slot: 'hat', icon: '🧙', title: 'Wizard Hat', cost: 70, msg: 'Magic hat on! Abracadabra!' },
+    { id: 'hat_halo', slot: 'hat', icon: '😇', title: 'Angel Halo', cost: 90, msg: 'A glowing halo! I am an angel!' },
+  ],
+  toys: [
+    { id: 'item_lolly', slot: 'item', icon: '🍭', title: 'Lollipop', cost: 15, msg: 'A big rainbow lollipop!' },
+    { id: 'item_balloon', slot: 'item', icon: '🎈', title: 'Red Balloon', cost: 20, msg: 'My red balloon goes up, up!' },
+    { id: 'item_ball', slot: 'item', icon: '⚽', title: 'Soccer Ball', cost: 25, msg: 'Let us play soccer!' },
+    { id: 'item_umbrella', slot: 'item', icon: '🌂', title: 'Umbrella', cost: 30, msg: 'Rain, rain, go away!' },
+    { id: 'item_teddy', slot: 'item', icon: '🧸', title: 'Teddy Bear', cost: 40, msg: 'My teddy bear is my best friend!' },
+    { id: 'item_glasses', slot: 'item', icon: '🕶️', title: 'Cool Glasses', cost: 45, msg: 'I look so cool!' },
+    { id: 'item_guitar', slot: 'item', icon: '🎸', title: 'Guitar', cost: 60, msg: 'Strum strum! Let us sing a song!' },
+    { id: 'item_wand', slot: 'item', icon: '🪄', title: 'Magic Wand', cost: 65, msg: 'Wave the wand! Magic time!' },
+    { id: 'item_medal', slot: 'item', icon: '🏅', title: 'Gold Medal', cost: 80, msg: 'I won a gold medal!' },
+    { id: 'item_trophy', slot: 'item', icon: '🏆', title: 'Big Trophy', cost: 120, msg: 'The biggest trophy! You are a super star!' },
+  ],
+  rooms: [
+    { id: 'room_home', slot: 'room', icon: '🏡', title: 'Cozy Home', cost: 0, bg: 'radial-gradient(circle at 50% 35%, #ffffff 0%, #fae8ff 100%)', deco: '🪴 🖼️ 🛋️', msg: 'Home sweet home!' },
+    { id: 'room_garden', slot: 'room', icon: '🌷', title: 'Flower Garden', cost: 40, bg: 'linear-gradient(180deg, #e0f2fe 0%, #dcfce7 60%, #86efac 100%)', deco: '🌷 🌼 🦋 🌻', msg: 'So many flowers! And butterflies!' },
+    { id: 'room_beach', slot: 'room', icon: '🏖️', title: 'Sunny Beach', cost: 60, bg: 'linear-gradient(180deg, #bae6fd 0%, #7dd3fc 55%, #fde68a 100%)', deco: '☀️ 🐚 🏝️ 🦀', msg: 'Sun, sand and sea! Let us swim!' },
+    { id: 'room_snow', slot: 'room', icon: '❄️', title: 'Snow Land', cost: 70, bg: 'linear-gradient(180deg, #e0f2fe 0%, #f8fafc 70%, #ffffff 100%)', deco: '❄️ ⛄ 🌨️ 🎿', msg: 'Brrr! Let us build a snowman!' },
+    { id: 'room_candy', slot: 'room', icon: '🍭', title: 'Candy Land', cost: 80, bg: 'linear-gradient(180deg, #fce7f3 0%, #fbcfe8 50%, #f9a8d4 100%)', deco: '🍭 🍬 🧁 🍩', msg: 'Everything is made of candy!' },
+    { id: 'room_sea', slot: 'room', icon: '🌊', title: 'Under the Sea', cost: 80, bg: 'linear-gradient(180deg, #67e8f9 0%, #0ea5e9 60%, #0369a1 100%)', deco: '🐠 🫧 🐙 🪸', msg: 'Blub blub! Hello, fish friends!' },
+    { id: 'room_space', slot: 'room', icon: '🌌', title: 'Outer Space', cost: 90, bg: 'radial-gradient(circle at 50% 30%, #6366f1 0%, #312e81 60%, #0f172a 100%)', deco: '🪐 ⭐ 🌙 🛸', msg: 'Hello from space! Look at the stars!' },
+    { id: 'room_castle', slot: 'room', icon: '🏰', title: 'Royal Castle', cost: 100, bg: 'linear-gradient(180deg, #fef3c7 0%, #fde68a 55%, #c4b5fd 100%)', deco: '🏰 👑 🚩 💎', msg: 'Welcome to my castle!' },
+    { id: 'room_rainbow', slot: 'room', icon: '🌈', title: 'Rainbow Sky', cost: 120, bg: 'linear-gradient(180deg, #fecaca 0%, #fde68a 25%, #bbf7d0 50%, #bfdbfe 75%, #e9d5ff 100%)', deco: '🌈 ☁️ ✨ 🦄', msg: 'A rainbow sky! So many colors!' },
   ],
 };
 
+const WEARABLE_TABS = ['hats', 'toys', 'rooms'];
+let pendingAdopt = { id: '', time: 0 };
+let lastPetTapTime = 0;
+
+function getPetInfo(petId) {
+  return PET_LIST.find((p) => p.id === petId) || PET_LIST[0];
+}
+
+function getPetName(petId) {
+  if (petId === 'corie') return PET_CONFIG.corieName;
+  if (petId === 'duncan') return PET_CONFIG.duncanName;
+  if (petId === 'shannon') return PET_CONFIG.shannonName;
+  return getPetInfo(petId).name || 'Buddy';
+}
+
 function getPetRankTitle(lvl) {
-  if (lvl >= 15) return `👑 Lv.${lvl} 傳奇大宗師`;
-  if (lvl >= 10) return `💎 Lv.${lvl} 皇家智多星`;
-  if (lvl >= 6) return `🏆 Lv.${lvl} 榮譽小學霸`;
-  if (lvl >= 3) return `🌟 Lv.${lvl} 聰明小隊長`;
-  return `🌱 Lv.${lvl} 實習小跟班`;
+  if (lvl >= 15) return `👑 Lv.${lvl} Super Star`;
+  if (lvl >= 10) return `💎 Lv.${lvl} Royal Star`;
+  if (lvl >= 6) return `🏆 Lv.${lvl} Smart Star`;
+  if (lvl >= 3) return `🌟 Lv.${lvl} Brave Buddy`;
+  return `🌱 Lv.${lvl} Little Helper`;
+}
+
+function getPetAuraClass(lvl) {
+  if (lvl >= 15) return 'aura-4';
+  if (lvl >= 10) return 'aura-3';
+  if (lvl >= 6) return 'aura-2';
+  if (lvl >= 3) return 'aura-1';
+  return '';
 }
 
 function getPetDisplayName(petId) {
-  if (petId === 'corie') return `橘貓 ${PET_CONFIG.corieName}`;
-  if (petId === 'duncan') return `邊牧 ${PET_CONFIG.duncanName}`;
-  if (petId === 'shannon') return `魚姊姊 ${PET_CONFIG.shannonName}`;
-  if (petId === 'dragon') return '星光小龍 Draco';
-  return '彩虹獨角獸 Stella';
+  return `${getPetName(petId)} the ${getPetInfo(petId).kind}`;
+}
+
+function setPetSpeech(text, speak = true) {
+  const speechEl = document.getElementById('companion-speech');
+  if (speechEl) speechEl.textContent = `💬 "${text}"`;
+  if (speak) speakSequence([{ text, lang: 'en-US' }]);
 }
 
 function selectCompanionPet(petId) {
+  const info = getPetInfo(petId);
+  if (!SAVE_DATA.adoptedPets.includes(petId)) {
+    const now = Date.now();
+    if (pendingAdopt.id === petId && now - pendingAdopt.time < 6000) {
+      pendingAdopt = { id: '', time: 0 };
+      if (SAVE_DATA.coins < info.cost) {
+        playTryAgainSound();
+        setPetSpeech(`You need ${info.cost - SAVE_DATA.coins} more coins to adopt ${info.name}. Play games to win coins!`);
+        return;
+      }
+      SAVE_DATA.coins -= info.cost;
+      SAVE_DATA.adoptedPets.push(petId);
+      SAVE_DATA.activePetId = petId;
+      saveProgress();
+      updateTopCountersUI();
+      renderPetSanctuary();
+      playSuccessJingle();
+      spawnConfetti(30);
+      setPetSpeech(`Yay! ${info.name} the ${info.kind} is your new friend!`);
+      return;
+    }
+    pendingAdopt = { id: petId, time: now };
+    playTone(520, 0.12, 'triangle');
+    setPetSpeech(`Do you want ${info.name} the ${info.kind}? Tap again to adopt for ${info.cost} coins!`);
+    return;
+  }
   SAVE_DATA.activePetId = petId;
   saveProgress();
   renderPetSanctuary();
   playTone(580, 0.1, 'triangle');
+  setPetSpeech(`Hi! I am ${getPetName(petId)}!`);
 }
 
 function switchPetShopTab(tab) {
   SAVE_DATA.currentShopTab = tab;
+  playClickTick();
   renderPetSanctuary();
+}
+
+function renderPetSwitcher() {
+  const wrap = document.getElementById('pet-switcher');
+  if (!wrap) return;
+  const activeId = SAVE_DATA.activePetId || 'corie';
+  wrap.innerHTML = PET_LIST.map((p) => {
+    const adopted = SAVE_DATA.adoptedPets.includes(p.id);
+    const cls = ['pet-switch-btn'];
+    if (p.id === activeId) cls.push('active');
+    if (!adopted) cls.push('locked');
+    const label = adopted ? getPetName(p.id) : `🔒 🪙${p.cost}`;
+    return `<button class="${cls.join(' ')}" id="switch-pet-${p.id}" onclick="selectCompanionPet('${p.id}')">${p.emoji} ${label}</button>`;
+  }).join('');
 }
 
 function renderPetSanctuary() {
   const petId = SAVE_DATA.activePetId || 'corie';
   const petObj = SAVE_DATA.pets[petId] || SAVE_DATA.pets.corie;
+  const info = getPetInfo(petId);
 
-  ['corie', 'duncan', 'shannon', 'dragon', 'unicorn'].forEach((id) => {
-    const btn = document.getElementById(`switch-pet-${id}`);
-    if (btn) btn.classList.toggle('active', id === petId);
-  });
+  renderPetSwitcher();
 
   const titleEl = document.getElementById('active-pet-title');
-  if (titleEl) titleEl.textContent = `正在養成：${getPetDisplayName(petId)}`;
+  if (titleEl) titleEl.textContent = getPetDisplayName(petId);
 
   const imgEl = document.getElementById('companion-img');
   const emoEl = document.getElementById('companion-emoji');
   if (imgEl && emoEl) {
-    if (petId === 'corie' || petId === 'duncan' || petId === 'shannon') {
+    if (info.img) {
       imgEl.style.display = 'block';
-      imgEl.src = `assets/${petId}.png?v=8`;
+      imgEl.src = `${info.img}?v=9`;
       emoEl.style.display = 'none';
     } else {
       imgEl.style.display = 'none';
       emoEl.style.display = 'flex';
-      emoEl.textContent = petId === 'dragon' ? '🐲' : '🦄';
     }
+    emoEl.textContent = info.emoji;
   }
+
+  const room = PET_SHOP_CATALOG.rooms.find((r) => r.id === petObj.room) || PET_SHOP_CATALOG.rooms[0];
+  const stage = document.getElementById('pet-stage-box');
+  if (stage) {
+    stage.style.background = room.bg;
+    stage.classList.remove('aura-1', 'aura-2', 'aura-3', 'aura-4');
+    const aura = getPetAuraClass(petObj.level);
+    if (aura) stage.classList.add(aura);
+  }
+  const deco = document.getElementById('pet-room-deco');
+  if (deco) deco.textContent = room.deco;
 
   document.getElementById('pet-equipped-hat').textContent = petObj.hat || '';
   document.getElementById('pet-equipped-item').textContent = petObj.item || '';
@@ -151,17 +303,25 @@ function renderPetSanctuary() {
   document.getElementById('pet-lvl-text').textContent = `Lv.${petObj.level} (${petObj.exp}/${expNeeded})`;
   document.getElementById('pet-exp-bar').style.width = `${expPct}%`;
 
-  document.getElementById('pet-hunger-text').textContent = `${petObj.hunger}%`;
-  document.getElementById('pet-hunger-bar').style.width = `${petObj.hunger}%`;
+  [['hunger', petObj.hunger], ['mood', petObj.mood], ['clean', petObj.clean]].forEach(([key, val]) => {
+    const t = document.getElementById(`pet-${key}-text`);
+    const b = document.getElementById(`pet-${key}-bar`);
+    if (t) t.textContent = `${val}%`;
+    if (b) b.style.width = `${val}%`;
+  });
 
-  document.getElementById('pet-mood-text').textContent = `${petObj.mood}%`;
-  document.getElementById('pet-mood-bar').style.width = `${petObj.mood}%`;
-
-  const tab = SAVE_DATA.currentShopTab || 'food';
-  ['food', 'play', 'dress'].forEach((t) => {
+  const tab = PET_SHOP_CATALOG[SAVE_DATA.currentShopTab] ? SAVE_DATA.currentShopTab : 'food';
+  Object.keys(PET_SHOP_CATALOG).forEach((t) => {
     const b = document.getElementById(`tab-btn-${t}`);
     if (b) b.classList.toggle('active', t === tab);
   });
+
+  const giftBtn = document.getElementById('daily-gift-btn');
+  if (giftBtn) {
+    const opened = SAVE_DATA.lastGiftDate === getTodayDateKey();
+    giftBtn.classList.toggle('opened', opened);
+    giftBtn.textContent = opened ? '✅ Gift opened' : '🎁 Daily Gift';
+  }
 
   const listEl = document.getElementById('pet-shop-items');
   if (!listEl) return;
@@ -171,23 +331,36 @@ function renderPetSanctuary() {
   items.forEach((entry) => {
     const btn = document.createElement('button');
     btn.className = 'shop-item-btn';
-    const isOwned = SAVE_DATA.ownedItems.includes(entry.id);
-    const isEquipped =
-      tab === 'dress' &&
-      ((entry.slot === 'hat' && petObj.hat === entry.icon) ||
-       (entry.slot === 'item' && petObj.item === entry.icon));
+    const isWearable = WEARABLE_TABS.includes(tab);
+    const isOwned = entry.cost === 0 || SAVE_DATA.ownedItems.includes(entry.id);
+    let isEquipped = false;
+    if (entry.slot === 'hat') isEquipped = petObj.hat === entry.icon;
+    if (entry.slot === 'item') isEquipped = petObj.item === entry.icon;
+    if (entry.slot === 'room') isEquipped = petObj.room === entry.id;
 
-    if (isOwned) btn.classList.add('owned');
+    if (isWearable && isOwned) btn.classList.add('owned');
     if (isEquipped) btn.classList.add('equipped');
 
-    let costLabel = `🪙 ${entry.cost} 金幣`;
-    if (tab === 'dress' && isOwned) {
-      costLabel = isEquipped ? '✅ 穿戴中（點此卸下）' : '🎒 已擁有（點此穿戴）';
+    let costLabel = `🪙 ${entry.cost}`;
+    if (isWearable && isOwned) {
+      if (entry.slot === 'room') costLabel = isEquipped ? '✅ You are here' : '🏠 Tap to go';
+      else costLabel = isEquipped ? '✅ Wearing (tap to take off)' : '🎒 Tap to wear';
+    }
+
+    let effects = '';
+    if (!isWearable) {
+      const parts = [];
+      if (entry.hunger > 0) parts.push(`🍖+${entry.hunger}`);
+      if (entry.mood > 0) parts.push(`💖+${entry.mood}`);
+      if (entry.clean > 0) parts.push(`🛁+${entry.clean}`);
+      if (entry.exp > 0) parts.push(`✨+${entry.exp}`);
+      effects = `<div class="shop-effect">${parts.join(' ')}</div>`;
     }
 
     btn.innerHTML = `
       <div class="shop-icon">${entry.icon}</div>
       <div class="shop-title">${entry.title}</div>
+      ${effects}
       <div class="shop-cost">${costLabel}</div>
     `;
     btn.onclick = () => handleBuyOrUseShopItem(tab, entry);
@@ -206,18 +379,20 @@ function addPetExp(petObj, amount) {
   return leveledUp;
 }
 
+function clampStat(v) {
+  return Math.max(10, Math.min(100, Math.round(v)));
+}
+
 function handleBuyOrUseShopItem(tab, entry) {
   const petId = SAVE_DATA.activePetId || 'corie';
   const petObj = SAVE_DATA.pets[petId];
-  const speechEl = document.getElementById('companion-speech');
 
-  if (tab === 'dress') {
-    const isOwned = SAVE_DATA.ownedItems.includes(entry.id);
+  if (WEARABLE_TABS.includes(tab)) {
+    const isOwned = entry.cost === 0 || SAVE_DATA.ownedItems.includes(entry.id);
     if (!isOwned) {
       if (SAVE_DATA.coins < entry.cost) {
         playTryAgainSound();
-        speechEl.textContent = `💬 「金幣還差 ${entry.cost - SAVE_DATA.coins} 枚喔！快去挑戰英文、數學或時鐘賺金幣吧！」`;
-        speakSequence([{ text: '金幣還不夠喔，快去玩遊戲賺金幣吧！', lang: 'zh-TW' }]);
+        setPetSpeech(`You need ${entry.cost - SAVE_DATA.coins} more coins. Play a game to win coins!`);
         return;
       }
       SAVE_DATA.coins -= entry.cost;
@@ -225,42 +400,42 @@ function handleBuyOrUseShopItem(tab, entry) {
     }
     if (entry.slot === 'hat') {
       petObj.hat = petObj.hat === entry.icon ? '' : entry.icon;
-    } else {
+    } else if (entry.slot === 'item') {
       petObj.item = petObj.item === entry.icon ? '' : entry.icon;
+    } else {
+      petObj.room = entry.id;
     }
     playSuccessJingle();
     spawnConfetti(15);
-    speechEl.textContent = `💬 「${entry.msg}」`;
-    speakSequence([{ text: entry.msg, lang: 'zh-TW' }]);
+    setPetSpeech(entry.msg);
     updateTopCountersUI();
     renderPetSanctuary();
     saveProgress();
     return;
   }
 
-  // 食物或陪玩
+  // 食物、陪玩或清潔
   if (SAVE_DATA.coins < entry.cost) {
     playTryAgainSound();
-    speechEl.textContent = `💬 「還差 ${entry.cost - SAVE_DATA.coins} 枚金幣才能買『${entry.title}』，去答題闖關就能賺金幣囉！」`;
-    speakSequence([{ text: '金幣還不夠喔，去闖關答題就能賺取金幣！', lang: 'zh-TW' }]);
+    setPetSpeech(`You need ${entry.cost - SAVE_DATA.coins} more coins for the ${entry.title}. Play a game to win coins!`);
     return;
   }
 
   SAVE_DATA.coins -= entry.cost;
-  petObj.hunger = Math.max(10, Math.min(100, petObj.hunger + (entry.hunger || 0)));
-  petObj.mood = Math.max(10, Math.min(100, petObj.mood + (entry.mood || 0)));
+  petObj.hunger = clampStat(petObj.hunger + (entry.hunger || 0));
+  petObj.mood = clampStat(petObj.mood + (entry.mood || 0));
+  petObj.clean = clampStat(petObj.clean + (entry.clean || 0));
   const leveledUp = addPetExp(petObj, entry.exp || 20);
 
   playSuccessJingle();
   spawnConfetti(leveledUp ? 30 : 12);
+  animatePet('pet-anim-bounce');
+  spawnPetHearts(tab === 'care' ? '🫧' : tab === 'food' ? '😋' : '💖');
 
   if (leveledUp) {
-    const rank = getPetRankTitle(petObj.level);
-    speechEl.textContent = `🎉 「升級啦！我進化成 ${rank} 了！謝謝小主人！」`;
-    speakSequence([{ text: `太棒了！你的寵物升級成為 Lv.${petObj.level} 了！`, lang: 'zh-TW' }]);
+    setPetSpeech(`Level up! I am now ${getPetRankTitle(petObj.level).replace(/^\S+\s/, '')}! Thank you!`);
   } else {
-    speechEl.textContent = `💬 「${entry.msg}（經驗值 +${entry.exp}）」`;
-    speakSequence([{ text: entry.msg, lang: 'zh-TW' }]);
+    setPetSpeech(entry.msg);
   }
 
   updateTopCountersUI();
@@ -268,19 +443,81 @@ function handleBuyOrUseShopItem(tab, entry) {
   saveProgress();
 }
 
+function animatePet(cls) {
+  const vis = document.getElementById('pet-main-visual');
+  if (!vis) return;
+  vis.classList.remove('pet-anim-bounce', 'pet-anim-spin', 'pet-anim-wiggle');
+  void vis.offsetWidth;
+  vis.classList.add(cls);
+  setTimeout(() => vis.classList.remove(cls), 900);
+}
+
+function spawnPetHearts(symbol = '💖') {
+  const layer = document.getElementById('pet-hearts-layer');
+  if (!layer) return;
+  for (let i = 0; i < 5; i++) {
+    const h = document.createElement('span');
+    h.className = 'float-heart';
+    h.textContent = symbol;
+    h.style.left = `${20 + Math.random() * 60}%`;
+    h.style.animationDelay = `${(i * 0.12).toFixed(2)}s`;
+    layer.appendChild(h);
+    setTimeout(() => h.remove(), 1800);
+  }
+}
+
 function interactWithCompanion() {
   const petId = SAVE_DATA.activePetId || 'corie';
   const petObj = SAVE_DATA.pets[petId];
+  const name = getPetName(petId);
+
+  animatePet(pickRandom(['pet-anim-bounce', 'pet-anim-spin', 'pet-anim-wiggle']));
+  spawnPetHearts('💖');
   playSuccessJingle();
-  const speechEl = document.getElementById('companion-speech');
-  const lines = [
-    `我是 ${getPetDisplayName(petId)}，目前是 ${getPetRankTitle(petObj.level)}！`,
-    '每答對一題都能賺取金幣跟經驗值，連續答對還有額外獎勵喔！',
-    '試試看 6 到 12 歲的進階挑戰，幫我買黃金學霸皇冠吧！',
-  ];
-  const pick = lines[Math.floor(Math.random() * lines.length)];
-  if (speechEl) speechEl.textContent = `💬 「${pick}」`;
-  speakSequence([{ text: pick, lang: 'zh-TW' }]);
+
+  const now = Date.now();
+  if (now - lastPetTapTime > 1500 && petObj.mood < 100) {
+    petObj.mood = clampStat(petObj.mood + 1);
+    saveProgress();
+    renderPetSanctuary();
+  }
+  lastPetTapTime = now;
+
+  let line;
+  if (petObj.hunger < 40) line = 'My tummy says grrr! Can I have a snack?';
+  else if (petObj.clean < 40) line = 'I am a little dirty. Can I have a bath?';
+  else if (petObj.mood < 40) line = 'Can we play together, please?';
+  else {
+    line = pickRandom([
+      `Hi! I am ${name}. I love you!`,
+      `I am ${getPetRankTitle(petObj.level).replace(/^\S+\s/, '')}!`,
+      'Play a game and win coins for me!',
+      'Tee-hee! That tickles!',
+      'You are my best friend!',
+      'Can I have a new hat, please?',
+      'Let us learn something new today!',
+    ]);
+  }
+  setPetSpeech(line);
+}
+
+function claimDailyGift() {
+  const today = getTodayDateKey();
+  if (SAVE_DATA.lastGiftDate === today) {
+    playTryAgainSound();
+    setPetSpeech('You opened today\'s gift. Come back tomorrow for a new one!');
+    return;
+  }
+  const gift = randInt(20, 40);
+  SAVE_DATA.coins += gift;
+  SAVE_DATA.lastGiftDate = today;
+  saveProgress();
+  updateTopCountersUI();
+  renderPetSanctuary();
+  playSuccessJingle();
+  spawnConfetti(28);
+  animatePet('pet-anim-spin');
+  setPetSpeech(`Surprise! You got ${gift} coins today!`);
 }
 
 function scrollToPetHouse() {
@@ -340,7 +577,7 @@ function updateTimerUIAndCheckLock() {
   const overlay = document.getElementById('time-lock-overlay');
 
   if (PET_CONFIG.timeLimitMinutes <= 0) {
-    if (disp) disp.textContent = '不限時';
+    if (disp) disp.textContent = 'No limit';
     if (pill) pill.classList.remove('warning');
     if (overlay) overlay.classList.add('hidden');
     return;
@@ -367,7 +604,7 @@ function updateTimerUIAndCheckLock() {
       const m2 = randInt(6, 9);
       parentMathAnswer = m1 * m2;
       document.getElementById('parent-math-prompt').textContent =
-        `請家長輸入密碼，或計算驗證題：「${m1} × ${m2} ＝ ？」以延長時間：`;
+        `Grown-ups: type the PIN, or the answer to ${m1} × ${m2} = ?, to add more time.`;
       overlay.classList.remove('hidden');
     }
   } else {
@@ -389,7 +626,7 @@ function verifyParentUnlock(addMinutes) {
     playSuccessJingle();
   } else {
     playTryAgainSound();
-    if (errEl) errEl.textContent = '❌ 密碼或家長驗證算式答案不正確喔！';
+    if (errEl) errEl.textContent = '❌ That PIN or answer is not right.';
   }
 }
 
@@ -401,180 +638,236 @@ function resetDailyTimerFromSettings() {
   setUsedPlaySecondsToday(0);
   updateTimerUIAndCheckLock();
   playSuccessJingle();
-  speakSequence([{ text: '今日遊玩時間已重置！', lang: 'zh-TW' }]);
+  speakSequence([{ text: 'Play time is reset for today!', lang: 'en-US' }]);
 }
 
 // ============================================================================
 // 🎁 豪華 120 張榮譽貼紙圖鑑
 // ============================================================================
 const STICKERS = [
-  { emoji: '🎀', name: '粉紅蝴蝶結' }, { emoji: '🦄', name: '閃亮獨角獸' },
-  { emoji: '🍓', name: '香甜大草莓' }, { emoji: '👑', name: '公主皇冠' },
-  { emoji: '🍭', name: '彩虹棒棒糖' }, { emoji: '🧸', name: '泰迪熊娃娃' },
-  { emoji: '🌈', name: '七彩彩虹' }, { emoji: '🏰', name: '夢幻城堡' },
-  { emoji: '🦋', name: '美麗蝴蝶' }, { emoji: '🍦', name: '香草冰淇淋' },
-  { emoji: '🐬', name: '可愛小海豚' }, { emoji: '🎨', name: '小畫家調色盤' },
-  { emoji: '🎠', name: '旋轉木馬' }, { emoji: '🧁', name: '杯子蛋糕' },
-  { emoji: '🌺', name: '扶桑花' }, { emoji: '🐳', name: '噴水大鯨魚' },
-  { emoji: '🍉', name: '多汁大西瓜' }, { emoji: '🧚', name: '魔法小仙子' },
-  { emoji: '💎', name: '閃耀鑽石' }, { emoji: '🚀', name: '太空火箭' },
-  { emoji: '🐱', name: '橘貓好朋友' }, { emoji: '🐶', name: '邊牧小狗狗' },
-  { emoji: '🐰', name: '長耳小白兔' }, { emoji: '🐼', name: '圓滾滾熊貓' },
-  { emoji: '🐨', name: '愛睡覺無尾熊' }, { emoji: '🦊', name: '聰明小狐狸' },
-  { emoji: '🦁', name: '勇敢小獅子' }, { emoji: '🐯', name: '威風小老虎' },
-  { emoji: '🦒', name: '高個子長頸鹿' }, { emoji: '🐘', name: '長鼻子大象' },
-  { emoji: '🐧', name: '搖擺小企鵝' }, { emoji: '🐤', name: '黃色小雞' },
-  { emoji: '🦆', name: '游水小鴨子' }, { emoji: '🦉', name: '博士貓頭鷹' },
-  { emoji: '🐢', name: '慢吞吞小烏龜' }, { emoji: '🦖', name: '暴龍小隊長' },
-  { emoji: '🦕', name: '長頸雷龍' }, { emoji: '🦩', name: '粉紅紅鶴' },
-  { emoji: '🦚', name: '開屏孔雀' }, { emoji: '🦜', name: '彩色鸚鵡' },
-  { emoji: '🐟', name: '比奇堡魚姊姊' }, { emoji: '🐠', name: '熱帶小丑魚' },
-  { emoji: '🐡', name: '鼓鼓河豚' }, { emoji: '🐙', name: '八爪大章魚' },
-  { emoji: '🪼', name: '漂浮小水母' }, { emoji: '🦀', name: '大螯紅螃蟹' },
-  { emoji: '🦞', name: '大海螯蝦' }, { emoji: '🦐', name: '跳跳小蝦米' },
-  { emoji: '🐚', name: '珍珠海螺殼' }, { emoji: '🪸', name: '海底彩色珊瑚' },
-  { emoji: '🧜‍♀️', name: '海底美人魚' }, { emoji: '🦈', name: '微笑小鯊魚' },
-  { emoji: '🦭', name: '拍手小海豹' }, { emoji: '🦦', name: '牽手小海獺' },
-  { emoji: '🫧', name: '夢幻七彩泡泡' }, { emoji: '🌊', name: '藍色大海浪' },
-  { emoji: '🏝️', name: '椰子樹小島' }, { emoji: '⛵', name: '乘風小帆船' },
-  { emoji: '⚓', name: '船長大船錨' }, { emoji: '🍍', name: '深海大鳳梨屋' },
-  { emoji: '🍰', name: '草莓鮮奶油蛋糕' }, { emoji: '🎂', name: '生日大蛋糕' },
-  { emoji: '🍩', name: '巧克力甜甜圈' }, { emoji: '🍪', name: '脆脆巧克力餅乾' },
-  { emoji: '🍫', name: '甜心巧克力' }, { emoji: '🍬', name: '水果糖果' },
-  { emoji: '🍮', name: '焦糖布丁' }, { emoji: '🍯', name: '小熊維尼蜂蜜罐' },
-  { emoji: '🥞', name: '奶油鬆餅' }, { emoji: '🧇', name: '格子鬆餅' },
-  { emoji: '🥐', name: '酥脆可頌麵包' }, { emoji: '🥨', name: '蝴蝶脆餅' },
-  { emoji: '🍿', name: '電影院爆米花' }, { emoji: '🍧', name: '彩虹雪花冰' },
-  { emoji: '🍨', name: '水果聖代' }, { emoji: '🧃', name: '蘋果汁利樂包' },
-  { emoji: '🧋', name: '珍珠奶茶' }, { emoji: '🥛', name: '營養鮮奶' },
-  { emoji: '🍕', name: '牽絲起司披薩' }, { emoji: '🍔', name: '美味蟹堡' },
-  { emoji: '🍎', name: '紅通通蘋果' }, { emoji: '🍑', name: '粉紅水蜜桃' },
-  { emoji: '🍒', name: '雙胞胎櫻桃' }, { emoji: '🍇', name: '紫寶石葡萄' },
-  { emoji: '🍋', name: '酸酸黃檸檬' }, { emoji: '🍊', name: '香甜柳丁' },
-  { emoji: '🍌', name: '彎彎黃香蕉' }, { emoji: '🥝', name: '奇異果' },
-  { emoji: '🌸', name: '粉紅櫻花' }, { emoji: '🌻', name: '陽光向日葵' },
-  { emoji: '🌷', name: '鬱金香' }, { emoji: '🌹', name: '紅玫瑰' },
-  { emoji: '🍀', name: '四葉幸運草' }, { emoji: '🍄', name: '童話紅蘑菇' },
-  { emoji: '☀️', name: '溫暖太陽公公' }, { emoji: '🌙', name: '彎彎月亮' },
-  { emoji: '⭐', name: '閃亮小星星' }, { emoji: '🌟', name: '超級大明星' },
-  { emoji: '❄️', name: '冰雪奇緣雪花' }, { emoji: '⛄', name: '微笑小雪人' },
-  { emoji: '🎡', name: '遊樂園摩天輪' }, { emoji: '🎢', name: '刺激雲霄飛車' },
-  { emoji: '🎪', name: '歡樂馬戲團' }, { emoji: '🎈', name: '飛天紅氣球' },
-  { emoji: '🎉', name: '派對拉炮' }, { emoji: '🎁', name: '驚喜禮物盒' },
-  { emoji: '👑', name: '黃金王冠' }, { emoji: '💍', name: '寶石戒指' },
-  { emoji: '🪄', name: '仙女魔法棒' }, { emoji: '🔮', name: '魔法水晶球' },
-  { emoji: '🎻', name: '優雅小提琴' }, { emoji: '🎹', name: '黑白鋼琴' },
-  { emoji: '🎸', name: '搖滾吉他' }, { emoji: '🎺', name: '黃金小喇叭' },
-  { emoji: '🥁', name: '咚咚小鼓' }, { emoji: '🪁', name: '飛高高風箏' },
-  { emoji: '🪀', name: '炫彩溜溜球' }, { emoji: '🧩', name: '聰明拼圖' },
-  { emoji: '🎠', name: '皇家白馬馬車' }, { emoji: '🏆', name: '冠軍大獎盃' },
+  { emoji: '🎀', name: 'Pink Bow' }, { emoji: '🦄', name: 'Unicorn' },
+  { emoji: '🍓', name: 'Strawberry' }, { emoji: '👑', name: 'Princess Crown' },
+  { emoji: '🍭', name: 'Lollipop' }, { emoji: '🧸', name: 'Teddy Bear' },
+  { emoji: '🌈', name: 'Rainbow' }, { emoji: '🏰', name: 'Castle' },
+  { emoji: '🦋', name: 'Butterfly' }, { emoji: '🍦', name: 'Ice Cream' },
+  { emoji: '🐬', name: 'Dolphin' }, { emoji: '🎨', name: 'Paint' },
+  { emoji: '🎠', name: 'Merry-Go-Round' }, { emoji: '🧁', name: 'Cupcake' },
+  { emoji: '🌺', name: 'Flower' }, { emoji: '🐳', name: 'Whale' },
+  { emoji: '🍉', name: 'Watermelon' }, { emoji: '🧚', name: 'Fairy' },
+  { emoji: '💎', name: 'Diamond' }, { emoji: '🚀', name: 'Rocket' },
+  { emoji: '🐱', name: 'Cat' }, { emoji: '🐶', name: 'Dog' },
+  { emoji: '🐰', name: 'Bunny' }, { emoji: '🐼', name: 'Panda' },
+  { emoji: '🐨', name: 'Koala' }, { emoji: '🦊', name: 'Fox' },
+  { emoji: '🦁', name: 'Lion' }, { emoji: '🐯', name: 'Tiger' },
+  { emoji: '🦒', name: 'Giraffe' }, { emoji: '🐘', name: 'Elephant' },
+  { emoji: '🐧', name: 'Penguin' }, { emoji: '🐤', name: 'Chick' },
+  { emoji: '🦆', name: 'Duck' }, { emoji: '🦉', name: 'Owl' },
+  { emoji: '🐢', name: 'Turtle' }, { emoji: '🦖', name: 'T-Rex' },
+  { emoji: '🦕', name: 'Dinosaur' }, { emoji: '🦩', name: 'Flamingo' },
+  { emoji: '🦚', name: 'Peacock' }, { emoji: '🦜', name: 'Parrot' },
+  { emoji: '🐟', name: 'Fish' }, { emoji: '🐠', name: 'Clownfish' },
+  { emoji: '🐡', name: 'Puffer Fish' }, { emoji: '🐙', name: 'Octopus' },
+  { emoji: '🪼', name: 'Jellyfish' }, { emoji: '🦀', name: 'Crab' },
+  { emoji: '🦞', name: 'Lobster' }, { emoji: '🦐', name: 'Shrimp' },
+  { emoji: '🐚', name: 'Shell' }, { emoji: '🪸', name: 'Coral' },
+  { emoji: '🧜‍♀️', name: 'Mermaid' }, { emoji: '🦈', name: 'Shark' },
+  { emoji: '🦭', name: 'Seal' }, { emoji: '🦦', name: 'Otter' },
+  { emoji: '🫧', name: 'Bubbles' }, { emoji: '🌊', name: 'Wave' },
+  { emoji: '🏝️', name: 'Island' }, { emoji: '⛵', name: 'Sailboat' },
+  { emoji: '⚓', name: 'Anchor' }, { emoji: '🍍', name: 'Pineapple' },
+  { emoji: '🍰', name: 'Cake' }, { emoji: '🎂', name: 'Birthday Cake' },
+  { emoji: '🍩', name: 'Donut' }, { emoji: '🍪', name: 'Cookie' },
+  { emoji: '🍫', name: 'Chocolate' }, { emoji: '🍬', name: 'Candy' },
+  { emoji: '🍮', name: 'Pudding' }, { emoji: '🍯', name: 'Honey' },
+  { emoji: '🥞', name: 'Pancakes' }, { emoji: '🧇', name: 'Waffle' },
+  { emoji: '🥐', name: 'Croissant' }, { emoji: '🥨', name: 'Pretzel' },
+  { emoji: '🍿', name: 'Popcorn' }, { emoji: '🍧', name: 'Shaved Ice' },
+  { emoji: '🍨', name: 'Sundae' }, { emoji: '🧃', name: 'Juice Box' },
+  { emoji: '🧋', name: 'Bubble Tea' }, { emoji: '🥛', name: 'Milk' },
+  { emoji: '🍕', name: 'Pizza' }, { emoji: '🍔', name: 'Burger' },
+  { emoji: '🍎', name: 'Apple' }, { emoji: '🍑', name: 'Peach' },
+  { emoji: '🍒', name: 'Cherries' }, { emoji: '🍇', name: 'Grapes' },
+  { emoji: '🍋', name: 'Lemon' }, { emoji: '🍊', name: 'Orange' },
+  { emoji: '🍌', name: 'Banana' }, { emoji: '🥝', name: 'Kiwi' },
+  { emoji: '🌸', name: 'Cherry Blossom' }, { emoji: '🌻', name: 'Sunflower' },
+  { emoji: '🌷', name: 'Tulip' }, { emoji: '🌹', name: 'Rose' },
+  { emoji: '🍀', name: 'Lucky Clover' }, { emoji: '🍄', name: 'Mushroom' },
+  { emoji: '☀️', name: 'Sun' }, { emoji: '🌙', name: 'Moon' },
+  { emoji: '⭐', name: 'Star' }, { emoji: '🌟', name: 'Super Star' },
+  { emoji: '❄️', name: 'Snowflake' }, { emoji: '⛄', name: 'Snowman' },
+  { emoji: '🎡', name: 'Ferris Wheel' }, { emoji: '🎢', name: 'Roller Coaster' },
+  { emoji: '🎪', name: 'Circus' }, { emoji: '🎈', name: 'Balloon' },
+  { emoji: '🎉', name: 'Party' }, { emoji: '🎁', name: 'Gift' },
+  { emoji: '👑', name: 'Gold Crown' }, { emoji: '💍', name: 'Ring' },
+  { emoji: '🪄', name: 'Magic Wand' }, { emoji: '🔮', name: 'Crystal Ball' },
+  { emoji: '🎻', name: 'Violin' }, { emoji: '🎹', name: 'Piano' },
+  { emoji: '🎸', name: 'Guitar' }, { emoji: '🎺', name: 'Trumpet' },
+  { emoji: '🥁', name: 'Drum' }, { emoji: '🪁', name: 'Kite' },
+  { emoji: '🪀', name: 'Yo-Yo' }, { emoji: '🧩', name: 'Puzzle' },
+  { emoji: '🎠', name: 'Carousel Horse' }, { emoji: '🏆', name: 'Trophy' },
 ];
 
 // ============================================================================
-// 📚 6~12歲國小高頻進階英文題庫（含英英定義線索、科目、職業、自然科學與長單字）
+// 📚 Big Stars (6~12) English word bank — clue sentences in simple English
 // ============================================================================
 const ENGLISH_BANK = [
-  { letter: 'A', word: 'Astronaut', zh: '太空人', emoji: '🧑‍🚀', clue: 'A person who travels into outer space in a rocket.' },
-  { letter: 'A', word: 'Ambulance', zh: '救護車', emoji: '🚑', clue: 'A special vehicle that takes sick people to the hospital.' },
-  { letter: 'A', word: 'Aquarium', zh: '水族館', emoji: '🐠', clue: 'A building where you can see many fish and sea animals.' },
-  { letter: 'B', word: 'Bakery', zh: '麵包店', emoji: '🥐', clue: 'A shop that bakes and sells fresh bread and cakes.' },
-  { letter: 'B', word: 'Bridge', zh: '橋樑', emoji: '🌉', clue: 'Something built over a river so people and cars can cross.' },
-  { letter: 'B', word: 'Backpack', zh: '後背包', emoji: '🎒', clue: 'A bag that you carry on your back when going to school.' },
-  { letter: 'B', word: 'Badminton', zh: '羽毛球', emoji: '🏸', clue: 'A sport where players hit a shuttlecock over a high net.' },
-  { letter: 'C', word: 'Calendar', zh: '日曆 / 月曆', emoji: '📅', clue: 'A chart that shows the days, weeks, and months of a year.' },
-  { letter: 'C', word: 'Computer', zh: '電腦', emoji: '💻', clue: 'An electronic machine used for work, study, and internet.' },
-  { letter: 'C', word: 'Cucumber', zh: '小黃瓜', emoji: '🥒', clue: 'A long, green vegetable that is crisp and fresh in salads.' },
-  { letter: 'C', word: 'Camouflage', zh: '保護色 / 偽裝', emoji: '🦎', clue: 'How animals blend in with their surroundings to hide.' },
-  { letter: 'D', word: 'Dictionary', zh: '字典', emoji: '📕', clue: 'A thick book that explains the meanings of words from A to Z.' },
-  { letter: 'D', word: 'Dentist', zh: '牙醫', emoji: '🦷', clue: 'A doctor who takes care of your teeth.' },
-  { letter: 'D', word: 'Detective', zh: '偵探', emoji: '🕵️', clue: 'A person who looks for clues to solve mysteries.' },
-  { letter: 'D', word: 'Dinosaur', zh: '恐龍', emoji: '🦖', clue: 'A giant reptile that lived on Earth millions of years ago.' },
-  { letter: 'E', word: 'Earthquake', zh: '地震', emoji: '🌍', clue: 'When the ground suddenly shakes strongly.' },
-  { letter: 'E', word: 'Envelope', zh: '信封', emoji: '✉️', clue: 'A paper cover used to mail a letter.' },
-  { letter: 'E', word: 'Experiment', zh: '科學實驗', emoji: '🧪', clue: 'A scientific test you do in a laboratory to learn something.' },
-  { letter: 'F', word: 'Firefighter', zh: '消防員', emoji: '🧑‍🚒', clue: 'A brave person whose job is to put out fires.' },
-  { letter: 'F', word: 'refrigerator', zh: '冰箱', emoji: '🧊', clue: 'A kitchen appliance that keeps food and milk cold.' },
-  { letter: 'F', word: 'Flashlight', zh: '手電筒', emoji: '🔦', clue: 'A small light you carry in your hand when it is dark.' },
-  { letter: 'G', word: 'Geography', zh: '地理課', emoji: '🗺️', clue: 'The school subject where you study countries, rivers, and maps.' },
-  { letter: 'G', word: 'Gymnasium', zh: '體育館', emoji: '🏀', clue: 'A large indoor room for playing sports and exercising.' },
-  { letter: 'H', word: 'Helicopter', zh: '直升機', emoji: '🚁', clue: 'An aircraft with spinning blades on top that can hover.' },
-  { letter: 'H', word: 'Hospital', zh: '醫院', emoji: '🏥', clue: 'A place where doctors and nurses help sick people.' },
-  { letter: 'I', word: 'Instrument', zh: '樂器', emoji: '🎻', clue: 'An object like a piano, violin, or guitar used to play music.' },
-  { letter: 'I', word: 'Ingredient', zh: '食材 / 原料', emoji: '🥣', clue: 'One of the foods you mix together to cook a dish.' },
-  { letter: 'J', word: 'Journalist', zh: '新聞記者', emoji: '🎤', clue: 'A person who writes news stories for newspapers or TV.' },
-  { letter: 'K', word: 'Kangaroo', zh: '袋鼠', emoji: '🦘', clue: 'An Australian animal that hops and carries its baby in a pouch.' },
-  { letter: 'K', word: 'Keyboard', zh: '鍵盤', emoji: '⌨️', clue: 'The set of keys you press to type letters on a computer.' },
-  { letter: 'L', word: 'Library', zh: '圖書館', emoji: '🏛️', clue: 'A quiet place where you can borrow and read many books.' },
-  { letter: 'L', word: 'Lightning', zh: '閃電', emoji: '⚡', clue: 'A bright flash of electricity in the sky during a storm.' },
-  { letter: 'M', word: 'Microscope', zh: '顯微鏡', emoji: '🔬', clue: 'A science tool that makes tiny things look much bigger.' },
-  { letter: 'M', word: 'Mountain', zh: '高山', emoji: '⛰️', clue: 'A very high hill that often has snow at the top.' },
-  { letter: 'M', word: 'Museum', zh: '博物館', emoji: '🏺', clue: 'A building where historical art and dinosaur bones are shown.' },
-  { letter: 'N', word: 'Notebook', zh: '筆記本', emoji: '📓', clue: 'A book of blank pages for writing notes in class.' },
-  { letter: 'N', word: 'Neighborhood', zh: '社區 / 鄰里', emoji: '🏘️', clue: 'The area and streets around your home.' },
-  { letter: 'O', word: 'Orchestra', zh: '管弦樂團', emoji: '🎼', clue: 'A large group of musicians playing instruments together.' },
-  { letter: 'P', word: 'Passenger', zh: '乘客', emoji: '🚆', clue: 'A person who is riding in a train, bus, or airplane.' },
-  { letter: 'P', word: 'Planetarium', zh: '天文館', emoji: '🪐', clue: 'A theater where you look up at stars and planets on a dome.' },
-  { letter: 'P', word: 'Pharmacy', zh: '藥局', emoji: '💊', clue: 'A store where you get medicine.' },
-  { letter: 'Q', word: 'Question', zh: '問題', emoji: '❓', clue: 'Something you ask when you want to know an answer.' },
-  { letter: 'R', word: 'Restaurant', zh: '餐廳', emoji: '🍽️', clue: 'A place where you buy and eat a meal cooked by a chef.' },
-  { letter: 'R', word: 'Recycle', zh: '資源回收', emoji: '♻️', clue: 'Turning used paper, plastic, and bottles into new things.' },
-  { letter: 'S', word: 'Scientist', zh: '科學家', emoji: '👩‍🔬', clue: 'A person who studies science and does experiments.' },
-  { letter: 'S', word: 'Submarine', zh: '潛水艇', emoji: '🛥️', clue: 'A special ship that can travel deep underwater.' },
-  { letter: 'S', word: 'Scissors', zh: '剪刀', emoji: '✂️', clue: 'A tool with two sharp blades used for cutting paper.' },
-  { letter: 'T', word: 'Telescope', zh: '望遠鏡', emoji: '🔭', clue: 'A tool used to look at faraway stars and the Moon.' },
-  { letter: 'T', word: 'Temperature', zh: '溫度 / 體溫', emoji: '🌡️', clue: 'A measure of how hot or cold the weather or your body is.' },
-  { letter: 'U', word: 'Umbrella', zh: '雨傘', emoji: '☂️', clue: 'Something you hold over your head to stay dry in the rain.' },
-  { letter: 'V', word: 'Vegetable', zh: '蔬菜', emoji: '🥦', clue: 'Healthy plants like broccoli, carrots, and spinach.' },
-  { letter: 'V', word: 'Volcano', zh: '火山', emoji: '🌋', clue: 'A mountain that can erupt with hot lava and ash.' },
-  { letter: 'W', word: 'Weather', zh: '天氣', emoji: '🌦️', clue: 'Whether it is sunny, rainy, windy, or snowy outside.' },
-  { letter: 'W', word: 'Waterfall', zh: '瀑布', emoji: '🏞️', clue: 'A place where a river falls steeply down over rocks.' },
+  { letter: 'A', word: 'Astronaut', emoji: '🧑‍🚀', clue: 'A person who flies a rocket into space.' },
+  { letter: 'A', word: 'Ambulance', emoji: '🚑', clue: 'A car that takes sick people to the hospital.' },
+  { letter: 'A', word: 'Aquarium', emoji: '🐠', clue: 'A place where you can see many fish and sea animals.' },
+  { letter: 'B', word: 'Bakery', emoji: '🥐', clue: 'A shop that makes and sells bread and cakes.' },
+  { letter: 'B', word: 'Bridge', emoji: '🌉', clue: 'It goes over a river so people and cars can cross.' },
+  { letter: 'B', word: 'Backpack', emoji: '🎒', clue: 'A bag you carry on your back to school.' },
+  { letter: 'B', word: 'Badminton', emoji: '🏸', clue: 'A sport where you hit a birdie over a high net.' },
+  { letter: 'C', word: 'Calendar', emoji: '📅', clue: 'It shows the days, weeks and months of the year.' },
+  { letter: 'C', word: 'Computer', emoji: '💻', clue: 'A machine you use for work, games and the internet.' },
+  { letter: 'C', word: 'Cucumber', emoji: '🥒', clue: 'A long green vegetable. It is crunchy in salads.' },
+  { letter: 'C', word: 'Camouflage', emoji: '🦎', clue: 'Colors that help an animal hide.' },
+  { letter: 'D', word: 'Dictionary', emoji: '📕', clue: 'A big book that tells you what words mean.' },
+  { letter: 'D', word: 'Dentist', emoji: '🦷', clue: 'A doctor who takes care of your teeth.' },
+  { letter: 'D', word: 'Detective', emoji: '🕵️', clue: 'A person who looks for clues to solve a mystery.' },
+  { letter: 'D', word: 'Dinosaur', emoji: '🦖', clue: 'A giant animal that lived a very long time ago.' },
+  { letter: 'E', word: 'Earthquake', emoji: '🌍', clue: 'When the ground shakes very hard.' },
+  { letter: 'E', word: 'Envelope', emoji: '✉️', clue: 'You put a letter in it before you mail it.' },
+  { letter: 'E', word: 'Experiment', emoji: '🧪', clue: 'A science test you do to learn something new.' },
+  { letter: 'F', word: 'Firefighter', emoji: '🧑‍🚒', clue: 'A brave person who puts out fires.' },
+  { letter: 'F', word: 'Flashlight', emoji: '🔦', clue: 'A small light you hold in your hand in the dark.' },
+  { letter: 'G', word: 'Geography', emoji: '🗺️', clue: 'The school subject about countries, rivers and maps.' },
+  { letter: 'G', word: 'Gymnasium', emoji: '🏀', clue: 'A big room for sports and exercise.' },
+  { letter: 'H', word: 'Helicopter', emoji: '🚁', clue: 'It flies with big blades that spin on top.' },
+  { letter: 'H', word: 'Hospital', emoji: '🏥', clue: 'Doctors and nurses help sick people here.' },
+  { letter: 'I', word: 'Instrument', emoji: '🎻', clue: 'A piano, violin or guitar. You play music with it.' },
+  { letter: 'I', word: 'Ingredient', emoji: '🥣', clue: 'One of the foods you mix together to cook.' },
+  { letter: 'J', word: 'Journalist', emoji: '🎤', clue: 'A person who writes news for TV or newspapers.' },
+  { letter: 'K', word: 'Kangaroo', emoji: '🦘', clue: 'It hops and carries its baby in a pocket.' },
+  { letter: 'K', word: 'Keyboard', emoji: '⌨️', clue: 'You press its keys to type on a computer.' },
+  { letter: 'L', word: 'Library', emoji: '🏛️', clue: 'A quiet place where you can borrow books.' },
+  { letter: 'L', word: 'Lightning', emoji: '⚡', clue: 'A bright flash in the sky in a storm.' },
+  { letter: 'M', word: 'Microscope', emoji: '🔬', clue: 'It makes very tiny things look big.' },
+  { letter: 'M', word: 'Mountain', emoji: '⛰️', clue: 'A very tall hill. It can have snow on top.' },
+  { letter: 'M', word: 'Museum', emoji: '🏺', clue: 'You can see old art and dinosaur bones here.' },
+  { letter: 'N', word: 'Notebook', emoji: '📓', clue: 'A book with empty pages for writing in class.' },
+  { letter: 'N', word: 'Neighborhood', emoji: '🏘️', clue: 'The streets and houses near your home.' },
+  { letter: 'O', word: 'Orchestra', emoji: '🎼', clue: 'A big group of people playing music together.' },
+  { letter: 'P', word: 'Passenger', emoji: '🚆', clue: 'A person riding on a train, bus or plane.' },
+  { letter: 'P', word: 'Planetarium', emoji: '🪐', clue: 'A place where you see stars and planets on the ceiling.' },
+  { letter: 'P', word: 'Pharmacy', emoji: '💊', clue: 'A shop where you get medicine.' },
+  { letter: 'Q', word: 'Question', emoji: '❓', clue: 'You ask this when you want to know something.' },
+  { letter: 'R', word: 'Restaurant', emoji: '🍽️', clue: 'A place where you buy and eat a meal.' },
+  { letter: 'R', word: 'Recycle', emoji: '♻️', clue: 'Making old paper and bottles into new things.' },
+  { letter: 'R', word: 'Refrigerator', emoji: '🧊', clue: 'It keeps food and milk cold in the kitchen.' },
+  { letter: 'S', word: 'Scientist', emoji: '👩‍🔬', clue: 'A person who studies science and does tests.' },
+  { letter: 'S', word: 'Submarine', emoji: '🛥️', clue: 'A ship that can go deep under the water.' },
+  { letter: 'S', word: 'Scissors', emoji: '✂️', clue: 'You use them to cut paper.' },
+  { letter: 'T', word: 'Telescope', emoji: '🔭', clue: 'You use it to look at stars and the Moon.' },
+  { letter: 'T', word: 'Temperature', emoji: '🌡️', clue: 'It tells how hot or cold something is.' },
+  { letter: 'U', word: 'Umbrella', emoji: '☂️', clue: 'You hold it over your head in the rain.' },
+  { letter: 'V', word: 'Vegetable', emoji: '🥦', clue: 'Healthy food like carrots and broccoli.' },
+  { letter: 'V', word: 'Volcano', emoji: '🌋', clue: 'A mountain that can shoot out hot lava.' },
+  { letter: 'W', word: 'Weather', emoji: '🌦️', clue: 'Is it sunny, rainy, windy or snowy outside?' },
+  { letter: 'W', word: 'Waterfall', emoji: '🏞️', clue: 'Where a river falls down over rocks.' },
 ];
 
-// 國小必背反義詞與同義詞題庫 (Lv.2)
+// Opposites and same-meaning words (Big Stars Lv.2)
 const EN_OPPOSITES_BANK = [
-  { base: 'Expensive (昂貴的)', rel: '反義詞 (Opposite)', ans: 'Cheap', zh: '便宜的', wrong: ['Heavy', 'Loud', 'Bright'] },
-  { base: 'Ancient (古老的)', rel: '反義詞 (Opposite)', ans: 'Modern', zh: '現代的', wrong: ['Empty', 'Quiet', 'Weak'] },
-  { base: 'Dangerous (危險的)', rel: '反義詞 (Opposite)', ans: 'Safe', zh: '安全的', wrong: ['Sharp', 'Deep', 'Wide'] },
-  { base: 'Generous (慷慨大方的)', rel: '反義詞 (Opposite)', ans: 'Selfish', zh: '自私的', wrong: ['Polite', 'Honest', 'Clever'] },
-  { base: 'Borrow (借入)', rel: '反義詞 (Opposite)', ans: 'Lend', zh: '借出', wrong: ['Spend', 'Catch', 'Throw'] },
-  { base: 'Arrive (抵達)', rel: '反義詞 (Opposite)', ans: 'Depart', zh: '出發 / 離開', wrong: ['Follow', 'Invite', 'visit'] },
-  { base: 'Giant (巨大的)', rel: '同義詞 (Synonym)', ans: 'Huge', zh: '龐大的', wrong: ['Tiny', 'Narrow', 'Shallow'] },
-  { base: 'Intelligent (聰明的)', rel: '同義詞 (Synonym)', ans: 'Smart', zh: '聰穎的', wrong: ['Lazy', 'Bored', 'Noisy'] },
-  { base: 'Difficult (困難的)', rel: '反義詞 (Opposite)', ans: 'Simple', zh: '簡單的', wrong: ['Strict', 'Bitter', 'Rough'] },
-  { base: 'Victory (勝利)', rel: '反義詞 (Opposite)', ans: 'Defeat', zh: '失敗 / 戰敗', wrong: ['Courage', 'journey', 'Treasure'] },
+  { base: 'Expensive', rel: 'opposite', ans: 'Cheap', wrong: ['Heavy', 'Loud', 'Bright'] },
+  { base: 'Ancient', rel: 'opposite', ans: 'Modern', wrong: ['Empty', 'Quiet', 'Weak'] },
+  { base: 'Dangerous', rel: 'opposite', ans: 'Safe', wrong: ['Sharp', 'Deep', 'Wide'] },
+  { base: 'Generous', rel: 'opposite', ans: 'Selfish', wrong: ['Polite', 'Honest', 'Clever'] },
+  { base: 'Borrow', rel: 'opposite', ans: 'Lend', wrong: ['Spend', 'Catch', 'Throw'] },
+  { base: 'Arrive', rel: 'opposite', ans: 'Leave', wrong: ['Follow', 'Invite', 'Visit'] },
+  { base: 'Giant', rel: 'same', ans: 'Huge', wrong: ['Tiny', 'Narrow', 'Shallow'] },
+  { base: 'Intelligent', rel: 'same', ans: 'Smart', wrong: ['Lazy', 'Bored', 'Noisy'] },
+  { base: 'Difficult', rel: 'opposite', ans: 'Easy', wrong: ['Strict', 'Bitter', 'Rough'] },
+  { base: 'Victory', rel: 'opposite', ans: 'Defeat', wrong: ['Courage', 'Journey', 'Treasure'] },
+  { base: 'Happy', rel: 'same', ans: 'Glad', wrong: ['Angry', 'Sleepy', 'Hungry'] },
+  { base: 'Begin', rel: 'same', ans: 'Start', wrong: ['Stop', 'Sleep', 'Shout'] },
 ];
 
-// 國小文法句子重組題庫 (Lv.3)
+// Sentence building (Big Stars Lv.3) — picture hints instead of translations
 const EN_SENTENCE_SCRAMBLE_BANK = [
-  { words: ['She', 'goes', 'to', 'school', 'by', 'bus'], zh: '她搭公車去上學。' },
-  { words: ['How', 'much', 'is', 'this', 'dictionary'], zh: '這本字典多少錢？' },
-  { words: ['My', 'favorite', 'subject', 'is', 'science'], zh: '我最喜歡的科目是自然科學。' },
-  { words: ['We', 'visited', 'the', 'museum', 'yesterday'], zh: '我們昨天參觀了博物館。' },
-  { words: ['What', 'will', 'you', 'do', 'tomorrow'], zh: '你明天打算做什麼？' },
-  { words: ['Please', 'turn', 'off', 'the', 'lights'], zh: '請隨手關燈。' },
-  { words: ['The', 'library', 'is', 'next', 'to', 'the', 'park'], zh: '圖書館在公園旁邊。' },
-  { words: ['He', 'is', 'taller', 'than', 'his', 'brother'], zh: '他比他的哥哥還要高。' },
+  { words: ['She', 'goes', 'to', 'school', 'by', 'bus'], hint: '👧 ➡️ 🏫 🚌' },
+  { words: ['How', 'much', 'is', 'this', 'dictionary'], hint: '💰 ❓ 📕' },
+  { words: ['My', 'favorite', 'subject', 'is', 'science'], hint: '❤️ 🔬 🧪' },
+  { words: ['We', 'visited', 'the', 'museum', 'yesterday'], hint: '👨‍👩‍👧 🏛️ ⬅️ 📅' },
+  { words: ['What', 'will', 'you', 'do', 'tomorrow'], hint: '❓ 🧒 ➡️ 📅' },
+  { words: ['Please', 'turn', 'off', 'the', 'lights'], hint: '🙏 💡 ❌' },
+  { words: ['The', 'library', 'is', 'next', 'to', 'the', 'park'], hint: '📚 🏛️ ↔️ 🌳' },
+  { words: ['He', 'is', 'taller', 'than', 'his', 'brother'], hint: '👦⬆️ 👦' },
+  { words: ['I', 'like', 'to', 'eat', 'apples'], hint: '😋 🍎 🍎' },
+  { words: ['They', 'are', 'playing', 'soccer', 'now'], hint: '👦👧 ⚽ ⏰' },
 ];
 
-// 🎈 國小幾何圖形與色彩氣球題庫 (Lv.4)
+// 🎈 Big Stars shape balloons (Lv.4)
 const EN_COLORS = [
-  { en: 'Crimson Red', shortEn: 'Red', zh: '深紅色', fill: '#ef4444', bg: '#fee2e2', border: '#fca5a5' },
-  { en: 'Royal Blue', shortEn: 'Blue', zh: '寶藍色', fill: '#3b82f6', bg: '#dbeafe', border: '#93c5fd' },
-  { en: 'Golden Yellow', shortEn: 'Yellow', zh: '金黃色', fill: '#eab308', bg: '#fef9c3', border: '#fde047' },
-  { en: 'Emerald Green', shortEn: 'Green', zh: '翠綠色', fill: '#22c55e', bg: '#dcfce7', border: '#86efac' },
-  { en: 'Violet Purple', shortEn: 'Purple', zh: '紫羅蘭色', fill: '#a855f7', bg: '#f3e8ff', border: '#d8b4fe' },
-  { en: 'Coral Orange', shortEn: 'Orange', zh: '珊瑚橘', fill: '#f97316', bg: '#ffedd5', border: '#fdba74' },
+  { en: 'Crimson Red', shortEn: 'Red', fill: '#ef4444', bg: '#fee2e2', border: '#fca5a5' },
+  { en: 'Royal Blue', shortEn: 'Blue', fill: '#3b82f6', bg: '#dbeafe', border: '#93c5fd' },
+  { en: 'Golden Yellow', shortEn: 'Yellow', fill: '#eab308', bg: '#fef9c3', border: '#fde047' },
+  { en: 'Emerald Green', shortEn: 'Green', fill: '#22c55e', bg: '#dcfce7', border: '#86efac' },
+  { en: 'Violet Purple', shortEn: 'Purple', fill: '#a855f7', bg: '#f3e8ff', border: '#d8b4fe' },
+  { en: 'Coral Orange', shortEn: 'Orange', fill: '#f97316', bg: '#ffedd5', border: '#fdba74' },
 ];
 
 const EN_SHAPES = [
-  { id: 'pentagon', en: 'Pentagon', zh: '五邊形', clue: 'a 5-sided polygon' },
-  { id: 'hexagon', en: 'Hexagon', zh: '六邊形', clue: 'a 6-sided polygon like a honeycomb' },
-  { id: 'octagon', en: 'Octagon', zh: '八邊形', clue: 'an 8-sided polygon like a stop sign' },
-  { id: 'rectangle', en: 'Rectangle', zh: '長方形', clue: 'a 4-sided shape with two long sides and two short sides' },
-  { id: 'triangle', en: 'Triangle', zh: '三角形', clue: 'a polygon with 3 angles and 3 sides' },
-  { id: 'rhombus', en: 'Rhombus', zh: '菱形', clue: 'a diamond shape with 4 equal sides' },
+  { id: 'pentagon', en: 'Pentagon', clue: 'a shape with 5 sides' },
+  { id: 'hexagon', en: 'Hexagon', clue: 'a shape with 6 sides, like a honeycomb' },
+  { id: 'octagon', en: 'Octagon', clue: 'a shape with 8 sides, like a stop sign' },
+  { id: 'rectangle', en: 'Rectangle', clue: 'a shape with 2 long sides and 2 short sides' },
+  { id: 'triangle', en: 'Triangle', clue: 'a shape with 3 sides' },
+  { id: 'rhombus', en: 'Rhombus', clue: 'a diamond shape with 4 sides the same' },
 ];
 
+// ============================================================================
+// 🐣 Little Stars (5~6) English banks
+// ============================================================================
+const EASY_WORDS = [
+  { word: 'cat', emoji: '🐱' }, { word: 'dog', emoji: '🐶' }, { word: 'pig', emoji: '🐷' },
+  { word: 'cow', emoji: '🐮' }, { word: 'hen', emoji: '🐔' }, { word: 'fox', emoji: '🦊' },
+  { word: 'bee', emoji: '🐝' }, { word: 'ant', emoji: '🐜' }, { word: 'owl', emoji: '🦉' },
+  { word: 'fish', emoji: '🐟' }, { word: 'frog', emoji: '🐸' }, { word: 'duck', emoji: '🦆' },
+  { word: 'bear', emoji: '🐻' }, { word: 'lion', emoji: '🦁' }, { word: 'sun', emoji: '☀️' },
+  { word: 'moon', emoji: '🌙' }, { word: 'star', emoji: '⭐' }, { word: 'car', emoji: '🚗' },
+  { word: 'bus', emoji: '🚌' }, { word: 'egg', emoji: '🥚' }, { word: 'cake', emoji: '🎂' },
+  { word: 'apple', emoji: '🍎' }, { word: 'ball', emoji: '⚽' }, { word: 'hat', emoji: '🎩' },
+  { word: 'cup', emoji: '☕' }, { word: 'bed', emoji: '🛏️' }, { word: 'book', emoji: '📖' },
+  { word: 'tree', emoji: '🌳' }, { word: 'milk', emoji: '🥛' }, { word: 'key', emoji: '🔑' },
+  { word: 'boat', emoji: '⛵' }, { word: 'rain', emoji: '🌧️' }, { word: 'pen', emoji: '🖊️' },
+  { word: 'door', emoji: '🚪' }, { word: 'kite', emoji: '🪁' }, { word: 'nose', emoji: '👃' },
+];
+
+const EASY_COLORS = [
+  { en: 'red', fill: '#ef4444', bg: '#fee2e2', border: '#fca5a5' },
+  { en: 'blue', fill: '#3b82f6', bg: '#dbeafe', border: '#93c5fd' },
+  { en: 'yellow', fill: '#eab308', bg: '#fef9c3', border: '#fde047' },
+  { en: 'green', fill: '#22c55e', bg: '#dcfce7', border: '#86efac' },
+  { en: 'purple', fill: '#a855f7', bg: '#f3e8ff', border: '#d8b4fe' },
+  { en: 'orange', fill: '#f97316', bg: '#ffedd5', border: '#fdba74' },
+  { en: 'pink', fill: '#ec4899', bg: '#fce7f3', border: '#f9a8d4' },
+];
+
+const EASY_SHAPES = [
+  { id: 'circle', en: 'circle' },
+  { id: 'square', en: 'square' },
+  { id: 'triangle', en: 'triangle' },
+  { id: 'star', en: 'star' },
+  { id: 'heart', en: 'heart' },
+];
+
+const ANIMAL_SOUNDS = [
+  { name: 'cow', emoji: '🐮', sound: 'Moo' },
+  { name: 'dog', emoji: '🐶', sound: 'Woof' },
+  { name: 'cat', emoji: '🐱', sound: 'Meow' },
+  { name: 'duck', emoji: '🦆', sound: 'Quack' },
+  { name: 'pig', emoji: '🐷', sound: 'Oink' },
+  { name: 'sheep', emoji: '🐑', sound: 'Baa' },
+  { name: 'lion', emoji: '🦁', sound: 'Roar' },
+  { name: 'hen', emoji: '🐔', sound: 'Cluck' },
+  { name: 'frog', emoji: '🐸', sound: 'Ribbit' },
+  { name: 'owl', emoji: '🦉', sound: 'Hoot' },
+  { name: 'bee', emoji: '🐝', sound: 'Buzz' },
+  { name: 'horse', emoji: '🐴', sound: 'Neigh' },
+  { name: 'mouse', emoji: '🐭', sound: 'Squeak' },
+  { name: 'snake', emoji: '🐍', sound: 'Hiss' },
+];
 
 // ============================================================================
 // 🛠️ 通用隨機與陣列工具函式
@@ -596,17 +889,25 @@ function shuffle(arr) {
   return copy;
 }
 
+// Escape a string so it can sit inside onclick="fn('...')"
+function jsq(s) {
+  return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+function plural(n, one, many) {
+  return n === 1 ? one : many;
+}
+
 // ============================================================================
-// 🚀 Lv.6《Rocket Girl & Activity Book》國小閱讀理解與文法題庫
+// 🚀 Big Stars Lv.6 Rocket Girl reading & grammar bank
 // ============================================================================
 const ROCKET_BOOK1_BANK = [
   {
     unit: 'u1',
-    badge: '📖 校園短篇閱讀理解 (Reading Comprehension)',
-    passage: 'Every Tuesday morning, Lucas brings his microscope and notebook to the science lab. His favorite subject is science because he loves doing exciting experiments with his classmates.',
+    badge: '📖 School Story',
+    passage: 'Every Tuesday morning, Lucas brings his microscope and notebook to the science lab. His favorite subject is science because he loves doing fun experiments with his classmates.',
     question: 'Why does Lucas love science class?',
     ans: 'Because he loves doing experiments.',
-    zh: '因為他喜歡做實驗。',
     wrong: [
       'Because he likes playing badminton.',
       'Because the library is very quiet.',
@@ -615,20 +916,18 @@ const ROCKET_BOOK1_BANK = [
   },
   {
     unit: 'u1',
-    badge: '📝 國小核心文法選擇 (Grammar Challenge)',
+    badge: '📝 Grammar',
     passage: 'Please ______ quiet in the school library! Many students are reading books right now.',
-    question: '請選出最符合祈使句文法的動詞：',
+    question: 'Pick the right word for the blank.',
     ans: 'be',
-    zh: '祈使句原形動詞：Please be quiet!',
     wrong: ['is', 'are', 'am'],
   },
   {
     unit: 'u2',
-    badge: '📖 家庭與職業閱讀 (Reading Comprehension)',
+    badge: '📖 Family & Jobs Story',
     passage: 'My aunt Emma works at a big city hospital. She wears a white coat and helps sick children feel better every day. My uncle Leo is a firefighter who drives a red fire truck.',
     question: 'Where does Aunt Emma work?',
     ans: 'At a city hospital.',
-    zh: '在市立醫院工作。',
     wrong: [
       'At a bakery near the park.',
       'Inside a space station.',
@@ -637,20 +936,18 @@ const ROCKET_BOOK1_BANK = [
   },
   {
     unit: 'u2',
-    badge: '📝 過去式文法挑戰 (Past Tense Grammar)',
-    passage: 'Yesterday evening, my father ______ a delicious pasta dinner for our whole family.',
-    question: '句中有 Yesterday（昨天），應使用哪一個過去式動詞？',
+    badge: '📝 Past Tense',
+    passage: 'Yesterday evening, my father ______ a yummy pasta dinner for our whole family.',
+    question: 'It says "Yesterday". Pick the past tense word.',
     ans: 'cooked',
-    zh: '過去式：cooked (煮了)',
     wrong: ['cooks', 'cooking', 'to cook'],
   },
   {
     unit: 'u3',
-    badge: '📖 自然科學閱讀 (Science Reading)',
-    passage: 'Chameleons and arctic foxes are masters of camouflage. An arctic fox has white fur during the snowy winter so predators cannot see it easily in the snow.',
+    badge: '📖 Science Story',
+    passage: 'Chameleons and arctic foxes are great at hiding. An arctic fox has white fur in the snowy winter, so other animals cannot see it in the snow.',
     question: 'How does white fur help the arctic fox in winter?',
     ans: 'It helps the fox hide in the snow.',
-    zh: '幫助北極狐在雪地中隱藏自己。',
     wrong: [
       'It helps the fox fly in the sky.',
       'It makes the fox swim faster than sharks.',
@@ -659,20 +956,18 @@ const ROCKET_BOOK1_BANK = [
   },
   {
     unit: 'u3',
-    badge: '📝 比較級文法挑戰 (Comparative Grammar)',
-    passage: 'A blue whale is much ______ than a dolphin. It is the largest animal on Earth!',
-    question: '句中有 than（比…更…），請選出正確的比較級形容詞：',
+    badge: '📝 Comparing Words',
+    passage: 'A blue whale is much ______ than a dolphin. It is the biggest animal on Earth!',
+    question: 'The sentence has "than". Pick the right word.',
     ans: 'heavier',
-    zh: '比較級：heavier (更重的)',
     wrong: ['heavy', 'heaviest', 'more heavy'],
   },
   {
     unit: 'u4',
-    badge: '📖 才藝與音樂閱讀 (Hobbies Reading)',
-    passage: 'Sophia practices the violin for forty-five minutes every afternoon. Next Saturday, she will perform on stage with the school orchestra in front of her parents.',
+    badge: '📖 Hobbies Story',
+    passage: 'Sophia practices the violin for forty-five minutes every afternoon. Next Saturday, she will play on stage with the school orchestra in front of her parents.',
     question: 'What will Sophia do next Saturday?',
-    ans: 'Perform with the school orchestra.',
-    zh: '與學校管弦樂團一起登台演出。',
+    ans: 'Play with the school orchestra.',
     wrong: [
       'Go camping in the high mountains.',
       'Visit the dentist after school.',
@@ -681,11 +976,10 @@ const ROCKET_BOOK1_BANK = [
   },
   {
     unit: 'u5',
-    badge: '📖 健康飲食閱讀 (Healthy Diet Reading)',
-    passage: 'Waiter: "May I take your order?" Mia: "Yes, I would like a bowl of vegetable soup, a grilled chicken sandwich, and a glass of fresh orange juice, please."',
-    question: 'What drink did Mia order at the restaurant?',
-    ans: 'A glass of fresh orange juice.',
-    zh: '一杯新鮮柳橙汁。',
+    badge: '📖 Healthy Food Story',
+    passage: 'Waiter: "May I take your order?" Mia: "Yes, I would like a bowl of vegetable soup, a chicken sandwich, and a glass of orange juice, please."',
+    question: 'What drink did Mia order?',
+    ans: 'A glass of orange juice.',
     wrong: [
       'A cup of hot chocolate.',
       'A bottle of strawberry milk.',
@@ -694,11 +988,10 @@ const ROCKET_BOOK1_BANK = [
   },
   {
     unit: 'rg',
-    badge: '🦸‍♀️ Rocket Girl 英雄閱讀挑戰 (Hero Story Reading)',
-    passage: 'Whenever Metro City is in trouble, Roxy puts on her silver jetpack and flies faster than a helicopter! Today, she rescued a little kitten stuck on top of a tall bridge.',
+    badge: '🦸‍♀️ Rocket Girl Story',
+    passage: 'When Metro City is in trouble, Roxy puts on her silver jetpack and flies faster than a helicopter! Today, she saved a little kitten stuck on top of a tall bridge.',
     question: 'How does Rocket Girl fly into the sky?',
     ans: 'She uses her silver jetpack.',
-    zh: '她使用銀色噴射背包飛行。',
     wrong: [
       'She rides a yellow submarine.',
       'She takes an underground train.',
@@ -707,39 +1000,73 @@ const ROCKET_BOOK1_BANK = [
   },
   {
     unit: 'rg',
-    badge: '🦸‍♀️ Rocket Girl 未來式文法 (Future Tense)',
-    passage: "Don't worry, citizens! Rocket Girl ______ protect Metro City from the giant robot!",
-    question: '請選出表示「將會保護」的助動詞：',
+    badge: '🦸‍♀️ Rocket Girl Grammar',
+    passage: "Don't worry, everyone! Rocket Girl ______ protect Metro City from the giant robot!",
+    question: 'Pick the word that means "is going to".',
     ans: 'will',
-    zh: '助動詞 will + 原形動詞 protect',
     wrong: ['did', 'was', 'are'],
   },
 ];
 
+// ============================================================================
+// 🔢 Math items
+// ============================================================================
 const MATH_ITEMS = [
-  { emoji: '🍓', name: '日本大草莓', unit: '顆' },
-  { emoji: '🍩', name: '巧克力甜甜圈', unit: '個' },
-  { emoji: '🧁', name: '藍莓杯子蛋糕', unit: '個' },
-  { emoji: '🍪', name: '手工牛奶餅乾', unit: '片' },
-  { emoji: '🍎', name: '富士大蘋果', unit: '顆' },
-  { emoji: '🥐', name: '法式牛角可頌', unit: '個' },
-  { emoji: '🍕', name: '總匯起司披薩', unit: '片' },
-  { emoji: '📚', name: '精裝百科全書', unit: '本' },
-  { emoji: '🎨', name: '水彩畫具組', unit: '盒' },
-  { emoji: '⚽', name: '世界盃足球', unit: '顆' },
+  { emoji: '🍓', one: 'strawberry', many: 'strawberries' },
+  { emoji: '🍩', one: 'donut', many: 'donuts' },
+  { emoji: '🧁', one: 'cupcake', many: 'cupcakes' },
+  { emoji: '🍪', one: 'cookie', many: 'cookies' },
+  { emoji: '🍎', one: 'apple', many: 'apples' },
+  { emoji: '🥐', one: 'croissant', many: 'croissants' },
+  { emoji: '🍕', one: 'pizza slice', many: 'pizza slices' },
+  { emoji: '📚', one: 'book', many: 'books' },
+  { emoji: '🎨', one: 'paint set', many: 'paint sets' },
+  { emoji: '⚽', one: 'soccer ball', many: 'soccer balls' },
 ];
+
+const COUNT_ITEMS = [
+  { emoji: '🍎', one: 'apple', many: 'apples' },
+  { emoji: '⭐', one: 'star', many: 'stars' },
+  { emoji: '🐟', one: 'fish', many: 'fish' },
+  { emoji: '🦆', one: 'duck', many: 'ducks' },
+  { emoji: '🚗', one: 'car', many: 'cars' },
+  { emoji: '🎈', one: 'balloon', many: 'balloons' },
+  { emoji: '🍪', one: 'cookie', many: 'cookies' },
+  { emoji: '🌸', one: 'flower', many: 'flowers' },
+  { emoji: '🐝', one: 'bee', many: 'bees' },
+  { emoji: '🐱', one: 'cat', many: 'cats' },
+];
+
+const EAT_ITEMS = [
+  { emoji: '🍎', one: 'apple', many: 'apples' },
+  { emoji: '🍪', one: 'cookie', many: 'cookies' },
+  { emoji: '🍓', one: 'strawberry', many: 'strawberries' },
+  { emoji: '🍩', one: 'donut', many: 'donuts' },
+  { emoji: '🧁', one: 'cupcake', many: 'cupcakes' },
+  { emoji: '🍌', one: 'banana', many: 'bananas' },
+];
+
+const LITTLE_SHOP_ITEMS = [
+  { emoji: '🍎', name: 'apple' }, { emoji: '🍌', name: 'banana' },
+  { emoji: '🧃', name: 'juice box' }, { emoji: '🍭', name: 'lollipop' },
+  { emoji: '🧸', name: 'teddy bear' }, { emoji: '🎈', name: 'balloon' },
+  { emoji: '✏️', name: 'pencil' }, { emoji: '🍪', name: 'cookie' },
+  { emoji: '🚗', name: 'toy car' }, { emoji: '🍦', name: 'ice cream' },
+];
+
+const STORY_NAMES = ['Leo', 'Mia', 'Sam', 'Amy', 'Ben', 'Lily'];
 
 // ============================================================================
 // 🎮 全域遊戲狀態
 // ============================================================================
-const TOTAL_ROUNDS = 8;
 let state = {
   currentMode: 'home', // 'home' | 'english' | 'math' | 'clock'
-  enLevel: 1,
-  mathLevel: 1,
-  clockLevel: 1,
+  enLevel: 'e1',
+  mathLevel: 'e1',
+  clockLevel: 'e1',
   rocketUnit: 'all',
   round: 1,
+  totalRounds: 8,
   streak: { en: 0, math: 0, clock: 0 },
   isAnswering: false,
   currentSpeech: [],
@@ -747,12 +1074,11 @@ let state = {
 };
 
 let audioCtx = null;
-let selectedZhVoice = null;
 let selectedEnVoice = null;
 let speechQueueId = 0;
 
 // ============================================================================
-// 🔊 音效與雙語音合成引擎
+// 🔊 音效與語音合成引擎（全英文）
 // ============================================================================
 function getAudioContext() {
   if (!audioCtx) {
@@ -824,45 +1150,20 @@ function initSpeechVoices() {
   const voices = window.speechSynthesis.getVoices();
   if (!voices || !voices.length) return;
 
-  const zhSelect = document.getElementById('select-zh-voice');
   const enSelect = document.getElementById('select-en-voice');
-
-  const zhVoices = voices.filter((v) => v.lang.startsWith('zh'));
   const enVoices = voices.filter((v) => v.lang.startsWith('en'));
 
-  if (zhSelect && zhVoices.length) {
-    zhSelect.innerHTML = zhVoices
-      .map((v) => `<option value="${v.voiceURI}">${v.name} (${v.lang})</option>`)
-      .join('');
-  }
   if (enSelect && enVoices.length) {
     enSelect.innerHTML = enVoices
       .map((v) => `<option value="${v.voiceURI}">${v.name} (${v.lang})</option>`)
       .join('');
   }
 
-  const zhPriority = [
-    (v) => PET_CONFIG.zhVoiceURI && v.voiceURI === PET_CONFIG.zhVoiceURI,
-    (v) => v.name.includes('HsiaoChen') && v.name.includes('Natural'),
-    (v) => v.name.includes('HsiaoYu') && v.name.includes('Natural'),
-    (v) => v.name.includes('Meijia') || v.name.includes('美佳'),
-    (v) => v.lang === 'zh-TW' && v.name.includes('Google'),
-    (v) => v.lang === 'zh-TW' || v.lang === 'zh_TW',
-    (v) => v.lang.startsWith('zh'),
-  ];
-  for (const test of zhPriority) {
-    const found = voices.find(test);
-    if (found) {
-      selectedZhVoice = found;
-      if (zhSelect) zhSelect.value = found.voiceURI;
-      break;
-    }
-  }
-
   const enPriority = [
     (v) => PET_CONFIG.enVoiceURI && v.voiceURI === PET_CONFIG.enVoiceURI,
     (v) => v.name.includes('Aria') && v.name.includes('Natural'),
     (v) => v.name.includes('Jenny') && v.name.includes('Natural'),
+    (v) => v.name.includes('Ana') && v.name.includes('Natural'),
     (v) => v.name.includes('Samantha'),
     (v) => v.lang === 'en-US' && v.name.includes('Google'),
     (v) => v.lang === 'en-US' || v.lang === 'en_US',
@@ -908,16 +1209,15 @@ function speakSingleItem(item, speed, onDone) {
     if (onDone) onDone();
     return;
   }
-  const lang = item.lang || 'zh-TW';
-  const rate = Math.min(1.6, Math.max(0.65, (item.rate || 1.0) * speed));
+  const lang = 'en-US';
+  const rate = Math.min(1.6, Math.max(0.65, (item.rate || 0.95) * speed));
 
   if ('speechSynthesis' in window) {
     const utter = new SpeechSynthesisUtterance(item.text);
     utter.lang = lang;
     utter.rate = rate;
-    utter.pitch = item.pitch || 1.05;
-    if (lang.startsWith('zh') && selectedZhVoice) utter.voice = selectedZhVoice;
-    if (lang.startsWith('en') && selectedEnVoice) utter.voice = selectedEnVoice;
+    utter.pitch = item.pitch || 1.08;
+    if (selectedEnVoice) utter.voice = selectedEnVoice;
 
     let finished = false;
     const finishOnce = () => {
@@ -927,16 +1227,123 @@ function speakSingleItem(item, speed, onDone) {
     };
     utter.onend = finishOnce;
     utter.onerror = finishOnce;
-    setTimeout(finishOnce, Math.max(4000, item.text.length * 320));
+    setTimeout(finishOnce, Math.max(4000, item.text.length * 160));
     window.speechSynthesis.speak(utter);
   } else {
     if (onDone) onDone();
   }
 }
 
+// Short helper: speak a list of plain English strings
+function say(...texts) {
+  speakSequence(texts.filter(Boolean).map((t) => ({ text: t, lang: 'en-US' })));
+}
+
 // ============================================================================
-// 🧭 畫面切換、頂部計數器與貼紙櫃渲染
+// 🧭 Age Switcher, Level Lists, Counters & Sticker Book
 // ============================================================================
+const LEVEL_DEFINITIONS = {
+  little: {
+    en: [
+      { id: 'e1', cls: 'lvl-1', title: '🐣 Lv.1 ABC Letters & Pictures', chip: '🐣 Lv.1 ABCs' },
+      { id: 'e2', cls: 'lvl-2', title: '🔤 Lv.2 First Sound (C-A-T)', chip: '🔤 Lv.2 First Sound' },
+      { id: 'e3', cls: 'lvl-3', title: '🧩 Lv.3 Spell 3-Letter Words', chip: '🧩 Lv.3 Spell' },
+      { id: 'e4', cls: 'lvl-4', title: '🎈 Lv.4 Color & Shape Balloons', chip: '🎈 Lv.4 Balloons' },
+      { id: 'e5', cls: 'lvl-5', title: '🃏 Lv.5 6-Card Picture Match', chip: '🃏 Lv.5 Match' },
+      { id: 'e6', cls: 'lvl-6', title: '🐮 Lv.6 Animal Sounds (Moo!)', chip: '🐮 Lv.6 Animals' },
+    ],
+    math: [
+      { id: 'e1', cls: 'lvl-1', title: '🍎 Lv.1 Count 1 to 10', chip: '🍎 Lv.1 Count' },
+      { id: 'e2', cls: 'lvl-2', title: '➕ Lv.2 Picture Add & Take Away', chip: '➕ Lv.2 Add/Sub' },
+      { id: 'e3', cls: 'lvl-3', title: '⚖️ Lv.3 Bigger or Smaller & Make 10', chip: '⚖️ Lv.3 Make 10' },
+      { id: 'e4', cls: 'lvl-4', title: '🛒 Lv.4 Little Toy Shop ($1 & $5)', chip: '🛒 Lv.4 Toy Shop' },
+      { id: 'e5', cls: 'lvl-5', title: '🚂 Lv.5 Pattern & Number Train', chip: '🚂 Lv.5 Train' },
+      { id: 'e6', cls: 'lvl-6', title: '🍪 Lv.6 Share the Cookies Fairly', chip: '🍪 Lv.6 Share' },
+    ],
+    clock: [
+      { id: 'e1', cls: 'lvl-1', title: '🕐 Lv.1 O\'clock & Half Past', chip: '🕐 Lv.1 O\'clock' },
+      { id: 'e2', cls: 'lvl-2', title: '☀️ Lv.2 Morning, Noon & Night', chip: '☀️ Lv.2 My Day' },
+      { id: 'e3', cls: 'lvl-3', title: '🛠️ Lv.3 Move the Hands (Easy)', chip: '🛠️ Lv.3 Move Hands' },
+    ],
+  },
+  big: {
+    en: [
+      { id: 1, cls: 'lvl-1', title: '🌱 Lv.1 Word Clue Detective', chip: '🌱 Lv.1 Clues' },
+      { id: 2, cls: 'lvl-2', title: '🎧 Lv.2 Missing Letters & Opposites', chip: '🎧 Lv.2 Opposites' },
+      { id: 3, cls: 'lvl-3', title: '🔤 Lv.3 Build a Sentence', chip: '🔤 Lv.3 Sentences' },
+      { id: 4, cls: 'lvl-4', title: '🎈 Lv.4 Polygon & Color Balloons', chip: '🎈 Lv.4 Polygons' },
+      { id: 5, cls: 'lvl-5', title: '🃏 Lv.5 12-Card Word & Picture Match', chip: '🃏 Lv.5 12 Cards' },
+      { id: 6, cls: 'lvl-6', title: '🚀 Lv.6 Short Stories & Grammar', chip: '🚀 Lv.6 Stories' },
+    ],
+    math: [
+      { id: 1, cls: 'lvl-1', title: '🌱 Lv.1 Big Number Add & Subtract', chip: '🌱 Lv.1 Big Add' },
+      { id: 2, cls: 'lvl-2', title: '🌟 Lv.2 Multiply, Divide & Compare', chip: '🌟 Lv.2 × ÷' },
+      { id: 3, cls: 'lvl-3', title: '🏆 Lv.3 Two-Step Math & Stories', chip: '🏆 Lv.3 Stories' },
+      { id: 4, cls: 'lvl-4', title: '🛒 Lv.4 Big Store Cashier ($100)', chip: '🛒 Lv.4 Cashier' },
+      { id: 5, cls: 'lvl-5', title: '🚂 Lv.5 Super Number Train', chip: '🚂 Lv.5 Train' },
+      { id: 6, cls: 'lvl-6', title: '🍕 Lv.6 Pizza Fractions & Shapes', chip: '🍕 Lv.6 Fractions' },
+    ],
+    clock: [
+      { id: 1, cls: 'lvl-1', title: '🌱 Lv.1 Exact Minutes & 24-Hour Time', chip: '🌱 Lv.1 Minutes' },
+      { id: 2, cls: 'lvl-2', title: '🌟 Lv.2 How Much Time Passed?', chip: '🌟 Lv.2 Later' },
+      { id: 3, cls: 'lvl-3', title: '🏆 Lv.3 Set the Exact Minute', chip: '🏆 Lv.3 Set Clock' },
+    ],
+  },
+};
+
+function setAgeTrack(track) {
+  playClickTick();
+  SAVE_DATA.ageTrack = track === 'big' ? 'big' : 'little';
+  saveProgress();
+  renderAgeTrackUI();
+  say(track === 'big' ? 'Big Stars mode! Ready for a challenge!' : 'Little Stars mode! Let us play and learn!');
+}
+
+function renderAgeTrackUI() {
+  const track = SAVE_DATA.ageTrack === 'big' ? 'big' : 'little';
+  const btnLittle = document.getElementById('age-btn-little');
+  const btnBig = document.getElementById('age-btn-big');
+  if (btnLittle) btnLittle.classList.toggle('active', track === 'little');
+  if (btnBig) btnBig.classList.toggle('active', track === 'big');
+
+  const descEn = document.getElementById('card-desc-en');
+  const descMath = document.getElementById('card-desc-math');
+  const descClock = document.getElementById('card-desc-clock');
+  if (track === 'little') {
+    if (descEn) descEn.textContent = 'Letters, easy words, colors, shapes and animal sounds!';
+    if (descMath) descMath.textContent = 'Count 1 to 10, add with pictures, toy shop and share cookies!';
+    if (descClock) descClock.textContent = 'O\'clock, half past and fun times of the day!';
+  } else {
+    if (descEn) descEn.textContent = 'Word clues, opposites, sentences, polygons and short stories!';
+    if (descMath) descMath.textContent = 'Big numbers, multiply, divide, $100 cashier and fractions!';
+    if (descClock) descClock.textContent = 'Exact minutes, 24-hour time and time stories!';
+  }
+
+  const defs = LEVEL_DEFINITIONS[track];
+  const renderGroup = (key, fnName) => {
+    const box = document.getElementById(`levels-${key}`);
+    if (!box) return;
+    box.innerHTML = defs[key]
+      .map((lv) => {
+        const clears = SAVE_DATA.levelClears[`${key}_${lv.id}`] || 0;
+        const badge = clears > 0 ? `🏅×${clears}` : '';
+        const arg = typeof lv.id === 'string' ? `'${lv.id}'` : lv.id;
+        return `<button class="lvl-btn ${lv.cls}" onclick="${fnName}(${arg})">${lv.title} <span class="prog-tag" id="badge-${key}-${lv.id}">${badge}</span></button>`;
+      })
+      .join('');
+  };
+  renderGroup('en', 'startEnglishGame');
+  renderGroup('math', 'startMathGame');
+  renderGroup('clock', 'startClockGame');
+}
+
+function startFirstLevel(key) {
+  const firstId = SAVE_DATA.ageTrack === 'big' ? 1 : 'e1';
+  if (key === 'en') startEnglishGame(firstId);
+  else if (key === 'math') startMathGame(firstId);
+  else startClockGame(firstId);
+}
+
 function applyPetNamesToDOM() {
   document.querySelectorAll('[data-pet-name="corie"]').forEach((el) => {
     el.textContent = PET_CONFIG.corieName;
@@ -955,22 +1362,7 @@ function updateTopCountersUI() {
   if (starEl) starEl.textContent = SAVE_DATA.totalStars;
   if (coinEl) coinEl.textContent = SAVE_DATA.coins;
 
-  // 更新首頁關卡過關次數徽章
-  const mapping = [
-    { key: 'en', max: 6 },
-    { key: 'math', max: 6 },
-    { key: 'clock', max: 3 },
-  ];
-  mapping.forEach((m) => {
-    for (let lv = 1; lv <= m.max; lv++) {
-      const badge = document.getElementById(`badge-${m.key}-${lv}`);
-      const clears = SAVE_DATA.levelClears[`${m.key}_${lv}`] || 0;
-      if (badge) {
-        badge.textContent = clears > 0 ? `🏅×${clears}` : '';
-      }
-    }
-  });
-
+  renderAgeTrackUI();
   renderStickerWall();
 }
 
@@ -981,18 +1373,17 @@ function renderStickerWall() {
 
   const unlockedCount = Math.min(STICKERS.length, Math.floor(SAVE_DATA.totalStars / 3));
   if (progEl) {
-    progEl.textContent = `已解鎖 ${unlockedCount} / ${STICKERS.length} 張`;
+    progEl.textContent = `${unlockedCount} / ${STICKERS.length} stickers`;
   }
 
   listEl.innerHTML = STICKERS.map((s, idx) => {
     const unlocked = idx < unlockedCount;
     if (unlocked) {
-      return `<div class="sticker-item unlocked" title="${s.name}" onclick="speakSequence([{text:'${s.name}',lang:'zh-TW'}])">
-        <span class="sticker-emoji">${s.emoji}</span>
-        <span class="sticker-name">${s.name}</span>
+      return `<div class="sticker-slot unlocked" title="${s.name}" onclick="say('${jsq(s.name)}')">
+        <span>${s.emoji}</span>
       </div>`;
     }
-    return `<div class="sticker-item locked" title="每集滿 3 顆星解鎖一張">🔒</div>`;
+    return `<div class="sticker-slot locked" title="Get 3 stars to open a new sticker">🔒</div>`;
   }).join('');
 }
 
@@ -1026,13 +1417,18 @@ function showScreen(screenKey) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+function isEasyLevel(lv) {
+  return String(lv).startsWith('e');
+}
+
 function updateRoundProgressUI(prefix) {
   const roundEl = document.getElementById(`${prefix}-round-text`);
   const fillEl = document.getElementById(`${prefix}-progress-fill`);
   const streakEl = document.getElementById(`${prefix}-streak-pill`);
-  if (roundEl) roundEl.textContent = `第 ${state.round} / ${TOTAL_ROUNDS} 題`;
-  if (fillEl) fillEl.style.width = `${Math.round((state.round / TOTAL_ROUNDS) * 100)}%`;
-  if (streakEl) streakEl.textContent = `🔥 連對 ${state.streak[prefix] || 0}`;
+  const total = state.totalRounds || 8;
+  if (roundEl) roundEl.textContent = `Question ${state.round} / ${total}`;
+  if (fillEl) fillEl.style.width = `${Math.round((state.round / total) * 100)}%`;
+  if (streakEl) streakEl.textContent = `🔥 Streak ${state.streak[prefix] || 0}`;
 }
 
 function spawnConfetti(count = 24) {
@@ -1054,12 +1450,13 @@ function spawnConfetti(count = 24) {
 }
 
 // ============================================================================
-// 🐶 Duncan 國小英文學院 (6~12歲 6大關卡)
+// 🐶 Duncan's English Fun (Little Stars e1~e6 + Big Stars 1~6)
 // ============================================================================
-function startEnglishGame(lv = 1) {
+function startEnglishGame(lv = 'e1') {
   state.currentMode = 'english';
   state.enLevel = lv;
   state.round = 1;
+  state.totalRounds = isEasyLevel(lv) ? 6 : 8;
   showScreen('english');
   syncEnglishLevelChips();
   loadEnglishQuestion();
@@ -1069,14 +1466,25 @@ function switchEnglishLevel(lv) {
   playClickTick();
   state.enLevel = lv;
   state.round = 1;
+  state.totalRounds = isEasyLevel(lv) ? 6 : 8;
   syncEnglishLevelChips();
   loadEnglishQuestion();
 }
 
 function syncEnglishLevelChips() {
-  for (let i = 1; i <= 6; i++) {
-    const chip = document.getElementById(`en-lvl-chip-${i}`);
-    if (chip) chip.classList.toggle('active', i === state.enLevel);
+  const track = isEasyLevel(state.enLevel) ? 'little' : 'big';
+  const bar = document.getElementById('en-level-chips');
+  if (bar) {
+    const list = LEVEL_DEFINITIONS[track].en;
+    bar.innerHTML =
+      `<span class="bar-label">${track === 'little' ? '🐣 Easy:' : '🎓 Hard:'}</span>` +
+      list
+        .map((item) => {
+          const active = String(item.id) === String(state.enLevel) ? 'active' : '';
+          const arg = typeof item.id === 'string' ? `'${item.id}'` : item.id;
+          return `<button class="chip-btn ${active}" onclick="switchEnglishLevel(${arg})">${item.chip}</button>`;
+        })
+        .join('');
   }
   const rocketBar = document.getElementById('rocket-unit-bar');
   if (rocketBar) {
@@ -1112,7 +1520,13 @@ function loadEnglishQuestion() {
   }
 
   const lv = state.enLevel;
-  if (lv === 1) renderEnLv1ClueChallenge();
+  if (lv === 'e1') renderEnEasy1ABC();
+  else if (lv === 'e2') renderEnEasy2FirstSound();
+  else if (lv === 'e3') renderEnEasy3SimpleSpell();
+  else if (lv === 'e4') renderEnEasy4ColorShapeBalloon();
+  else if (lv === 'e5') renderEnEasy5Memory6();
+  else if (lv === 'e6') renderEnEasy6AnimalSounds();
+  else if (lv === 1) renderEnLv1ClueChallenge();
   else if (lv === 2) renderEnLv2ClozeAndOpposite();
   else if (lv === 3) renderEnLv3ScrambleAndSpell();
   else if (lv === 4) renderEnLv4GeometryBalloon();
@@ -1130,35 +1544,36 @@ function setEnglishStageCard(bigText, subHtml, hintText) {
   `;
 }
 
-// Lv.1 國小百大單字與英英定義謎題
-function renderEnLv1ClueChallenge() {
+// ---------- Little Stars e1: ABC Letters & Pictures ----------
+function renderEnEasy1ABC() {
   const container = document.getElementById('en-options-container');
-  const target = pickRandom(ENGLISH_BANK);
-  const distractors = shuffle(ENGLISH_BANK.filter((w) => w.word !== target.word)).slice(0, 3);
+  const target = pickRandom(EASY_WORDS);
+  const firstLetter = target.word[0].toUpperCase();
+  const distractors = shuffle(
+    EASY_WORDS.filter((w) => w.word[0].toUpperCase() !== firstLetter)
+  ).slice(0, 3);
   const options = shuffle([target, ...distractors]);
 
   document.getElementById('en-prompt-text').textContent =
-    `${PET_CONFIG.duncanName}：「請閱讀英文定義線索，推理出正確的國小單字！」`;
+    `${PET_CONFIG.duncanName}: "Find the picture for ${firstLetter} — ${target.word}!"`;
 
   setEnglishStageCard(
-    `${target.emoji} Word Detective`,
-    `<div style="font-size:1.15rem; color:#1e293b; font-weight:800; line-height:1.5; margin:6px 0;">"${target.clue}"</div>`,
-    `💡 字首提示：${target.letter}... ｜ 點此聽英文線索發音`
+    `${firstLetter} ${firstLetter.toLowerCase()}`,
+    `<div style="font-size:1.4rem; color:#1e293b; font-weight:900;">${firstLetter} is for <span style="color:#ec4899;">${target.word}</span></div>`,
+    '🔊 Tap to hear the word'
   );
 
   state.currentSpeech = [
-    { text: target.clue, lang: 'en-US' },
-    { text: `Which word means ${target.zh}?`, lang: 'zh-TW' },
+    { text: `${firstLetter}! ${firstLetter} is for ${target.word}!`, lang: 'en-US' },
   ];
 
   container.className = 'options-grid english-options';
   container.innerHTML = options
     .map(
       (opt) => `
-      <button class="option-card" onclick="checkEnglishAnswer(this, '${opt.word}', '${target.word}', '${opt.word} (${opt.zh})')">
-        <div class="opt-emoji">${opt.emoji}</div>
-        <div class="opt-word">${opt.word}</div>
-        <div class="opt-zh">${opt.zh}</div>
+      <button class="option-card" onclick="checkEnglishAnswer(this, '${jsq(opt.word)}', '${jsq(target.word)}', '${jsq(opt.word)}')">
+        <div class="option-emoji">${opt.emoji}</div>
+        <div class="option-word">${opt.word}</div>
       </button>
     `
     )
@@ -1167,7 +1582,249 @@ function renderEnLv1ClueChallenge() {
   repeatEnglishPrompt();
 }
 
-// Lv.2 自然發音填空＆同反義詞
+// ---------- Little Stars e2: First Sound ----------
+function renderEnEasy2FirstSound() {
+  const container = document.getElementById('en-options-container');
+  const target = pickRandom(EASY_WORDS);
+  const firstLetter = target.word[0].toUpperCase();
+  const rest = target.word.slice(1);
+  const allLetters = 'ABCDEFGHIKLMNOPRSTW'.split('');
+  const wrongLetters = shuffle(allLetters.filter((l) => l !== firstLetter)).slice(0, 3);
+  const options = shuffle([firstLetter, ...wrongLetters]);
+
+  document.getElementById('en-prompt-text').textContent =
+    `${PET_CONFIG.duncanName}: "What is the first letter of ${target.word}?"`;
+
+  setEnglishStageCard(
+    `${target.emoji}  _${rest}`,
+    `<div style="font-size:1.3rem; color:#475569; font-weight:800;">Pick the first letter!</div>`,
+    '🔊 Tap to hear the word'
+  );
+
+  state.currentSpeech = [
+    { text: `${target.word}! What is the first letter of ${target.word}?`, lang: 'en-US' },
+  ];
+
+  container.className = 'options-grid english-options';
+  container.innerHTML = options
+    .map(
+      (ltr) => `
+      <button class="option-card" onclick="checkEnglishAnswer(this, '${ltr}', '${firstLetter}', '${jsq(target.word)}')">
+        <div class="option-word" style="font-size:2.3rem; color:#2563eb;">${ltr} ${ltr.toLowerCase()}</div>
+      </button>
+    `
+    )
+    .join('');
+
+  repeatEnglishPrompt();
+}
+
+// ---------- Little Stars e3: Tap Letters to Spell a 3- or 4-Letter Word ----------
+function renderEnEasy3SimpleSpell() {
+  const slotsEl = document.getElementById('en-spelling-slots');
+  slotsEl.classList.remove('hidden');
+
+  const shortWords = EASY_WORDS.filter((w) => w.word.length <= 4);
+  const target = pickRandom(shortWords);
+  const letters = target.word.toUpperCase().split('');
+  const extraPool = 'AEIOUBCDFGHJKLMNPRST'.split('').filter((c) => !letters.includes(c));
+  const extra = shuffle(extraPool).slice(0, Math.max(1, 5 - letters.length));
+  const pool = shuffle([...letters, ...extra].map((ch, idx) => ({ w: ch, id: idx })));
+
+  state.currentQuestion = {
+    targetWords: letters,
+    picked: [],
+    pool,
+    fullWord: target.word,
+  };
+
+  document.getElementById('en-prompt-text').textContent =
+    `${PET_CONFIG.duncanName}: "Tap the letters to spell ${target.word.toUpperCase()}!"`;
+
+  setEnglishStageCard(
+    `${target.emoji}`,
+    `<div style="font-size:1.4rem; color:#1e293b; font-weight:900;">Spell: <span style="color:#2563eb; letter-spacing:3px;">${target.word.toUpperCase()}</span></div>`,
+    '🔊 Tap to hear the word'
+  );
+
+  state.currentSpeech = [
+    { text: `Let's spell ${target.word}! ${letters.join(', ')}!`, lang: 'en-US' },
+  ];
+
+  renderEnEasy3Slots();
+  repeatEnglishPrompt();
+}
+
+function renderEnEasy3Slots() {
+  const slotsEl = document.getElementById('en-spelling-slots');
+  const container = document.getElementById('en-options-container');
+  const q = state.currentQuestion;
+
+  slotsEl.innerHTML = q.targetWords
+    .map((ltr, i) => {
+      const p = q.picked[i];
+      return `<div class="spell-slot ${p ? 'filled' : ''}">${p ? p.w : ltr}</div>`;
+    })
+    .join('');
+
+  container.className = 'options-grid english-options';
+  container.innerHTML = q.pool
+    .map((token) => {
+      const used = q.picked.some((p) => p.id === token.id);
+      return `<button class="option-card ${used ? 'used-letter' : ''}"
+        ${used ? 'disabled' : ''}
+        onclick="handleEasySpellPick(${token.id})">
+        <div class="option-word" style="font-size:2.1rem; color:#1e40af;">${token.w}</div>
+      </button>`;
+    })
+    .join('');
+}
+
+function handleEasySpellPick(tokenId) {
+  if (state.isAnswering) return;
+  const q = state.currentQuestion;
+  const token = q.pool.find((t) => t.id === tokenId);
+  if (!token) return;
+
+  const expected = q.targetWords[q.picked.length];
+  if (token.w === expected) {
+    playClickTick();
+    q.picked.push(token);
+    say(token.w);
+    renderEnEasy3Slots();
+
+    if (q.picked.length === q.targetWords.length) {
+      onCorrectAnswer('en', q.fullWord.toUpperCase(), [
+        { text: `Great job! ${q.fullWord}!`, lang: 'en-US' },
+      ]);
+    }
+  } else {
+    onWrongAnswer('en', `Look at the next letter: ${expected}. Try again!`);
+  }
+}
+
+// ---------- Little Stars e4: Color & Easy Shape Balloons ----------
+function renderEnEasy4ColorShapeBalloon() {
+  const container = document.getElementById('en-options-container');
+  const targetColor = pickRandom(EASY_COLORS);
+  const targetShape = pickRandom(EASY_SHAPES);
+  const targetKey = `${targetColor.en}-${targetShape.id}`;
+
+  const combos = [{ color: targetColor, shape: targetShape, key: targetKey }];
+  while (combos.length < 4) {
+    const c = pickRandom(EASY_COLORS);
+    const s = pickRandom(EASY_SHAPES);
+    const k = `${c.en}-${s.id}`;
+    if (!combos.some((x) => x.key === k)) combos.push({ color: c, shape: s, key: k });
+  }
+  const shuffled = shuffle(combos);
+
+  document.getElementById('en-prompt-text').textContent =
+    `${PET_CONFIG.duncanName}: "Pop the ${targetColor.en} ${targetShape.en}!"`;
+
+  setEnglishStageCard(
+    `🎈 ${targetColor.en} ${targetShape.en}`,
+    `<div style="font-size:1.15rem; color:#475569; font-weight:800;">Tap the matching balloon!</div>`,
+    '🔊 Tap to listen'
+  );
+
+  state.currentSpeech = [
+    { text: `Pop the ${targetColor.en} ${targetShape.en}!`, lang: 'en-US' },
+  ];
+
+  container.className = 'options-grid english-options';
+  container.innerHTML = shuffled
+    .map(
+      (item) => `
+      <button class="option-card balloon-card" style="background:${item.color.bg}; border-color:${item.color.border};"
+        onclick="checkEnglishAnswer(this, '${item.key}', '${targetKey}', '${item.color.en} ${item.shape.en}')">
+        <div class="balloon-svg-wrap">${getShapeSvg(item.shape.id, item.color.fill)}</div>
+        <div class="option-word" style="font-size:1.15rem;">${item.color.en} ${item.shape.en}</div>
+      </button>
+    `
+    )
+    .join('');
+
+  repeatEnglishPrompt();
+}
+
+// ---------- Little Stars e5: 6-Card Picture & Word Match (3 pairs) ----------
+function renderEnEasy5Memory6() {
+  renderMemoryCards(3, EASY_WORDS);
+}
+
+// ---------- Little Stars e6: Animal Sounds ----------
+function renderEnEasy6AnimalSounds() {
+  const container = document.getElementById('en-options-container');
+  const target = pickRandom(ANIMAL_SOUNDS);
+  const distractors = shuffle(ANIMAL_SOUNDS.filter((a) => a.name !== target.name)).slice(0, 3);
+  const options = shuffle([target, ...distractors]);
+
+  document.getElementById('en-prompt-text').textContent =
+    `${PET_CONFIG.duncanName}: "Who says '${target.sound}! ${target.sound}!'?"`;
+
+  setEnglishStageCard(
+    `🔊 "${target.sound}! ${target.sound}!"`,
+    `<div style="font-size:1.25rem; color:#1e293b; font-weight:900;">Which animal makes this sound?</div>`,
+    '🔊 Tap to hear the sound'
+  );
+
+  state.currentSpeech = [
+    { text: `${target.sound}! ${target.sound}! Which animal says ${target.sound}?`, lang: 'en-US' },
+  ];
+
+  container.className = 'options-grid english-options';
+  container.innerHTML = options
+    .map(
+      (opt) => `
+      <button class="option-card" onclick="checkEnglishAnswer(this, '${opt.name}', '${target.name}', 'The ${opt.name} says ${opt.sound}!')">
+        <div class="option-emoji">${opt.emoji}</div>
+        <div class="option-word">${opt.name}</div>
+      </button>
+    `
+    )
+    .join('');
+
+  repeatEnglishPrompt();
+}
+
+// ---------- Big Stars Lv.1: Word Clue Detective ----------
+function renderEnLv1ClueChallenge() {
+  const container = document.getElementById('en-options-container');
+  const target = pickRandom(ENGLISH_BANK);
+  const distractors = shuffle(ENGLISH_BANK.filter((w) => w.word !== target.word)).slice(0, 3);
+  const options = shuffle([target, ...distractors]);
+
+  document.getElementById('en-prompt-text').textContent =
+    `${PET_CONFIG.duncanName}: "Read the clue and pick the right word!"`;
+
+  setEnglishStageCard(
+    `${target.emoji} Word Detective`,
+    `<div style="font-size:1.15rem; color:#1e293b; font-weight:800; line-height:1.5; margin:6px 0;">"${target.clue}"</div>`,
+    `💡 Starts with ${target.letter}... · 🔊 Tap to listen`
+  );
+
+  state.currentSpeech = [
+    { text: target.clue, lang: 'en-US' },
+    { text: 'Which word is it?', lang: 'en-US' },
+  ];
+
+  container.className = 'options-grid english-options';
+  container.innerHTML = options
+    .map(
+      (opt) => `
+      <button class="option-card" onclick="checkEnglishAnswer(this, '${jsq(opt.word)}', '${jsq(target.word)}', '${jsq(opt.word)}')">
+        <div class="option-emoji">${opt.emoji}</div>
+        <div class="option-word">${opt.word}</div>
+      </button>
+    `
+    )
+    .join('');
+
+  repeatEnglishPrompt();
+}
+
+// ---------- Big Stars Lv.2: Missing Letters & Opposites ----------
 function renderEnLv2ClozeAndOpposite() {
   const container = document.getElementById('en-options-container');
   const isOpposite = state.round % 2 === 0;
@@ -1175,27 +1832,27 @@ function renderEnLv2ClozeAndOpposite() {
   if (isOpposite) {
     const item = pickRandom(EN_OPPOSITES_BANK);
     const opts = shuffle([item.ans, ...item.wrong]);
+    const askText =
+      item.rel === 'opposite'
+        ? `Pick the OPPOSITE of "${item.base}"!`
+        : `Pick the word that means the SAME as "${item.base}"!`;
 
-    document.getElementById('en-prompt-text').textContent =
-      `${PET_CONFIG.duncanName}：「請找出下列單字的【${item.rel}】！」`;
+    document.getElementById('en-prompt-text').textContent = `${PET_CONFIG.duncanName}: "${askText}"`;
 
     setEnglishStageCard(
       item.base,
-      `<div style="font-size:1.2rem; color:#ec4899; font-weight:900;">請選出它的 ${item.rel} ➔ [ ? ]</div>`,
-      `🔊 點此聽單字發音`
+      `<div style="font-size:1.2rem; color:#ec4899; font-weight:900;">${item.rel === 'opposite' ? '↔️ Opposite word' : '🟰 Same meaning'} ➔ [ ? ]</div>`,
+      '🔊 Tap to hear the word'
     );
 
-    state.currentSpeech = [
-      { text: item.base.split(' ')[0], lang: 'en-US' },
-      { text: `請找出它的${item.rel}`, lang: 'zh-TW' },
-    ];
+    state.currentSpeech = [{ text: askText, lang: 'en-US' }];
 
     container.className = 'options-grid english-options';
     container.innerHTML = opts
       .map(
         (w) => `
-        <button class="option-card" onclick="checkEnglishAnswer(this, '${w}', '${item.ans}', '${w}')">
-          <div class="opt-word" style="font-size:1.5rem;">${w}</div>
+        <button class="option-card" onclick="checkEnglishAnswer(this, '${jsq(w)}', '${jsq(item.ans)}', '${jsq(w)}')">
+          <div class="option-word" style="font-size:1.5rem;">${w}</div>
         </button>
       `
       )
@@ -1212,25 +1869,22 @@ function renderEnLv2ClozeAndOpposite() {
     const opts = shuffle([missingPart, ...distractors]);
 
     document.getElementById('en-prompt-text').textContent =
-      `${PET_CONFIG.duncanName}：「聽發音與線索，選出正確的雙字母完成單字！」`;
+      `${PET_CONFIG.duncanName}: "Listen to the word and pick the two missing letters!"`;
 
     setEnglishStageCard(
       `${target.emoji} ${maskedWord}`,
-      `<div style="font-size:1.05rem; color:#475569; font-weight:800;">${target.zh} — "${target.clue}"</div>`,
-      `🔊 點此聽完整單字發音`
+      `<div style="font-size:1.05rem; color:#475569; font-weight:800;">"${target.clue}"</div>`,
+      '🔊 Tap to hear the word'
     );
 
-    state.currentSpeech = [
-      { text: target.word, lang: 'en-US' },
-      { text: target.zh, lang: 'zh-TW' },
-    ];
+    state.currentSpeech = [{ text: `${target.word}. ${target.clue}`, lang: 'en-US' }];
 
     container.className = 'options-grid english-options';
     container.innerHTML = opts
       .map(
         (part) => `
-        <button class="option-card" onclick="checkEnglishAnswer(this, '${part}', '${missingPart}', '${target.word}')">
-          <div class="opt-word" style="font-size:1.75rem; color:#4f46e5;">${part}</div>
+        <button class="option-card" onclick="checkEnglishAnswer(this, '${jsq(part)}', '${jsq(missingPart)}', '${jsq(target.word)}')">
+          <div class="option-word" style="font-size:1.75rem; color:#4f46e5;">${part}</div>
         </button>
       `
       )
@@ -1239,10 +1893,9 @@ function renderEnLv2ClozeAndOpposite() {
   repeatEnglishPrompt();
 }
 
-// Lv.3 進階拼字＆英文句子重組
+// ---------- Big Stars Lv.3: Build a Sentence ----------
 function renderEnLv3ScrambleAndSpell() {
   const slotsEl = document.getElementById('en-spelling-slots');
-  const container = document.getElementById('en-options-container');
   slotsEl.classList.remove('hidden');
 
   const item = pickRandom(EN_SENTENCE_SCRAMBLE_BANK);
@@ -1253,22 +1906,18 @@ function renderEnLv3ScrambleAndSpell() {
     targetWords: item.words,
     picked: [],
     pool,
-    zh: item.zh,
   };
 
   document.getElementById('en-prompt-text').textContent =
-    `${PET_CONFIG.duncanName}：「請按照正確的英文文法順序，依序點擊單字卡重組句子！」`;
+    `${PET_CONFIG.duncanName}: "Listen and tap the words in the right order!"`;
 
   setEnglishStageCard(
-    '✍️ Sentence Scramble',
-    `<div style="font-size:1.25rem; color:#1e293b; font-weight:900;">中文句意：${item.zh}</div>`,
-    `🔊 點此聽完整英文句子提示`
+    '✍️ Build the Sentence',
+    `<div style="font-size:1.6rem; margin:4px 0;">${item.hint}</div>`,
+    '🔊 Tap to hear the whole sentence'
   );
 
-  state.currentSpeech = [
-    { text: fullSentence, lang: 'en-US' },
-    { text: item.zh, lang: 'zh-TW' },
-  ];
+  state.currentSpeech = [{ text: fullSentence, lang: 'en-US' }];
 
   renderEnLv3ScrambleSlots();
   repeatEnglishPrompt();
@@ -1282,7 +1931,7 @@ function renderEnLv3ScrambleSlots() {
   slotsEl.innerHTML = q.targetWords
     .map((_, i) => {
       const p = q.picked[i];
-      return `<div class="letter-slot ${p ? 'filled' : ''}" style="min-width:64px; width:auto; padding:0 12px; font-size:1.15rem;">
+      return `<div class="spell-slot ${p ? 'filled' : ''}" style="min-width:64px; width:auto; padding:0 12px; font-size:1.15rem;">
         ${p ? p.w : i + 1}
       </div>`;
     })
@@ -1292,11 +1941,11 @@ function renderEnLv3ScrambleSlots() {
   container.innerHTML = q.pool
     .map((token) => {
       const used = q.picked.some((p) => p.id === token.id);
-      return `<button class="option-card ${used ? 'correct-pick' : ''}"
+      return `<button class="option-card ${used ? 'used-letter' : ''}"
         style="padding:12px 18px; min-height:64px;"
         ${used ? 'disabled' : ''}
         onclick="handleScrambleWordPick(${token.id})">
-        <div class="opt-word" style="font-size:1.3rem;">${token.w}</div>
+        <div class="option-word" style="font-size:1.3rem;">${token.w}</div>
       </button>`;
     })
     .join('');
@@ -1312,7 +1961,7 @@ function handleScrambleWordPick(tokenId) {
   if (token.w.toLowerCase() === expected.toLowerCase()) {
     playClickTick();
     q.picked.push(token);
-    speakSequence([{ text: token.w, lang: 'en-US' }]);
+    say(token.w);
     renderEnLv3ScrambleSlots();
 
     if (q.picked.length === q.targetWords.length) {
@@ -1320,11 +1969,11 @@ function handleScrambleWordPick(tokenId) {
       onCorrectAnswer('en', sentence, [{ text: `Awesome! ${sentence}`, lang: 'en-US' }]);
     }
   } else {
-    onWrongAnswer('en', `下一個單字不是 "${token.w}" 喔，再聽一次句子順序！`);
+    onWrongAnswer('en', `Not "${token.w}". Listen again to the sentence!`);
   }
 }
 
-// Lv.4 幾何多邊形與雙重指令氣球
+// ---------- Big Stars Lv.4: Polygon & Color Balloons ----------
 function renderEnLv4GeometryBalloon() {
   const container = document.getElementById('en-options-container');
   const targetColor = pickRandom(EN_COLORS);
@@ -1341,12 +1990,12 @@ function renderEnLv4GeometryBalloon() {
   const shuffled = shuffle(combos);
 
   document.getElementById('en-prompt-text').textContent =
-    `${PET_CONFIG.duncanName}：「幾何色彩雙重指令！請戳破【${targetColor.en} ${targetShape.en}】！」`;
+    `${PET_CONFIG.duncanName}: "Pop the ${targetColor.en} ${targetShape.en}!"`;
 
   setEnglishStageCard(
     `🎈 ${targetColor.en} ${targetShape.en}`,
-    `<div style="font-size:1.05rem; color:#475569; font-weight:800;">Clue: A ${targetShape.en.toLowerCase()} is ${targetShape.clue} (${targetColor.zh}${targetShape.zh})</div>`,
-    `🔊 點此聽英文幾何指令`
+    `<div style="font-size:1.05rem; color:#475569; font-weight:800;">Clue: A ${targetShape.en.toLowerCase()} is ${targetShape.clue}.</div>`,
+    '🔊 Tap to listen'
   );
 
   state.currentSpeech = [
@@ -1354,14 +2003,14 @@ function renderEnLv4GeometryBalloon() {
     { text: `It is ${targetShape.clue}.`, lang: 'en-US' },
   ];
 
-  container.className = 'balloon-stage-grid';
+  container.className = 'options-grid english-options';
   container.innerHTML = shuffled
     .map(
       (item) => `
-      <button class="balloon-card" style="background:${item.color.bg}; border-color:${item.color.border};"
+      <button class="option-card balloon-card" style="background:${item.color.bg}; border-color:${item.color.border};"
         onclick="checkEnglishAnswer(this, '${item.key}', '${targetKey}', '${item.color.en} ${item.shape.en}')">
-        <div class="balloon-svg-wrap">${getPolygonSvg(item.shape.id, item.color.fill)}</div>
-        <div class="balloon-label" style="font-weight:900; color:#1e293b;">${item.color.shortEn} ${item.shape.en}</div>
+        <div class="balloon-svg-wrap">${getShapeSvg(item.shape.id, item.color.fill)}</div>
+        <div class="option-word" style="font-size:1.1rem;">${item.color.shortEn} ${item.shape.en}</div>
       </button>
     `
     )
@@ -1370,9 +2019,17 @@ function renderEnLv4GeometryBalloon() {
   repeatEnglishPrompt();
 }
 
-function getPolygonSvg(shapeId, fill) {
+function getShapeSvg(shapeId, fill) {
   let poly = '';
-  if (shapeId === 'pentagon') {
+  if (shapeId === 'circle') {
+    poly = `<circle cx="50" cy="50" r="38" fill="${fill}" stroke="#fff" stroke-width="4"/>`;
+  } else if (shapeId === 'square') {
+    poly = `<rect x="16" y="16" width="68" height="68" rx="6" fill="${fill}" stroke="#fff" stroke-width="4"/>`;
+  } else if (shapeId === 'star') {
+    poly = `<polygon points="50,8 61,36 91,38 68,57 76,87 50,70 24,87 32,57 9,38 39,36" fill="${fill}" stroke="#fff" stroke-width="4"/>`;
+  } else if (shapeId === 'heart') {
+    poly = `<path d="M50,84 C20,62 12,42 12,28 C12,16 22,10 33,10 C42,10 47,16 50,22 C53,16 58,10 67,10 C78,10 88,16 88,28 C88,42 80,62 50,84 Z" fill="${fill}" stroke="#fff" stroke-width="4"/>`;
+  } else if (shapeId === 'pentagon') {
     poly = `<polygon points="50,8 92,38 76,88 24,88 8,38" fill="${fill}" stroke="#fff" stroke-width="4"/>`;
   } else if (shapeId === 'hexagon') {
     poly = `<polygon points="50,6 90,28 90,72 50,94 10,72 10,28" fill="${fill}" stroke="#fff" stroke-width="4"/>`;
@@ -1388,14 +2045,18 @@ function getPolygonSvg(shapeId, fill) {
   return `<svg viewBox="0 0 100 100" width="68" height="68">${poly}</svg>`;
 }
 
-// Lv.5 12張英漢意思配對翻牌 (6對)
+// ---------- Memory Match (shared by e5 = 3 pairs and Lv.5 = 6 pairs) ----------
 function renderEnLv5MemoryMatch12() {
+  renderMemoryCards(6, ENGLISH_BANK);
+}
+
+function renderMemoryCards(pairCount, bank) {
   const container = document.getElementById('en-options-container');
-  const chosenWords = shuffle(ENGLISH_BANK).slice(0, 6);
+  const chosenWords = shuffle(bank).slice(0, pairCount);
   const deck = [];
   chosenWords.forEach((item) => {
-    deck.push({ pairId: item.word, type: 'en', top: '🔤 EN', main: item.word, word: item.word });
-    deck.push({ pairId: item.word, type: 'zh', top: item.emoji, main: item.zh, word: item.word });
+    deck.push({ pairId: item.word, type: 'word', top: '🔤', main: item.word, word: item.word });
+    deck.push({ pairId: item.word, type: 'pic', top: item.emoji, main: 'Picture', word: item.word });
   });
   const shuffledDeck = shuffle(deck);
 
@@ -1403,32 +2064,33 @@ function renderEnLv5MemoryMatch12() {
     deck: shuffledDeck,
     flipped: [],
     matched: 0,
-    totalPairs: 6,
+    totalPairs: pairCount,
     lock: false,
   };
 
   document.getElementById('en-prompt-text').textContent =
-    `${PET_CONFIG.duncanName}：「12 張記憶翻牌！請把【英文單字卡】與對應的【中文意義卡】配對起來！」`;
+    `${PET_CONFIG.duncanName}: "Flip two cards! Match each word with its picture!"`;
 
   setEnglishStageCard(
-    '🃏 12-Card Memory Match',
-    `<div style="font-size:1.05rem; color:#475569; font-weight:800;">目前已配對：<span id="mem-pair-progress">0 / 6</span> 對</div>`,
-    `🔊 翻開卡片時會自動唸出英文單字喔！`
+    `🃏 ${pairCount * 2}-Card Match`,
+    `<div style="font-size:1.05rem; color:#475569; font-weight:800;">Matched: <span id="mem-pair-progress">0 / ${pairCount}</span> pairs</div>`,
+    '🔊 Tap a card to flip it and hear the word'
   );
 
   state.currentSpeech = [
-    { text: 'Match each English word card with its Chinese meaning card!', lang: 'en-US' },
+    { text: 'Flip two cards! Match each word with its picture!', lang: 'en-US' },
   ];
 
-  container.className = 'memory-grid-12';
+  container.className = pairCount <= 3 ? 'options-grid memory-grid-mode' : 'options-grid memory-grid-12';
   container.innerHTML = shuffledDeck
     .map(
       (c, idx) => `
-      <button class="memory-card-btn" id="mem12-card-${idx}" onclick="handleFlipCard12(${idx})">
-        <div class="mem-card-front">🐾 翻牌</div>
-        <div class="mem-card-back" style="display:none;">
-          <div style="font-size:1.3rem;">${c.top}</div>
-          <div style="font-size:0.95rem; font-weight:900; color:#1e293b;">${c.main}</div>
+      <button class="memory-card ${pairCount > 3 ? 'compact-card' : ''}" id="mem12-card-${idx}" onclick="handleFlipCard12(${idx})">
+        <div class="paw-back">🐾</div>
+        <div class="paw-label">Tap</div>
+        <div class="card-front">
+          <div style="font-size:${c.type === 'pic' ? '2.4rem' : '1.2rem'};">${c.top}</div>
+          <div style="font-size:1.05rem; font-weight:900; color:#1e293b;">${c.type === 'pic' ? '' : c.main}</div>
         </div>
       </button>
     `
@@ -1447,13 +2109,9 @@ function handleFlipCard12(idx) {
   if (!btn || btn.classList.contains('matched')) return;
 
   playClickTick();
-  const front = btn.querySelector('.mem-card-front');
-  const back = btn.querySelector('.mem-card-back');
-  if (front) front.style.display = 'none';
-  if (back) back.style.display = 'block';
   btn.classList.add('flipped');
 
-  speakSequence([{ text: q.deck[idx].word, lang: 'en-US' }]);
+  say(q.deck[idx].word);
   q.flipped.push(idx);
 
   if (q.flipped.length === 2) {
@@ -1475,8 +2133,8 @@ function handleFlipCard12(idx) {
         const prog = document.getElementById('mem-pair-progress');
         if (prog) prog.textContent = `${q.matched} / ${q.totalPairs}`;
         if (q.matched >= q.totalPairs) {
-          onCorrectAnswer('en', '6組全數配對完成', [
-            { text: 'Awesome memory! All six pairs matched!', lang: 'en-US' },
+          onCorrectAnswer('en', 'All matched!', [
+            { text: 'Awesome memory! You matched them all!', lang: 'en-US' },
           ]);
         }
       }, 400);
@@ -1484,13 +2142,7 @@ function handleFlipCard12(idx) {
       setTimeout(() => {
         [i1, i2].forEach((i) => {
           const b = document.getElementById(`mem12-card-${i}`);
-          if (b) {
-            b.classList.remove('flipped');
-            const f = b.querySelector('.mem-card-front');
-            const bk = b.querySelector('.mem-card-back');
-            if (f) f.style.display = 'block';
-            if (bk) bk.style.display = 'none';
-          }
+          if (b) b.classList.remove('flipped');
         });
         q.flipped = [];
         q.lock = false;
@@ -1499,7 +2151,7 @@ function handleFlipCard12(idx) {
   }
 }
 
-// Lv.6 Rocket Girl 閱讀理解＆文法
+// ---------- Big Stars Lv.6: Rocket Girl Reading & Grammar ----------
 function renderEnLv6ReadingAndGrammar() {
   const container = document.getElementById('en-options-container');
   let pool = ROCKET_BOOK1_BANK;
@@ -1511,7 +2163,7 @@ function renderEnLv6ReadingAndGrammar() {
   const opts = shuffle([quiz.ans, ...quiz.wrong]);
 
   document.getElementById('en-prompt-text').textContent =
-    `${PET_CONFIG.duncanName}：「請閱讀短文，選出最正確的閱讀理解或文法答案！」`;
+    `${PET_CONFIG.duncanName}: "Read the short story and pick the best answer!"`;
 
   setEnglishStageCard(
     quiz.badge,
@@ -1519,20 +2171,20 @@ function renderEnLv6ReadingAndGrammar() {
       "${quiz.passage}"
     </div>
     <div style="font-size:1.15rem; font-weight:900; color:#4f46e5;">❓ ${quiz.question}</div>`,
-    `🔊 點此聽英文短文朗讀`
+    '🔊 Tap to hear the story'
   );
 
   state.currentSpeech = [
     { text: quiz.passage.replace('______', 'blank'), lang: 'en-US' },
-    { text: quiz.question, lang: /[a-zA-Z]/.test(quiz.question) ? 'en-US' : 'zh-TW' },
+    { text: quiz.question, lang: 'en-US' },
   ];
 
   container.className = 'options-grid english-options';
   container.innerHTML = opts
     .map(
       (opt) => `
-      <button class="option-card" style="padding:14px;" onclick="checkEnglishAnswer(this, '${opt.replace(/'/g, "\\'")}', '${quiz.ans.replace(/'/g, "\\'")}', '${quiz.ans.replace(/'/g, "\\'")}')">
-        <div class="opt-word" style="font-size:1.1rem;">${opt}</div>
+      <button class="option-card" style="padding:14px;" onclick="checkEnglishAnswer(this, '${jsq(opt)}', '${jsq(quiz.ans)}', '${jsq(quiz.ans)}')">
+        <div class="option-word" style="font-size:1.1rem;">${opt}</div>
       </button>
     `
     )
@@ -1544,23 +2196,23 @@ function renderEnLv6ReadingAndGrammar() {
 function checkEnglishAnswer(btn, chosen, correct, spokenLabel) {
   if (state.isAnswering) return;
   if (String(chosen) === String(correct)) {
-    btn.classList.add('correct-pick');
-    onCorrectAnswer('en', spokenLabel || correct, [{ text: String(correct), lang: 'en-US' }]);
+    btn.classList.add('correct');
+    onCorrectAnswer('en', spokenLabel || correct, [{ text: `Yes! ${spokenLabel || correct}!`, lang: 'en-US' }]);
   } else {
-    btn.classList.add('wrong-pick');
-    setTimeout(() => btn.classList.remove('wrong-pick'), 500);
-    onWrongAnswer('en', '答案不太對喔，再仔細讀一次題目線索！');
+    btn.classList.add('wrong');
+    setTimeout(() => btn.classList.remove('wrong'), 500);
+    onWrongAnswer('en', 'Oops! Try again! Listen to the clue.');
   }
 }
 
-
 // ============================================================================
-// 🐱 Corie 國小數理學院 (6~12歲 6大進階關卡)
+// 🐱 Corie's Math Fun (Little Stars e1~e6 + Big Stars 1~6)
 // ============================================================================
-function startMathGame(lv = 1) {
+function startMathGame(lv = 'e1') {
   state.currentMode = 'math';
   state.mathLevel = lv;
   state.round = 1;
+  state.totalRounds = isEasyLevel(lv) ? 6 : 8;
   showScreen('math');
   syncMathLevelChips();
   loadMathQuestion();
@@ -1570,14 +2222,25 @@ function switchMathLevel(lv) {
   playClickTick();
   state.mathLevel = lv;
   state.round = 1;
+  state.totalRounds = isEasyLevel(lv) ? 6 : 8;
   syncMathLevelChips();
   loadMathQuestion();
 }
 
 function syncMathLevelChips() {
-  for (let i = 1; i <= 6; i++) {
-    const chip = document.getElementById(`math-lvl-chip-${i}`);
-    if (chip) chip.classList.toggle('active', i === state.mathLevel);
+  const track = isEasyLevel(state.mathLevel) ? 'little' : 'big';
+  const bar = document.getElementById('math-level-chips');
+  if (bar) {
+    const list = LEVEL_DEFINITIONS[track].math;
+    bar.innerHTML =
+      `<span class="bar-label">${track === 'little' ? '🐣 Easy:' : '🎓 Hard:'}</span>` +
+      list
+        .map((item) => {
+          const active = String(item.id) === String(state.mathLevel) ? 'active' : '';
+          const arg = typeof item.id === 'string' ? `'${item.id}'` : item.id;
+          return `<button class="chip-btn ${active}" onclick="switchMathLevel(${arg})">${item.chip}</button>`;
+        })
+        .join('');
   }
 }
 
@@ -1587,17 +2250,24 @@ function repeatMathPrompt() {
   }
 }
 
-function makeNumericDistractors(correct, count = 3, stepRange = [1, 10]) {
+function makeNumericDistractors(correct, count = 3, stepRange = [1, 10], minVal = 0) {
   const set = new Set([correct]);
   const list = [correct];
   let guard = 0;
-  while (list.length < count + 1 && guard < 60) {
+  while (list.length < count + 1 && guard < 80) {
     guard++;
     const delta = randInt(stepRange[0], stepRange[1]) * (Math.random() < 0.5 ? 1 : -1);
-    const cand = guard % 3 === 0 ? correct + (Math.random() < 0.5 ? 10 : -10) : correct + delta;
-    if (cand >= 0 && !set.has(cand)) {
+    const cand = correct + delta;
+    if (cand >= minVal && !set.has(cand)) {
       set.add(cand);
       list.push(cand);
+    }
+  }
+  while (list.length < count + 1) {
+    const fallback = correct + list.length;
+    if (!set.has(fallback)) {
+      set.add(fallback);
+      list.push(fallback);
     }
   }
   return shuffle(list);
@@ -1608,7 +2278,13 @@ function loadMathQuestion() {
   updateRoundProgressUI('math');
 
   const lv = state.mathLevel;
-  if (lv === 1) renderMathLv1MultiDigit();
+  if (lv === 'e1') renderMathEasy1Count();
+  else if (lv === 'e2') renderMathEasy2PicAddSub();
+  else if (lv === 'e3') renderMathEasy3CompareAndTenFrame();
+  else if (lv === 'e4') renderMathEasy4LittleShop();
+  else if (lv === 'e5') renderMathEasy5PatternTrain();
+  else if (lv === 'e6') renderMathEasy6FairShare();
+  else if (lv === 1) renderMathLv1MultiDigit();
   else if (lv === 2) renderMathLv2MultDivCompare();
   else if (lv === 3) renderMathLv3EquationAndWordProblem();
   else if (lv === 4) renderMathLv4CashierPro();
@@ -1616,7 +2292,347 @@ function loadMathQuestion() {
   else renderMathLv6FractionAndGeometry();
 }
 
-// Lv.1 雙位數與百位進退位加減
+function tapCountItem(el) {
+  playClickTick();
+  el.classList.toggle('counted');
+  const count = document.querySelectorAll('#math-visual-stage .countable-item.counted').length;
+  if (count > 0) say(String(count));
+}
+
+// ---------- Little Stars e1: Count 1 to 10 ----------
+function renderMathEasy1Count() {
+  const stage = document.getElementById('math-visual-stage');
+  const eqBar = document.getElementById('math-equation-bar');
+  const container = document.getElementById('math-options-container');
+
+  const item = pickRandom(COUNT_ITEMS);
+  const ans = randInt(1, 10);
+  const opts = makeNumericDistractors(ans, 3, [1, 3], 1);
+
+  document.getElementById('math-prompt-text').textContent =
+    `${PET_CONFIG.corieName}: "How many ${item.many} do you see? Tap them to count!"`;
+
+  const icons = Array.from({ length: ans }, () =>
+    `<div class="countable-item" onclick="tapCountItem(this)">${item.emoji}</div>`
+  ).join('');
+
+  stage.innerHTML = `<div class="math-group" style="max-width:420px;">${icons}</div>`;
+  eqBar.innerHTML = `How many ${item.many}? <span class="question-mark-pill">?</span>`;
+
+  state.currentSpeech = [
+    { text: `How many ${item.many} do you see? Tap them to count!`, lang: 'en-US' },
+  ];
+
+  container.className = 'options-grid math-options';
+  container.innerHTML = opts
+    .map(
+      (n) => `<button class="option-card num-btn" onclick="checkMathAnswer(this, ${n}, ${ans})">${n}</button>`
+    )
+    .join('');
+
+  repeatMathPrompt();
+}
+
+// ---------- Little Stars e2: Picture Add & Take Away (within 10) ----------
+function renderMathEasy2PicAddSub() {
+  const stage = document.getElementById('math-visual-stage');
+  const eqBar = document.getElementById('math-equation-bar');
+  const container = document.getElementById('math-options-container');
+
+  const isAdd = state.round % 2 === 1;
+  const item = pickRandom(EAT_ITEMS);
+  let a, b, ans;
+
+  if (isAdd) {
+    a = randInt(1, 5);
+    b = randInt(1, 5);
+    ans = a + b;
+    const g1 = Array.from({ length: a }, () => `<div class="countable-item" onclick="tapCountItem(this)">${item.emoji}</div>`).join('');
+    const g2 = Array.from({ length: b }, () => `<div class="countable-item" onclick="tapCountItem(this)">${item.emoji}</div>`).join('');
+    stage.innerHTML = `
+      <div class="math-group">${g1}</div>
+      <div class="math-operator">+</div>
+      <div class="math-group">${g2}</div>
+      <div class="math-operator">=</div>
+      <div class="math-question-box">?</div>
+    `;
+    eqBar.innerHTML = `${a} + ${b} = <span class="question-mark-pill">?</span>`;
+    document.getElementById('math-prompt-text').textContent =
+      `${PET_CONFIG.corieName}: "${a} ${plural(a, item.one, item.many)} plus ${b} more. How many in all?"`;
+    state.currentSpeech = [
+      { text: `${a} plus ${b} equals how many?`, lang: 'en-US' },
+    ];
+  } else {
+    a = randInt(3, 9);
+    b = randInt(1, a - 1);
+    ans = a - b;
+    const icons = Array.from({ length: a }, (_, idx) => {
+      const crossed = idx >= ans ? 'crossed-out' : '';
+      return `<div class="countable-item ${crossed}" onclick="tapCountItem(this)">${item.emoji}</div>`;
+    }).join('');
+    stage.innerHTML = `<div class="math-group" style="max-width:420px;">${icons}</div>`;
+    eqBar.innerHTML = `${a} − ${b} = <span class="question-mark-pill">?</span>`;
+    document.getElementById('math-prompt-text').textContent =
+      `${PET_CONFIG.corieName}: "We had ${a} ${item.many} and ate ${b}. How many are left?"`;
+    state.currentSpeech = [
+      { text: `We had ${a} ${item.many} and ate ${b}. ${a} minus ${b} equals how many?`, lang: 'en-US' },
+    ];
+  }
+
+  const opts = makeNumericDistractors(ans, 3, [1, 3], 0);
+  container.className = 'options-grid math-options';
+  container.innerHTML = opts
+    .map((n) => `<button class="option-card num-btn" onclick="checkMathAnswer(this, ${n}, ${ans})">${n}</button>`)
+    .join('');
+
+  repeatMathPrompt();
+}
+
+// ---------- Little Stars e3: Bigger / Smaller & Ten-Frame Make 10 ----------
+function renderMathEasy3CompareAndTenFrame() {
+  const stage = document.getElementById('math-visual-stage');
+  const eqBar = document.getElementById('math-equation-bar');
+  const container = document.getElementById('math-options-container');
+
+  if (state.round % 2 === 1) {
+    // Ten-frame: how many more to make 10?
+    const item = pickRandom(EAT_ITEMS);
+    const have = randInt(2, 9);
+    const ans = 10 - have;
+    const cells = Array.from({ length: 10 }, (_, i) => {
+      if (i < have) return `<div class="ten-frame-cell">${item.emoji}</div>`;
+      return `<div class="ten-frame-cell empty-slot" onclick="this.classList.toggle('counted'); playClickTick();">?</div>`;
+    }).join('');
+
+    stage.innerHTML = `
+      <div class="ten-frame-wrap">
+        <div class="ten-frame-grid">${cells}</div>
+        <div style="font-weight:800; color:#475569;">A full box holds 10! We have ${have}.</div>
+      </div>
+    `;
+    eqBar.innerHTML = `${have} + <span class="question-mark-pill">?</span> = 10`;
+    document.getElementById('math-prompt-text').textContent =
+      `${PET_CONFIG.corieName}: "We have ${have}. How many more do we need to make 10?"`;
+    state.currentSpeech = [
+      { text: `We have ${have}. How many more to make 10?`, lang: 'en-US' },
+    ];
+
+    const opts = makeNumericDistractors(ans, 3, [1, 3], 1);
+    container.className = 'options-grid math-options';
+    container.innerHTML = opts
+      .map((n) => `<button class="option-card num-btn" onclick="checkMathAnswer(this, ${n}, ${ans})">${n}</button>`)
+      .join('');
+  } else {
+    // Which number is bigger?
+    const a = randInt(1, 15);
+    let b = randInt(1, 15);
+    while (b === a) b = randInt(1, 15);
+    const askBigger = Math.random() < 0.7;
+    const ans = askBigger ? Math.max(a, b) : Math.min(a, b);
+    const item = pickRandom(COUNT_ITEMS);
+
+    stage.innerHTML = `
+      <div class="word-problem-card" style="text-align:center;">
+        <div class="wp-badge">⚖️ ${askBigger ? 'Which is BIGGER?' : 'Which is SMALLER?'}</div>
+        <div style="font-size:1.1rem; color:#475569; margin-top:4px;">Tap the ${askBigger ? 'bigger' : 'smaller'} number!</div>
+      </div>
+    `;
+    eqBar.innerHTML = `${item.emoji} ${a} &nbsp; or &nbsp; ${item.emoji} ${b}`;
+    document.getElementById('math-prompt-text').textContent =
+      `${PET_CONFIG.corieName}: "Which number is ${askBigger ? 'BIGGER' : 'SMALLER'}: ${a} or ${b}?"`;
+    state.currentSpeech = [
+      { text: `Which number is ${askBigger ? 'bigger' : 'smaller'}, ${a} or ${b}?`, lang: 'en-US' },
+    ];
+
+    container.className = 'options-grid math-options';
+    container.innerHTML = [a, b]
+      .map((n) => `<button class="option-card num-btn" onclick="checkMathAnswer(this, ${n}, ${ans})">${n}</button>`)
+      .join('');
+  }
+
+  repeatMathPrompt();
+}
+
+// ---------- Little Stars e4: Little Toy Shop ($1 & $5 coins up to $10) ----------
+function renderMathEasy4LittleShop() {
+  const stage = document.getElementById('math-visual-stage');
+  const eqBar = document.getElementById('math-equation-bar');
+  const container = document.getElementById('math-options-container');
+  eqBar.innerHTML = '';
+  container.innerHTML = '';
+
+  const toy = pickRandom(LITTLE_SHOP_ITEMS);
+  const price = randInt(2, 10);
+
+  state.currentQuestion = {
+    targetAmount: price,
+    trayCoins: [],
+    toy,
+    easyMode: true,
+  };
+
+  document.getElementById('math-prompt-text').textContent =
+    `${PET_CONFIG.corieName}: "The ${toy.name} costs $${price}. Put $${price} in the tray!"`;
+
+  state.currentSpeech = [
+    { text: `The ${toy.name} costs ${price} dollars. Tap the coins to make ${price} dollars!`, lang: 'en-US' },
+  ];
+
+  renderLittleShopStage();
+  repeatMathPrompt();
+}
+
+function renderLittleShopStage() {
+  const stage = document.getElementById('math-visual-stage');
+  const q = state.currentQuestion;
+  const sum = q.trayCoins.reduce((a, b) => a + b, 0);
+
+  stage.innerHTML = `
+    <div class="cashier-shop-wrap">
+      <div class="shop-items-row">
+        <div class="shop-item-card">
+          <div class="shop-item-emoji">${q.toy.emoji}</div>
+          <div class="shop-item-name">${q.toy.name}</div>
+          <div class="shop-price-tag">$${q.targetAmount}</div>
+        </div>
+      </div>
+
+      <div class="coin-tray-box" style="width:100%; max-width:460px;">
+        <div class="tray-header">
+          <span>📥 Coin Tray (tap a coin to take it back)</span>
+          <span>Total: <strong>$${sum}</strong> / $${q.targetAmount}</span>
+        </div>
+        <div class="tray-coins-list">
+          ${
+            q.trayCoins.length === 0
+              ? '<span style="color:#94a3b8; font-weight:700;">Tap +$1 or +$5 below...</span>'
+              : q.trayCoins
+                  .map(
+                    (v, idx) =>
+                      `<button class="coin-token coin-${v}" onclick="removeCashierMoney(${idx})">$${v}</button>`
+                  )
+                  .join('')
+          }
+        </div>
+      </div>
+
+      <div class="cashier-btn-grid">
+        <button class="coin-action-btn btn-add-1" onclick="addCashierMoney(1)">🪙 +$1</button>
+        <button class="coin-action-btn btn-add-5" onclick="addCashierMoney(5)">🪙 +$5</button>
+        <button class="coin-action-btn btn-clear-coins" onclick="clearCashierTray()">🗑️ Clear</button>
+        <button class="coin-action-btn btn-checkout" onclick="submitCashierCheckout()">✅ Pay $${sum}</button>
+      </div>
+    </div>
+  `;
+}
+
+// ---------- Little Stars e5: Pattern & Number Train ----------
+function renderMathEasy5PatternTrain() {
+  const stage = document.getElementById('math-visual-stage');
+  const eqBar = document.getElementById('math-equation-bar');
+  const container = document.getElementById('math-options-container');
+  eqBar.innerHTML = '';
+
+  if (state.round % 2 === 1) {
+    // Emoji ABAB pattern
+    const pairs = [
+      ['🍎', '🍌'], ['🐱', '🐶'], ['☀️', '🌙'], ['⭐', '🌈'], ['🍓', '🧁'], ['🚗', '🚌'],
+    ];
+    const [A, B] = pickRandom(pairs);
+    const seq = [A, B, A, B, A];
+    const ans = A;
+    const wrongPool = ['🍇', '🎈', '🐸', '🍪'].filter((x) => x !== A && x !== B);
+    const opts = shuffle([A, B, wrongPool[0]]);
+
+    const cars = [A, B, A, B, '?']
+      .map((c) => `<div class="train-car ${c === '?' ? 'mystery-car' : ''}">${c}</div>`)
+      .join('<span class="train-link">🔗</span>');
+
+    stage.innerHTML = `<div class="train-track-wrap"><span class="train-engine">🚂</span>${cars}</div>`;
+    document.getElementById('math-prompt-text').textContent =
+      `${PET_CONFIG.corieName}: "Look at the train pattern! What comes next?"`;
+    state.currentSpeech = [
+      { text: 'Look at the pattern on the train! What comes next?', lang: 'en-US' },
+    ];
+
+    container.className = 'options-grid math-options';
+    container.innerHTML = opts
+      .map(
+        (em) => `<button class="option-card num-btn" onclick="checkMathAnswer(this, '${em}', '${ans}')">${em}</button>`
+      )
+      .join('');
+    void seq;
+  } else {
+    // Simple +1 or +2 counting train
+    const step = Math.random() < 0.7 ? 1 : 2;
+    const start = randInt(1, 5);
+    const arr = [0, 1, 2, 3, 4].map((i) => start + i * step);
+    const ans = arr[4];
+    const opts = makeNumericDistractors(ans, 3, [1, 3], 1);
+
+    const cars = arr
+      .map((n, i) => `<div class="train-car ${i === 4 ? 'mystery-car' : ''}">${i === 4 ? '?' : n}</div>`)
+      .join('<span class="train-link">🔗</span>');
+
+    stage.innerHTML = `<div class="train-track-wrap"><span class="train-engine">🚂</span>${cars}</div>`;
+    document.getElementById('math-prompt-text').textContent =
+      `${PET_CONFIG.corieName}: "Count along the train (+${step} each time)! What number goes in the ? car?"`;
+    state.currentSpeech = [
+      { text: `${arr[0]}, ${arr[1]}, ${arr[2]}, ${arr[3]}... What number comes next?`, lang: 'en-US' },
+    ];
+
+    container.className = 'options-grid math-options';
+    container.innerHTML = opts
+      .map((n) => `<button class="option-card num-btn" onclick="checkMathAnswer(this, ${n}, ${ans})">${n}</button>`)
+      .join('');
+  }
+
+  repeatMathPrompt();
+}
+
+// ---------- Little Stars e6: Share the Cookies Fairly ----------
+function renderMathEasy6FairShare() {
+  const stage = document.getElementById('math-visual-stage');
+  const eqBar = document.getElementById('math-equation-bar');
+  const container = document.getElementById('math-options-container');
+
+  const item = pickRandom(EAT_ITEMS);
+  const each = randInt(1, 5);
+  const total = each * 2;
+  const opts = makeNumericDistractors(each, 3, [1, 3], 1);
+
+  const plateIcons = Array.from({ length: each }, () => `<span style="font-size:2rem;">${item.emoji}</span>`).join('');
+
+  stage.innerHTML = `
+    <div class="fair-share-wrap">
+      <div class="share-plate corie-plate">
+        <div class="plate-owner">🐱 ${PET_CONFIG.corieName}'s plate</div>
+        <div class="plate-items">${plateIcons}</div>
+      </div>
+      <div class="share-plate">
+        <div class="plate-owner">🐶 ${PET_CONFIG.duncanName}'s plate</div>
+        <div class="plate-items">${plateIcons}</div>
+      </div>
+    </div>
+  `;
+  eqBar.innerHTML = `${total} ${item.many} shared by 2 friends = <span class="question-mark-pill">?</span> each`;
+
+  document.getElementById('math-prompt-text').textContent =
+    `${PET_CONFIG.corieName}: "Share ${total} ${item.many} fairly between ${PET_CONFIG.corieName} and ${PET_CONFIG.duncanName}. How many does each friend get?"`;
+
+  state.currentSpeech = [
+    { text: `We have ${total} ${item.many} to share fairly between 2 friends. How many does each friend get?`, lang: 'en-US' },
+  ];
+
+  container.className = 'options-grid math-options';
+  container.innerHTML = opts
+    .map((n) => `<button class="option-card num-btn" onclick="checkMathAnswer(this, ${n}, ${each})">${n}</button>`)
+    .join('');
+
+  repeatMathPrompt();
+}
+
+// ---------- Big Stars Lv.1: Big Number Add & Subtract ----------
 function renderMathLv1MultiDigit() {
   const stage = document.getElementById('math-visual-stage');
   const eqBar = document.getElementById('math-equation-bar');
@@ -1643,30 +2659,28 @@ function renderMathLv1MultiDigit() {
   const uA = a % 10;
 
   document.getElementById('math-prompt-text').textContent =
-    `${PET_CONFIG.corieName}：「多位數進退位挑戰！先算個位、再算十位與百位喔！」`;
+    `${PET_CONFIG.corieName}: "Add or subtract the ones first, then the tens and hundreds!"`;
 
   stage.innerHTML = `
     <div class="word-problem-card" style="text-align:center;">
-      <div class="wp-badge">🧮 國小二～三位數進退位心算</div>
+      <div class="wp-badge">🧮 Big Number Math</div>
       <div style="font-size:1.05rem; color:#475569; font-weight:800; margin-top:4px;">
-        ${item.emoji} 位值分解提示：<strong>${a}</strong> ＝ ${hA > 0 ? hA + '個百 + ' : ''}${tA}個十 + ${uA}個一
+        ${item.emoji} Place value hint: <strong>${a}</strong> = ${hA > 0 ? hA + ' hundreds + ' : ''}${tA} tens + ${uA} ones
       </div>
     </div>
   `;
 
-  eqBar.innerHTML = `<span style="font-size:2.3rem; font-weight:900;">${a} <span style="color:#f59e0b;">${op}</span> ${b} ＝ <span style="color:#ec4899;">?</span></span>`;
+  eqBar.innerHTML = `<span style="font-size:2.3rem; font-weight:900;">${a} <span style="color:#f59e0b;">${op}</span> ${b} = <span style="color:#ec4899;">?</span></span>`;
 
   state.currentSpeech = [
-    { text: `請計算：${a} ${isAdd ? '加' : '減'} ${b} 等於多少？`, lang: 'zh-TW' },
+    { text: `What is ${a} ${isAdd ? 'plus' : 'minus'} ${b}?`, lang: 'en-US' },
   ];
 
   container.className = 'options-grid math-options';
   container.innerHTML = opts
     .map(
       (n) => `
-      <button class="option-card math-opt-btn" onclick="checkMathAnswer(this, ${n}, ${ans})">
-        <div class="opt-word" style="font-size:1.9rem;">${n}</div>
-      </button>
+      <button class="option-card num-btn" onclick="checkMathAnswer(this, ${n}, ${ans})">${n}</button>
     `
     )
     .join('');
@@ -1674,7 +2688,7 @@ function renderMathLv1MultiDigit() {
   repeatMathPrompt();
 }
 
-// Lv.2 九九乘法、除法＆算式比大小
+// ---------- Big Stars Lv.2: Multiply, Divide & Compare ----------
 function renderMathLv2MultDivCompare() {
   const stage = document.getElementById('math-visual-stage');
   const eqBar = document.getElementById('math-equation-bar');
@@ -1688,22 +2702,20 @@ function renderMathLv2MultDivCompare() {
     const opts = makeNumericDistractors(ans, 3, [2, 9]);
 
     document.getElementById('math-prompt-text').textContent =
-      `${PET_CONFIG.corieName}：「乘法進階挑戰！每組有 ${a} 個，共 ${b} 組，總共是多少？」`;
+      `${PET_CONFIG.corieName}: "There are ${b} groups with ${a} in each group. How many in all?"`;
 
     stage.innerHTML = `
       <div class="word-problem-card" style="text-align:center;">
-        <div class="wp-badge">✖️ 國小乘法挑戰 (Multiplication)</div>
-        <div style="font-size:1rem; color:#475569; font-weight:800;">💡 提示：每組 ${a} 個 × ${b} 組</div>
+        <div class="wp-badge">✖️ Multiplication</div>
+        <div style="font-size:1rem; color:#475569; font-weight:800;">💡 Hint: ${a} in each group × ${b} groups</div>
       </div>
     `;
-    eqBar.innerHTML = `<span style="font-size:2.4rem; font-weight:900;">${a} × ${b} ＝ <span style="color:#ec4899;">?</span></span>`;
-    state.currentSpeech = [{ text: `請問 ${a} 乘以 ${b} 等於多少？`, lang: 'zh-TW' }];
+    eqBar.innerHTML = `<span style="font-size:2.4rem; font-weight:900;">${a} × ${b} = <span style="color:#ec4899;">?</span></span>`;
+    state.currentSpeech = [{ text: `What is ${a} times ${b}?`, lang: 'en-US' }];
 
     container.className = 'options-grid math-options';
     container.innerHTML = opts
-      .map(
-        (n) => `<button class="option-card math-opt-btn" onclick="checkMathAnswer(this, ${n}, ${ans})"><div class="opt-word" style="font-size:1.9rem;">${n}</div></button>`
-      )
+      .map((n) => `<button class="option-card num-btn" onclick="checkMathAnswer(this, ${n}, ${ans})">${n}</button>`)
       .join('');
   } else if (mode === 2) {
     const divisor = randInt(3, 9);
@@ -1712,22 +2724,20 @@ function renderMathLv2MultDivCompare() {
     const opts = makeNumericDistractors(quotient, 3, [1, 4]);
 
     document.getElementById('math-prompt-text').textContent =
-      `${PET_CONFIG.corieName}：「整除除法挑戰！把 ${dividend} 平分成 ${divisor} 組，每組有幾個？」`;
+      `${PET_CONFIG.corieName}: "Share ${dividend} equally into ${divisor} groups. How many in each group?"`;
 
     stage.innerHTML = `
       <div class="word-problem-card" style="text-align:center;">
-        <div class="wp-badge">➗ 國小整除除法 (Division)</div>
-        <div style="font-size:1rem; color:#475569; font-weight:800;">💡 乘法驗算思考：${divisor} × (?) ＝ ${dividend}</div>
+        <div class="wp-badge">➗ Division</div>
+        <div style="font-size:1rem; color:#475569; font-weight:800;">💡 Think: ${divisor} × (?) = ${dividend}</div>
       </div>
     `;
-    eqBar.innerHTML = `<span style="font-size:2.4rem; font-weight:900;">${dividend} ÷ ${divisor} ＝ <span style="color:#ec4899;">?</span></span>`;
-    state.currentSpeech = [{ text: `請問 ${dividend} 除以 ${divisor} 等於多少？`, lang: 'zh-TW' }];
+    eqBar.innerHTML = `<span style="font-size:2.4rem; font-weight:900;">${dividend} ÷ ${divisor} = <span style="color:#ec4899;">?</span></span>`;
+    state.currentSpeech = [{ text: `What is ${dividend} divided by ${divisor}?`, lang: 'en-US' }];
 
     container.className = 'options-grid math-options';
     container.innerHTML = opts
-      .map(
-        (n) => `<button class="option-card math-opt-btn" onclick="checkMathAnswer(this, ${n}, ${quotient})"><div class="opt-word" style="font-size:1.9rem;">${n}</div></button>`
-      )
+      .map((n) => `<button class="option-card num-btn" onclick="checkMathAnswer(this, ${n}, ${quotient})">${n}</button>`)
       .join('');
   } else {
     const a1 = randInt(4, 9), b1 = randInt(4, 9);
@@ -1737,12 +2747,12 @@ function renderMathLv2MultDivCompare() {
     const correctSym = leftVal > rightVal ? '>' : leftVal < rightVal ? '<' : '=';
 
     document.getElementById('math-prompt-text').textContent =
-      `${PET_CONFIG.corieName}：「先算出左右兩個算式的答案，再比較哪一邊比較大！」`;
+      `${PET_CONFIG.corieName}: "Solve both sides first, then pick >, = or <!"`;
 
     stage.innerHTML = `
       <div class="word-problem-card" style="text-align:center;">
-        <div class="wp-badge">⚖️ 雙邊算式比大小</div>
-        <div style="font-size:1rem; color:#475569; font-weight:800;">請選出 > 、 = 或 < 填入中間的問號框！</div>
+        <div class="wp-badge">⚖️ Compare Both Sides</div>
+        <div style="font-size:1rem; color:#475569; font-weight:800;">Pick >, = or < for the box in the middle!</div>
       </div>
     `;
     eqBar.innerHTML = `
@@ -1751,20 +2761,18 @@ function renderMathLv2MultDivCompare() {
       </span>
     `;
     state.currentSpeech = [
-      { text: `請比較左邊 ${a1} 乘以 ${b1}，和右邊 ${a2} 加 ${b2}，哪一邊比較大？`, lang: 'zh-TW' },
+      { text: `Compare ${a1} times ${b1} and ${a2} plus ${b2}. Which side is bigger?`, lang: 'en-US' },
     ];
 
     container.className = 'options-grid math-options';
     container.innerHTML = ['>', '=', '<']
-      .map(
-        (sym) => `<button class="option-card math-opt-btn" onclick="checkMathAnswer(this, '${sym}', '${correctSym}')"><div class="opt-word" style="font-size:2.2rem;">${sym}</div></button>`
-      )
+      .map((sym) => `<button class="option-card num-btn" onclick="checkMathAnswer(this, '${sym}', '${correctSym}')">${sym}</button>`)
       .join('');
   }
   repeatMathPrompt();
 }
 
-// Lv.3 四則先乘除後加減、代數未知數＆生活應用題
+// ---------- Big Stars Lv.3: Two-Step Math, Mystery Number & Word Problems ----------
 function renderMathLv3EquationAndWordProblem() {
   const stage = document.getElementById('math-visual-stage');
   const eqBar = document.getElementById('math-equation-bar');
@@ -1779,20 +2787,20 @@ function renderMathLv3EquationAndWordProblem() {
     const opts = makeNumericDistractors(ans, 3, [2, 10]);
 
     document.getElementById('math-prompt-text').textContent =
-      `${PET_CONFIG.corieName}：「記住四則運算黃金法則：【先乘除、後加減】！」`;
+      `${PET_CONFIG.corieName}: "Remember the rule: multiply FIRST, then add!"`;
 
     stage.innerHTML = `
       <div class="word-problem-card" style="text-align:center;">
-        <div class="wp-badge">📐 四則運算（先乘除後加減）</div>
-        <div style="font-size:1rem; color:#4f46e5; font-weight:800;">💡 先算 ${b} × ${c}，最後再加上 ${a} 喔！</div>
+        <div class="wp-badge">📐 Multiply First, Then Add</div>
+        <div style="font-size:1rem; color:#4f46e5; font-weight:800;">💡 First do ${b} × ${c}, then add ${a}!</div>
       </div>
     `;
-    eqBar.innerHTML = `<span style="font-size:2.3rem; font-weight:900;">${a} ＋ ${b} × ${c} ＝ <span style="color:#ec4899;">?</span></span>`;
-    state.currentSpeech = [{ text: `先乘除後加減：請問 ${a} 加 ${b} 乘以 ${c} 等於多少？`, lang: 'zh-TW' }];
+    eqBar.innerHTML = `<span style="font-size:2.3rem; font-weight:900;">${a} + ${b} × ${c} = <span style="color:#ec4899;">?</span></span>`;
+    state.currentSpeech = [{ text: `Multiply first, then add: what is ${a} plus ${b} times ${c}?`, lang: 'en-US' }];
 
     container.className = 'options-grid math-options';
     container.innerHTML = opts
-      .map((n) => `<button class="option-card math-opt-btn" onclick="checkMathAnswer(this, ${n}, ${ans})"><div class="opt-word" style="font-size:1.9rem;">${n}</div></button>`)
+      .map((n) => `<button class="option-card num-btn" onclick="checkMathAnswer(this, ${n}, ${ans})">${n}</button>`)
       .join('');
   } else if (mode === 2) {
     const a = randInt(3, 8);
@@ -1802,60 +2810,60 @@ function renderMathLv3EquationAndWordProblem() {
     const opts = makeNumericDistractors(x, 3, [1, 4]);
 
     document.getElementById('math-prompt-text').textContent =
-      `${PET_CONFIG.corieName}：「代數未知數推理！請問問號格裡的數字是多少？」`;
+      `${PET_CONFIG.corieName}: "Find the mystery number in the [ ? ] box!"`;
 
     stage.innerHTML = `
       <div class="word-problem-card" style="text-align:center;">
-        <div class="wp-badge">🕵️ 未知數方程式逆推</div>
-        <div style="font-size:1rem; color:#475569; font-weight:800;">💡 提示：先算 ${c} − ${b}，再除以 ${a}！</div>
+        <div class="wp-badge">🕵️ Mystery Number</div>
+        <div style="font-size:1rem; color:#475569; font-weight:800;">💡 Hint: first do ${c} − ${b}, then divide by ${a}!</div>
       </div>
     `;
-    eqBar.innerHTML = `<span style="font-size:2.2rem; font-weight:900;">${a} × <span style="color:#ec4899;">[ ? ]</span> ＋ ${b} ＝ ${c}</span>`;
-    state.currentSpeech = [{ text: `${a} 乘以多少，再加上 ${b} 會等於 ${c}？`, lang: 'zh-TW' }];
+    eqBar.innerHTML = `<span style="font-size:2.2rem; font-weight:900;">${a} × <span style="color:#ec4899;">[ ? ]</span> + ${b} = ${c}</span>`;
+    state.currentSpeech = [{ text: `${a} times what number, plus ${b}, equals ${c}?`, lang: 'en-US' }];
 
     container.className = 'options-grid math-options';
     container.innerHTML = opts
-      .map((n) => `<button class="option-card math-opt-btn" onclick="checkMathAnswer(this, ${n}, ${x})"><div class="opt-word" style="font-size:1.9rem;">${n}</div></button>`)
+      .map((n) => `<button class="option-card num-btn" onclick="checkMathAnswer(this, ${n}, ${x})">${n}</button>`)
       .join('');
   } else {
     const item = pickRandom(MATH_ITEMS);
+    const kid = pickRandom(STORY_NAMES);
     const price = randInt(12, 25);
     const qty = randInt(3, 6);
     const paid = 200;
     const ans = paid - price * qty;
     const opts = makeNumericDistractors(ans, 3, [5, 15]);
-    const story = `小華去商店買了 ${qty} ${item.unit}${item.name}（${item.emoji}），每${item.unit}售價 ${price} 元。他付了一張 ${paid} 元鈔票，請問老闆應該找他多少元？`;
+    const story = `${kid} buys ${qty} ${item.many} (${item.emoji}). Each one costs $${price}. ${kid} pays with $${paid}. How much change does ${kid} get back?`;
 
     document.getElementById('math-prompt-text').textContent =
-      `${PET_CONFIG.corieName}：「請閱讀兩步驟文字應用題，算出正確的找零金額！」`;
+      `${PET_CONFIG.corieName}: "Read the shopping story and find the change!"`;
 
     stage.innerHTML = `
       <div class="word-problem-card">
-        <div class="wp-badge">📖 國小兩步驟文字應用題</div>
+        <div class="wp-badge">📖 Shopping Story</div>
         <div class="wp-text">${story}</div>
       </div>
     `;
-    eqBar.innerHTML = `<span style="font-size:1.6rem; font-weight:900; color:#4f46e5;">${paid} − (${price} × ${qty}) ＝ ? 元</span>`;
-    state.currentSpeech = [{ text: story, lang: 'zh-TW' }];
+    eqBar.innerHTML = `<span style="font-size:1.6rem; font-weight:900; color:#4f46e5;">$${paid} − ($${price} × ${qty}) = $?</span>`;
+    state.currentSpeech = [{ text: story, lang: 'en-US' }];
 
     container.className = 'options-grid math-options';
     container.innerHTML = opts
-      .map((n) => `<button class="option-card math-opt-btn" onclick="checkMathAnswer(this, ${n}, ${ans})"><div class="opt-word" style="font-size:1.75rem;">${n} 元</div></button>`)
+      .map((n) => `<button class="option-card num-btn" style="font-size:1.75rem;" onclick="checkMathAnswer(this, ${n}, ${ans})">$${n}</button>`)
       .join('');
   }
   repeatMathPrompt();
 }
 
-// Lv.4 超市收銀店長（百元湊錢＆找零）
+// ---------- Big Stars Lv.4: Big Store Cashier ($100 bills & change) ----------
 function renderMathLv4CashierPro() {
-  const stage = document.getElementById('math-visual-stage');
   const eqBar = document.getElementById('math-equation-bar');
   const container = document.getElementById('math-options-container');
   eqBar.innerHTML = '';
   container.innerHTML = '';
 
   const i1 = pickRandom(MATH_ITEMS);
-  const i2 = pickRandom(MATH_ITEMS.filter((x) => x.name !== i1.name));
+  const i2 = pickRandom(MATH_ITEMS.filter((x) => x.one !== i1.one));
   const p1 = randInt(25, 89);
   const p2 = randInt(18, 75);
   const qty1 = randInt(1, 2);
@@ -1881,18 +2889,19 @@ function renderMathLv4CashierPro() {
     p1,
     p2,
     qty1,
+    easyMode: false,
   };
 
   document.getElementById('math-prompt-text').textContent = isChangeMode
-    ? `${PET_CONFIG.corieName}：「商品共 $${totalCost}，客人付了 $${customerPaid}，請湊出正確的【找零金額】！」`
-    : `${PET_CONFIG.corieName}：「請先算出兩項商品的總價，再拿出剛好金額的鈔票與硬幣！」`;
+    ? `${PET_CONFIG.corieName}: "Total is $${totalCost}. The buyer pays $${customerPaid}. Put the right CHANGE in the tray!"`
+    : `${PET_CONFIG.corieName}: "Add up both items and put the exact money in the tray!"`;
 
   state.currentSpeech = [
     {
       text: isChangeMode
-        ? `商品總共 ${totalCost} 元，客人付了 ${customerPaid} 元，請算出要找客人多少錢並放上收銀托盤！`
-        : `買了 ${qty1} ${i1.unit}${i1.name}和 1 ${i2.unit}${i2.name}，請算出總價並拿出正確的鈔票硬幣！`,
-      lang: 'zh-TW',
+        ? `The total is ${totalCost} dollars. The buyer pays ${customerPaid} dollars. Put the right change in the tray!`
+        : `Add up the items and put the exact money in the tray!`,
+      lang: 'en-US',
     },
   ];
 
@@ -1903,57 +2912,60 @@ function renderMathLv4CashierPro() {
 function renderCashierProStage() {
   const stage = document.getElementById('math-visual-stage');
   const q = state.currentQuestion;
+  if (q.easyMode) {
+    renderLittleShopStage();
+    return;
+  }
   const currentSum = q.trayCoins.reduce((a, b) => a + b, 0);
 
   stage.innerHTML = `
-    <div class="cashier-stage" style="width:100%;">
-      <div class="word-problem-card" style="margin-bottom:10px;">
-        <div class="wp-badge">🛒 超市收銀店長：${q.isChangeMode ? '找零錢特訓' : '多件結帳特訓'}</div>
+    <div class="cashier-shop-wrap">
+      <div class="word-problem-card" style="width:100%;">
+        <div class="wp-badge">🛒 Store Cashier: ${q.isChangeMode ? 'Give Change' : 'Pay the Total'}</div>
         <div style="display:flex; justify-content:space-around; flex-wrap:wrap; gap:10px; margin:8px 0;">
           <div style="background:#f8fafc; padding:8px 14px; border-radius:12px; border:1px solid #cbd5e1; font-weight:800;">
-            ${q.i1.emoji} ${q.i1.name} $${q.p1} × ${q.qty1} ＝ <strong>$${q.p1 * q.qty1}</strong>
+            ${q.i1.emoji} ${q.i1.one} $${q.p1} × ${q.qty1} = <strong>$${q.p1 * q.qty1}</strong>
           </div>
           <div style="background:#f8fafc; padding:8px 14px; border-radius:12px; border:1px solid #cbd5e1; font-weight:800;">
-            ${q.i2.emoji} ${q.i2.name} $${q.p2} × 1 ＝ <strong>$${q.p2}</strong>
+            ${q.i2.emoji} ${q.i2.one} $${q.p2} × 1 = <strong>$${q.p2}</strong>
           </div>
         </div>
         <div style="text-align:center; font-size:1.1rem; font-weight:900; color:#1e293b;">
-          🧾 商品總計：<span style="color:#4f46e5;">$${q.totalCost}</span>
-          ${q.isChangeMode ? ` ｜ 💵 客人付現：<span style="color:#16a34a;">$${q.customerPaid}</span> ｜ 🎯 應找零：<span style="color:#ec4899;">$ ?</span>` : ''}
+          🧾 Total: <span style="color:#4f46e5;">$${q.totalCost}</span>
+          ${q.isChangeMode ? ` ｜ 💵 Paid: <span style="color:#16a34a;">$${q.customerPaid}</span> ｜ 🎯 Change: <span style="color:#ec4899;">$ ?</span>` : ''}
         </div>
       </div>
 
-      <div class="cashier-tray" style="background:#f8fafc; border:2px dashed #94a3b8; border-radius:16px; padding:12px;">
-        <div style="display:flex; justify-content:space-between; font-weight:900; margin-bottom:8px;">
-          <span>📥 收銀托盤（點擊錢幣可退回）</span>
-          <span style="color:#0284c7; font-size:1.15rem;">目前合計：$${currentSum} 元</span>
+      <div class="coin-tray-box" style="width:100%;">
+        <div class="tray-header">
+          <span>📥 Money Tray (tap a coin or bill to remove)</span>
+          <span style="color:#0284c7; font-size:1.15rem;">In tray: $${currentSum}</span>
         </div>
-        <div style="min-height:54px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:center;">
+        <div class="tray-coins-list">
           ${
             q.trayCoins.length === 0
-              ? '<span style="color:#94a3b8; font-weight:700;">請點擊下方鈔票或硬幣放入托盤...</span>'
+              ? '<span style="color:#94a3b8; font-weight:700;">Tap the bills and coins below...</span>'
               : q.trayCoins
                   .map(
                     (val, idx) =>
-                      `<button class="${val === 100 ? 'bill-100-btn' : val === 50 ? 'coin-50-btn' : val === 10 ? 'coin-10-btn' : 'coin-btn'}"
-                        onclick="removeCashierMoney(${idx})">$${val}</button>`
+                      `<button class="coin-token coin-${val}" onclick="removeCashierMoney(${idx})">$${val}</button>`
                   )
                   .join('')
           }
         </div>
       </div>
 
-      <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:12px;">
-        <button class="bill-100-btn" onclick="addCashierMoney(100)">💵 $100</button>
-        <button class="coin-50-btn" onclick="addCashierMoney(50)">🪙 $50</button>
-        <button class="coin-10-btn" onclick="addCashierMoney(10)">🪙 $10</button>
-        <button class="coin-btn" style="background:#fef08a; border:2px solid #eab308; padding:10px 16px; border-radius:999px; font-weight:900;" onclick="addCashierMoney(5)">🪙 $5</button>
-        <button class="coin-btn" style="background:#fed7aa; border:2px solid #f97316; padding:10px 16px; border-radius:999px; font-weight:900;" onclick="addCashierMoney(1)">🪙 $1</button>
+      <div class="cashier-btn-grid">
+        <button class="coin-action-btn btn-add-100" onclick="addCashierMoney(100)">💵 +$100</button>
+        <button class="coin-action-btn btn-add-50" onclick="addCashierMoney(50)">🪙 +$50</button>
+        <button class="coin-action-btn btn-add-10" onclick="addCashierMoney(10)">🪙 +$10</button>
+        <button class="coin-action-btn btn-add-5" onclick="addCashierMoney(5)">🪙 +$5</button>
+        <button class="coin-action-btn btn-add-1" onclick="addCashierMoney(1)">🪙 +$1</button>
       </div>
 
-      <div style="display:flex; justify-content:center; gap:12px; margin-top:14px;">
-        <button class="speed-chip" onclick="clearCashierTray()">🗑️ 清空重湊</button>
-        <button class="submit-clock-btn" style="margin:0;" onclick="submitCashierCheckout()">✅ 確認結帳 ($${currentSum})</button>
+      <div style="display:flex; justify-content:center; gap:12px; margin-top:6px;">
+        <button class="coin-action-btn btn-clear-coins" onclick="clearCashierTray()">🗑️ Clear</button>
+        <button class="coin-action-btn btn-checkout" onclick="submitCashierCheckout()">✅ Done ($${currentSum})</button>
       </div>
     </div>
   `;
@@ -1985,18 +2997,18 @@ function submitCashierCheckout() {
   const q = state.currentQuestion;
   const sum = q.trayCoins.reduce((a, b) => a + b, 0);
   if (sum === q.targetAmount) {
-    onCorrectAnswer('math', `$${sum} 元`, [{ text: `結帳正確！總共是 ${sum} 元！`, lang: 'zh-TW' }]);
+    onCorrectAnswer('math', `$${sum}`, [{ text: `That's right! ${sum} dollars!`, lang: 'en-US' }]);
   } else {
     onWrongAnswer(
       'math',
       sum > q.targetAmount
-        ? `目前放了 $${sum} 元，太多了喔！請點擊托盤裡的錢幣退回一部分。`
-        : `目前只有 $${sum} 元，還不夠喔！請再算算看目標金額。`
+        ? `You put $${sum}. That is too much! Tap a coin in the tray to take it back.`
+        : `You only have $${sum}. Add more coins!`
     );
   }
 }
 
-// Lv.5 奧數級數列火車（等差/等比/平方/費氏）
+// ---------- Big Stars Lv.5: Super Number Train ----------
 function renderMathLv5OlympiadSequence() {
   const stage = document.getElementById('math-visual-stage');
   const eqBar = document.getElementById('math-equation-bar');
@@ -2008,7 +3020,7 @@ function renderMathLv5OlympiadSequence() {
       const step = randInt(6, 14);
       return {
         arr: [0, 1, 2, 3, 4].map((i) => start + i * step),
-        hint: `每一節車廂都比前一節多 ${step}（+${step}）`,
+        hint: `Add ${step} each time (+${step})`,
       };
     },
     () => {
@@ -2016,21 +3028,21 @@ function renderMathLv5OlympiadSequence() {
       const start = randInt(65, 98);
       return {
         arr: [0, 1, 2, 3, 4].map((i) => start - i * step),
-        hint: `每一節車廂都比前一節少 ${step}（−${step}）`,
+        hint: `Subtract ${step} each time (−${step})`,
       };
     },
     () => {
       const start = randInt(2, 5);
       return {
         arr: [start, start * 2, start * 4, start * 8, start * 16],
-        hint: '後一個數字都是前一個數字的 2 倍（×2）',
+        hint: 'Double the number each time (×2)',
       };
     },
     () => {
       const base = randInt(1, 4);
       return {
         arr: [0, 1, 2, 3, 4].map((i) => (base + i) * (base + i)),
-        hint: '連續整數自己乘以自己的完全平方數 (n × n)',
+        hint: 'Square numbers: 1×1, 2×2, 3×3, 4×4...',
       };
     },
     () => {
@@ -2038,7 +3050,7 @@ function renderMathLv5OlympiadSequence() {
       const c = a + b, d = b + c, e = c + d;
       return {
         arr: [a, b, c, d, e],
-        hint: '費氏數列：前兩節車廂加起來，等於下一節車廂！',
+        hint: 'Add the two cars before it to get the next car!',
       };
     },
   ];
@@ -2049,42 +3061,34 @@ function renderMathLv5OlympiadSequence() {
   const opts = makeNumericDistractors(ans, 3, [2, 9]);
 
   document.getElementById('math-prompt-text').textContent =
-    `${PET_CONFIG.corieName}：「觀察火車車廂的規律，推理出問號車廂的數字！」`;
+    `${PET_CONFIG.corieName}: "Find the pattern on the train! What number goes in the ? car?"`;
 
   const carsHtml = chosen.arr
-    .map((n, i) =>
-      i === missingIdx
-        ? `<div class="train-car missing" style="display:inline-flex; align-items:center; justify-content:center; width:62px; height:52px; border-radius:12px; background:#fce7f3; border:3px dashed #ec4899; font-weight:900; font-size:1.4rem; color:#ec4899;">?</div>`
-        : `<div class="train-car" style="display:inline-flex; align-items:center; justify-content:center; width:62px; height:52px; border-radius:12px; background:#e0f2fe; border:2px solid #0284c7; font-weight:900; font-size:1.35rem; color:#0f172a;">${n}</div>`
-    )
-    .join('<span style="margin:0 4px; font-weight:900;">🔗</span>');
+    .map((n, i) => `<div class="train-car ${i === missingIdx ? 'mystery-car' : ''}">${i === missingIdx ? '?' : n}</div>`)
+    .join('<span class="train-link">🔗</span>');
 
   stage.innerHTML = `
     <div class="word-problem-card" style="text-align:center;">
-      <div class="wp-badge">🚂 國小資優奧數數列推理</div>
-      <div style="margin:12px 0; display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:4px;">
-        <span style="font-size:2.2rem; margin-right:6px;">🚂</span>${carsHtml}
-      </div>
-      <div style="font-size:0.95rem; color:#4f46e5; font-weight:800;">💡 規律提示：${chosen.hint}</div>
+      <div class="wp-badge">🚂 Super Number Train</div>
+      <div class="train-track-wrap"><span class="train-engine">🚂</span>${carsHtml}</div>
+      <div style="font-size:0.95rem; color:#4f46e5; font-weight:800;">💡 Hint: ${chosen.hint}</div>
     </div>
   `;
   eqBar.innerHTML = '';
 
   state.currentSpeech = [
-    { text: `請觀察車廂數字規律，找出問號車廂的數字！提示：${chosen.hint}`, lang: 'zh-TW' },
+    { text: `Look at the numbers on the train. Hint: ${chosen.hint}. What is the missing number?`, lang: 'en-US' },
   ];
 
   container.className = 'options-grid math-options';
   container.innerHTML = opts
-    .map(
-      (n) => `<button class="option-card math-opt-btn" onclick="checkMathAnswer(this, ${n}, ${ans})"><div class="opt-word" style="font-size:1.9rem;">${n}</div></button>`
-    )
+    .map((n) => `<button class="option-card num-btn" onclick="checkMathAnswer(this, ${n}, ${ans})">${n}</button>`)
     .join('');
 
   repeatMathPrompt();
 }
 
-// Lv.6 分數認知、長方形周長面積
+// ---------- Big Stars Lv.6: Pizza Fractions & Rectangle Area / Perimeter ----------
 function renderMathLv6FractionAndGeometry() {
   const stage = document.getElementById('math-visual-stage');
   const eqBar = document.getElementById('math-equation-bar');
@@ -2093,39 +3097,39 @@ function renderMathLv6FractionAndGeometry() {
   const isGeo = state.round % 2 === 0;
   if (!isGeo) {
     const fractions = [
-      { num: 1, den: 3, label: '1/3 (三分之一)' },
-      { num: 2, den: 3, label: '2/3 (三分之二)' },
-      { num: 1, den: 4, label: '1/4 (四分之一)' },
-      { num: 3, den: 4, label: '3/4 (四分之三)' },
-      { num: 2, den: 5, label: '2/5 (五分之二)' },
-      { num: 3, den: 5, label: '3/5 (五分之三)' },
-      { num: 3, den: 8, label: '3/8 (八分之三)' },
-      { num: 5, den: 8, label: '5/8 (八分之五)' },
+      { num: 1, den: 3, label: '1/3' },
+      { num: 2, den: 3, label: '2/3' },
+      { num: 1, den: 4, label: '1/4' },
+      { num: 3, den: 4, label: '3/4' },
+      { num: 2, den: 5, label: '2/5' },
+      { num: 3, den: 5, label: '3/5' },
+      { num: 3, den: 8, label: '3/8' },
+      { num: 5, den: 8, label: '5/8' },
     ];
     const target = pickRandom(fractions);
     const distractors = shuffle(fractions.filter((f) => f.label !== target.label)).slice(0, 3);
     const opts = shuffle([target, ...distractors]);
 
     document.getElementById('math-prompt-text').textContent =
-      `${PET_CONFIG.corieName}：「數數看圓餅圖平分成幾等份（分母），塗色佔了幾份（分子）！」`;
+      `${PET_CONFIG.corieName}: "${target.num} out of ${target.den} slices are colored. Which fraction is that?"`;
 
     stage.innerHTML = `
       <div class="word-problem-card" style="text-align:center;">
-        <div class="wp-badge">🍕 國小分數圖形認知 (Fractions)</div>
+        <div class="wp-badge">🍕 Pizza Fractions</div>
         <div style="margin:8px auto;">${buildFractionPieSvg(target.num, target.den)}</div>
-        <div style="font-weight:800; color:#475569;">平分成 <strong>${target.den}</strong> 等份，塗色佔 <strong>${target.num}</strong> 份</div>
+        <div style="font-weight:800; color:#475569;"><strong>${target.num}</strong> colored out of <strong>${target.den}</strong> equal slices</div>
       </div>
     `;
     eqBar.innerHTML = '';
 
     state.currentSpeech = [
-      { text: `圓餅平分成 ${target.den} 等份，塗色部分佔了 ${target.num} 份，用分數怎麼表示？`, lang: 'zh-TW' },
+      { text: `The pie has ${target.den} equal slices, and ${target.num} of them are colored. Pick the fraction!`, lang: 'en-US' },
     ];
 
     container.className = 'options-grid math-options';
     container.innerHTML = opts
       .map(
-        (o) => `<button class="option-card math-opt-btn" onclick="checkMathAnswer(this, '${o.label}', '${target.label}')"><div class="opt-word" style="font-size:1.35rem;">${o.label}</div></button>`
+        (o) => `<button class="option-card num-btn" style="font-size:1.7rem;" onclick="checkMathAnswer(this, '${o.label}', '${target.label}')">${o.label}</button>`
       )
       .join('');
   } else {
@@ -2134,29 +3138,29 @@ function renderMathLv6FractionAndGeometry() {
     const askArea = Math.random() < 0.5;
     const ans = askArea ? w * h : (w + h) * 2;
     const unitLabel = askArea ? 'cm²' : 'cm';
-    const formula = askArea ? '面積 ＝ 長 × 寬' : '周長 ＝ (長 ＋ 寬) × 2';
+    const formula = askArea ? 'Area = length × width' : 'Perimeter = (length + width) × 2';
     const opts = makeNumericDistractors(ans, 3, [2, 10]);
 
     document.getElementById('math-prompt-text').textContent =
-      `${PET_CONFIG.corieName}：「幾何計算挑戰！請算出這個長方形的【${askArea ? '面積' : '周長'}】！」`;
+      `${PET_CONFIG.corieName}: "Find the ${askArea ? 'AREA' : 'PERIMETER'} of this rectangle!"`;
 
     stage.innerHTML = `
       <div class="word-problem-card" style="text-align:center;">
-        <div class="wp-badge">📐 長方形${askArea ? '面積 (Area)' : '周長 (Perimeter)'}計算</div>
-        <div class="geometry-rect-box">長 ${w} cm × 寬 ${h} cm</div>
-        <div style="font-weight:800; color:#4f46e5;">💡 公式提示：${formula}</div>
+        <div class="wp-badge">📐 Rectangle ${askArea ? 'Area' : 'Perimeter'}</div>
+        <div class="geometry-rect-box" style="margin:8px auto;">Length ${w} cm × Width ${h} cm</div>
+        <div style="font-weight:800; color:#4f46e5;">💡 Formula: ${formula}</div>
       </div>
     `;
     eqBar.innerHTML = '';
 
     state.currentSpeech = [
-      { text: `長方形的長是 ${w} 公分，寬是 ${h} 公分，請問它的${askArea ? '面積' : '周長'}是多少？`, lang: 'zh-TW' },
+      { text: `The rectangle is ${w} centimeters long and ${h} centimeters wide. What is its ${askArea ? 'area' : 'perimeter'}?`, lang: 'en-US' },
     ];
 
     container.className = 'options-grid math-options';
     container.innerHTML = opts
       .map(
-        (n) => `<button class="option-card math-opt-btn" onclick="checkMathAnswer(this, ${n}, ${ans})"><div class="opt-word" style="font-size:1.6rem;">${n} ${unitLabel}</div></button>`
+        (n) => `<button class="option-card num-btn" style="font-size:1.6rem;" onclick="checkMathAnswer(this, ${n}, ${ans})">${n} ${unitLabel}</button>`
       )
       .join('');
   }
@@ -2182,22 +3186,23 @@ function buildFractionPieSvg(num, den) {
 function checkMathAnswer(btn, chosen, correct) {
   if (state.isAnswering) return;
   if (String(chosen) === String(correct)) {
-    btn.classList.add('correct-pick');
-    onCorrectAnswer('math', String(correct), [{ text: `答對了！答案是 ${correct}`, lang: 'zh-TW' }]);
+    btn.classList.add('correct');
+    onCorrectAnswer('math', String(correct), [{ text: `Great job! The answer is ${correct}!`, lang: 'en-US' }]);
   } else {
-    btn.classList.add('wrong-pick');
-    setTimeout(() => btn.classList.remove('wrong-pick'), 500);
-    onWrongAnswer('math', '算式結果不太對喔，再檢查一次計算步驟！');
+    btn.classList.add('wrong');
+    setTimeout(() => btn.classList.remove('wrong'), 500);
+    onWrongAnswer('math', 'Not quite! Count or check the numbers one more time.');
   }
 }
 
 // ============================================================================
-// 🐟 Shannon 國小時間推理學院 (6~12歲 3大進階關卡)
+// 🐟 Shannon's Clock Fun (Little Stars e1~e3 + Big Stars 1~3)
 // ============================================================================
-function startClockGame(lv = 1) {
+function startClockGame(lv = 'e1') {
   state.currentMode = 'clock';
   state.clockLevel = lv;
   state.round = 1;
+  state.totalRounds = isEasyLevel(lv) ? 6 : 8;
   showScreen('clock');
   syncClockLevelChips();
   loadClockQuestion();
@@ -2207,14 +3212,25 @@ function switchClockLevel(lv) {
   playClickTick();
   state.clockLevel = lv;
   state.round = 1;
+  state.totalRounds = isEasyLevel(lv) ? 6 : 8;
   syncClockLevelChips();
   loadClockQuestion();
 }
 
 function syncClockLevelChips() {
-  for (let i = 1; i <= 3; i++) {
-    const chip = document.getElementById(`clock-lvl-chip-${i}`);
-    if (chip) chip.classList.toggle('active', i === state.clockLevel);
+  const track = isEasyLevel(state.clockLevel) ? 'little' : 'big';
+  const bar = document.getElementById('clock-level-chips');
+  if (bar) {
+    const list = LEVEL_DEFINITIONS[track].clock;
+    bar.innerHTML =
+      `<span class="bar-label">${track === 'little' ? '🐣 Easy:' : '🎓 Hard:'}</span>` +
+      list
+        .map((item) => {
+          const active = String(item.id) === String(state.clockLevel) ? 'active' : '';
+          const arg = typeof item.id === 'string' ? `'${item.id}'` : item.id;
+          return `<button class="chip-btn ${active}" onclick="switchClockLevel(${arg})">${item.chip}</button>`;
+        })
+        .join('');
   }
 }
 
@@ -2275,9 +3291,26 @@ function loadClockQuestion() {
 
   const controls = document.getElementById('clock-set-controls');
   const container = document.getElementById('clock-options-container');
+  const dialGroup = document.getElementById('clock-dial-group');
 
   const lv = state.clockLevel;
-  if (lv === 1) {
+  if (lv === 'e1') {
+    if (controls) controls.classList.add('hidden');
+    renderClockEasy1OclockHalf(container);
+  } else if (lv === 'e2') {
+    if (controls) controls.classList.add('hidden');
+    renderClockEasy2DailyRoutine(container);
+  } else if (lv === 'e3') {
+    if (controls) controls.classList.remove('hidden');
+    if (dialGroup) {
+      dialGroup.innerHTML = `
+        <button class="dial-btn hour-dial-btn" onclick="adjustInteractiveClock(-1, 0)">🔴 −1 Hour</button>
+        <button class="dial-btn hour-dial-btn" onclick="adjustInteractiveClock(1, 0)">🔴 +1 Hour</button>
+        <button class="dial-btn min-dial-btn" onclick="adjustInteractiveClock(0, 30)">🔵 +30 Min</button>
+      `;
+    }
+    renderClockEasy3SetHands(container);
+  } else if (lv === 1) {
     if (controls) controls.classList.add('hidden');
     renderClockLv1ExactMinute(container);
   } else if (lv === 2) {
@@ -2285,11 +3318,126 @@ function loadClockQuestion() {
     renderClockLv2ElapsedTime(container);
   } else {
     if (controls) controls.classList.remove('hidden');
+    if (dialGroup) {
+      dialGroup.innerHTML = `
+        <button class="dial-btn hour-dial-btn" onclick="adjustInteractiveClock(-1, 0)">🔴 −1 Hour</button>
+        <button class="dial-btn hour-dial-btn" onclick="adjustInteractiveClock(1, 0)">🔴 +1 Hour</button>
+        <button class="dial-btn min-dial-btn" onclick="adjustInteractiveClock(0, 10)">🔵 +10 Min</button>
+        <button class="dial-btn min-dial-btn" onclick="adjustInteractiveClock(0, 5)">🔵 +5 Min</button>
+        <button class="dial-btn min-dial-btn" onclick="adjustInteractiveClock(0, 1)">🔵 +1 Min</button>
+        <button class="dial-btn min-dial-btn" onclick="adjustInteractiveClock(0, -1)">🔵 −1 Min</button>
+      `;
+    }
     renderClockLv3InteractiveSet(container);
   }
 }
 
-// Lv.1 精準1分鐘刻度＆24小時制換算
+// ---------- Little Stars e1: O'clock & Half Past (:00 and :30) ----------
+function renderClockEasy1OclockHalf(container) {
+  const h = randInt(1, 12);
+  const m = state.round <= 3 ? 0 : pickRandom([0, 30]);
+  const ansStr = formatClockTime(h, m);
+  drawAnalogClockSvg(h, m);
+
+  const badge = document.getElementById('clock-activity-badge');
+  if (badge) {
+    badge.textContent = m === 0 ? '🕐 Blue hand on 12 = :00 (o\'clock)' : '🕡 Blue hand on 6 = :30 (half past)';
+  }
+
+  document.getElementById('clock-prompt-text').textContent =
+    `${PET_CONFIG.shannonName}: "What time does the clock show?"`;
+
+  const opts = [ansStr];
+  while (opts.length < 4) {
+    const dh = randInt(1, 12);
+    const dm = pickRandom([0, 30]);
+    const cand = formatClockTime(dh, dm);
+    if (!opts.includes(cand)) opts.push(cand);
+  }
+
+  state.currentSpeech = [
+    { text: 'What time does the clock show?', lang: 'en-US' },
+  ];
+
+  container.innerHTML = shuffle(opts)
+    .map(
+      (t) => `<button class="option-card num-btn" onclick="checkClockAnswer(this, '${t}', '${ansStr}')">${t}</button>`
+    )
+    .join('');
+
+  repeatClockPrompt();
+}
+
+// ---------- Little Stars e2: My Day (Morning, Noon & Night) ----------
+const DAILY_ROUTINES = [
+  { h: 7, m: 0, label: '☀️ 7:00 Morning — Wake up & brush teeth!' },
+  { h: 8, m: 30, label: '🎒 8:30 Morning — Go to school!' },
+  { h: 12, m: 0, label: '🍱 12:00 Noon — Eat yummy lunch!' },
+  { h: 3, m: 30, label: '🛝 3:30 Afternoon — Play at the park!' },
+  { h: 6, m: 0, label: '🍝 6:00 Evening — Eat dinner with family!' },
+  { h: 8, m: 0, label: '📖 8:00 Night — Read a bedtime story!' },
+  { h: 9, m: 0, label: '🌙 9:00 Night — Go to sleep! Good night!' },
+];
+
+function renderClockEasy2DailyRoutine(container) {
+  const item = pickRandom(DAILY_ROUTINES);
+  const ansStr = formatClockTime(item.h, item.m);
+  drawAnalogClockSvg(item.h, item.m);
+
+  const badge = document.getElementById('clock-activity-badge');
+  if (badge) badge.textContent = item.label.replace(/\s*\d+:\d+\s*/, ' ');
+
+  document.getElementById('clock-prompt-text').textContent =
+    `${PET_CONFIG.shannonName}: "Look at the clock! What time is it?"`;
+
+  const opts = [ansStr];
+  while (opts.length < 4) {
+    const dh = randInt(1, 12);
+    const dm = pickRandom([0, 30]);
+    const cand = formatClockTime(dh, dm);
+    if (!opts.includes(cand)) opts.push(cand);
+  }
+
+  state.currentSpeech = [
+    { text: `${item.label.replace(/^[^\w]+/, '')}. What time does the clock show?`, lang: 'en-US' },
+  ];
+
+  container.innerHTML = shuffle(opts)
+    .map(
+      (t) => `<button class="option-card num-btn" onclick="checkClockAnswer(this, '${t}', '${ansStr}')">${t}</button>`
+    )
+    .join('');
+
+  repeatClockPrompt();
+}
+
+// ---------- Little Stars e3: Move the Hands (:00 or :30) ----------
+function renderClockEasy3SetHands(container) {
+  container.innerHTML = '';
+  const targetH = randInt(1, 12);
+  const targetM = pickRandom([0, 30]);
+  const userH = (targetH + randInt(2, 5)) % 12 || 12;
+  const userM = targetM === 0 ? 30 : 0;
+
+  state.currentQuestion = { targetH, targetM, userH, userM };
+  drawAnalogClockSvg(userH, userM);
+
+  const badge = document.getElementById('clock-activity-badge');
+  if (badge) {
+    badge.textContent = `🎯 Set the clock to ${formatClockTime(targetH, targetM)} (Now: ${formatClockTime(userH, userM)})`;
+  }
+
+  document.getElementById('clock-prompt-text').textContent =
+    `${PET_CONFIG.shannonName}: "Tap the buttons to set the clock to ${formatClockTime(targetH, targetM)}!"`;
+
+  state.currentSpeech = [
+    { text: `Move the hands to set the clock to ${targetH} ${targetM === 0 ? "o'clock" : 'thirty'}!`, lang: 'en-US' },
+  ];
+
+  repeatClockPrompt();
+}
+
+// ---------- Big Stars Lv.1: Exact 1-Minute Marks & 24-Hour Time ----------
 function renderClockLv1ExactMinute(container) {
   const is24Hr = state.round % 2 === 0;
   const h12 = randInt(1, 11);
@@ -2302,13 +3450,13 @@ function renderClockLv1ExactMinute(container) {
   const badge = document.getElementById('clock-activity-badge');
   if (badge) {
     badge.textContent = is24Hr
-      ? '🌆 下午時刻 (PM) ➔ 請換算成 24 小時制（小時 +12）'
-      : '🔍 精準 1 分鐘細刻度判讀';
+      ? '🌆 Afternoon (PM) ➔ 24-Hour Time (add 12 to the hour)'
+      : '🔍 Count the little minute marks!';
   }
 
   document.getElementById('clock-prompt-text').textContent = is24Hr
-    ? `${PET_CONFIG.shannonName}：「現在是【下午】，請讀出精準分鐘並換算成 24 小時制！」`
-    : `${PET_CONFIG.shannonName}：「請仔細數一數藍色分針指在第幾小格，選出正確時刻！」`;
+    ? `${PET_CONFIG.shannonName}: "It is the afternoon (PM). Pick the 24-hour time!"`
+    : `${PET_CONFIG.shannonName}: "Count the small marks for the blue minute hand. What time is it?"`;
 
   const opts = [ansStr];
   while (opts.length < 4) {
@@ -2321,22 +3469,22 @@ function renderClockLv1ExactMinute(container) {
   state.currentSpeech = [
     {
       text: is24Hr
-        ? '請看時鐘，如果是下午時刻，用 24 小時制表示是幾點幾分？'
-        : '請看時鐘上的細小刻度，現在是幾點幾分？',
-      lang: 'zh-TW',
+        ? 'It is the afternoon. What is the time on a 24-hour clock?'
+        : 'Look closely at the minute hand. What time is it?',
+      lang: 'en-US',
     },
   ];
 
   container.innerHTML = shuffle(opts)
     .map(
-      (t) => `<button class="option-card clock-opt-btn" onclick="checkClockAnswer(this, '${t}', '${ansStr}')"><div class="opt-word" style="font-size:1.85rem;">${t}</div></button>`
+      (t) => `<button class="option-card num-btn" onclick="checkClockAnswer(this, '${t}', '${ansStr}')">${t}</button>`
     )
     .join('');
 
   repeatClockPrompt();
 }
 
-// Lv.2 經過時間推算應用題
+// ---------- Big Stars Lv.2: How Much Time Passed? ----------
 function renderClockLv2ElapsedTime(container) {
   const startH = randInt(8, 16);
   const startM = pickRandom([5, 10, 15, 20, 25, 30, 35, 40, 45]);
@@ -2351,11 +3499,12 @@ function renderClockLv2ElapsedTime(container) {
 
   const badge = document.getElementById('clock-activity-badge');
   if (badge) {
-    badge.textContent = `🕒 開始時刻：${formatClockTime(startH, startM)} ｜ ⏳ 經過 ${duration} 分鐘後是幾點幾分？`;
+    badge.textContent = `🕒 Start: ${formatClockTime(startH, startM)} ｜ ⏳ +${duration} minutes later = ?`;
   }
 
-  const story = `時鐘顯示的是開始時刻 ${formatClockTime(startH, startM)}，經過 ${duration} 分鐘之後，請問會變成幾點幾分？`;
-  document.getElementById('clock-prompt-text').textContent = `${PET_CONFIG.shannonName}：「${story}（滿 60 分鐘要進位 1 小時喔！）」`;
+  const story = `The clock shows ${formatClockTime(startH, startM)}. What time will it be ${duration} minutes later?`;
+  document.getElementById('clock-prompt-text').textContent =
+    `${PET_CONFIG.shannonName}: "${story} (60 minutes = 1 new hour!)"`;
 
   const opts = [ansStr];
   while (opts.length < 4) {
@@ -2364,18 +3513,18 @@ function renderClockLv2ElapsedTime(container) {
     if (!opts.includes(cand)) opts.push(cand);
   }
 
-  state.currentSpeech = [{ text: story, lang: 'zh-TW' }];
+  state.currentSpeech = [{ text: story, lang: 'en-US' }];
 
   container.innerHTML = shuffle(opts)
     .map(
-      (t) => `<button class="option-card clock-opt-btn" onclick="checkClockAnswer(this, '${t}', '${ansStr}')"><div class="opt-word" style="font-size:1.85rem;">${t}</div></button>`
+      (t) => `<button class="option-card num-btn" onclick="checkClockAnswer(this, '${t}', '${ansStr}')">${t}</button>`
     )
     .join('');
 
   repeatClockPrompt();
 }
 
-// Lv.3 跨時應用題＆1分鐘微調撥針
+// ---------- Big Stars Lv.3: Set the Clock to the Exact Minute ----------
 function renderClockLv3InteractiveSet(container) {
   container.innerHTML = '';
   const targetH = randInt(1, 12);
@@ -2388,14 +3537,14 @@ function renderClockLv3InteractiveSet(container) {
 
   const badge = document.getElementById('clock-activity-badge');
   if (badge) {
-    badge.textContent = `🎯 請撥針到目標時刻：【 ${formatClockTime(targetH, targetM)} 】（目前：${formatClockTime(userH, userM)}）`;
+    badge.textContent = `🎯 Goal: ${formatClockTime(targetH, targetM)} (Now: ${formatClockTime(userH, userM)})`;
   }
 
   document.getElementById('clock-prompt-text').textContent =
-    `${PET_CONFIG.shannonName}：「請使用下方按鈕微調時針與分針，精準對準【${formatClockTime(targetH, targetM)}】！」`;
+    `${PET_CONFIG.shannonName}: "Use the buttons below to set the clock to ${formatClockTime(targetH, targetM)}!"`;
 
   state.currentSpeech = [
-    { text: `請操作按鈕撥動指針，把時鐘精準調整到 ${targetH} 點 ${targetM} 分！`, lang: 'zh-TW' },
+    { text: `Use the buttons to set the clock to ${targetH} ${targetM < 10 ? 'oh ' + targetM : targetM}!`, lang: 'en-US' },
   ];
 
   repeatClockPrompt();
@@ -2413,7 +3562,7 @@ function adjustInteractiveClock(deltaH, deltaM) {
 
   const badge = document.getElementById('clock-activity-badge');
   if (badge) {
-    badge.textContent = `🎯 請撥針到目標時刻：【 ${formatClockTime(q.targetH, q.targetM)} 】（目前：${formatClockTime(q.userH, q.userM)}）`;
+    badge.textContent = `🎯 Goal: ${formatClockTime(q.targetH, q.targetM)} (Now: ${formatClockTime(q.userH, q.userM)})`;
   }
 }
 
@@ -2423,12 +3572,12 @@ function checkInteractiveClockAnswer() {
   if (q.userH % 12 === q.targetH % 12 && q.userM === q.targetM) {
     const label = formatClockTime(q.targetH, q.targetM);
     onCorrectAnswer('clock', label, [
-      { text: `太精準了！成功把時鐘調到 ${q.targetH} 點 ${q.targetM} 分！`, lang: 'zh-TW' },
+      { text: `Spot on! You set the clock to ${label}!`, lang: 'en-US' },
     ]);
   } else {
     onWrongAnswer(
       'clock',
-      `目前指針在 ${formatClockTime(q.userH, q.userM)}，目標是 ${formatClockTime(q.targetH, q.targetM)}，再微調一下喔！`
+      `Your clock shows ${formatClockTime(q.userH, q.userM)}. Move it to ${formatClockTime(q.targetH, q.targetM)}!`
     );
   }
 }
@@ -2436,12 +3585,12 @@ function checkInteractiveClockAnswer() {
 function checkClockAnswer(btn, chosen, correct) {
   if (state.isAnswering) return;
   if (chosen === correct) {
-    btn.classList.add('correct-pick');
-    onCorrectAnswer('clock', correct, [{ text: `答對了！時刻是 ${correct}`, lang: 'zh-TW' }]);
+    btn.classList.add('correct');
+    onCorrectAnswer('clock', correct, [{ text: `Yes! It is ${correct}!`, lang: 'en-US' }]);
   } else {
-    btn.classList.add('wrong-pick');
-    setTimeout(() => btn.classList.remove('wrong-pick'), 500);
-    onWrongAnswer('clock', '時刻不太對喔，再仔細看一次指針指的小格！');
+    btn.classList.add('wrong');
+    setTimeout(() => btn.classList.remove('wrong'), 500);
+    onWrongAnswer('clock', 'Look closely at the red hour hand and blue minute hand!');
   }
 }
 
@@ -2474,13 +3623,13 @@ function onCorrectAnswer(prefix, label, speechItems) {
   const promptId = prefix === 'en' ? 'en-prompt-text' : prefix === 'math' ? 'math-prompt-text' : 'clock-prompt-text';
   const promptEl = document.getElementById(promptId);
   if (promptEl) {
-    promptEl.textContent = `🎉 答對了！(${label}) 獲得 ⭐+1 ‧ 🪙+${earnedCoins} 金幣！`;
+    promptEl.textContent = `🎉 Great job! (${label}) ⭐+1 · 🪙+${earnedCoins} coins!`;
   }
 
   if (speechItems) speakSequence(speechItems);
 
   setTimeout(() => {
-    if (state.round >= TOTAL_ROUNDS) {
+    if (state.round >= (state.totalRounds || 8)) {
       finishRoundSet(prefix);
     } else {
       state.round++;
@@ -2501,7 +3650,7 @@ function onWrongAnswer(prefix, msg) {
   const promptId = prefix === 'en' ? 'en-prompt-text' : prefix === 'math' ? 'math-prompt-text' : 'clock-prompt-text';
   const promptEl = document.getElementById(promptId);
   if (promptEl) promptEl.textContent = `💪 ${msg}`;
-  speakSequence([{ text: msg, lang: 'zh-TW' }]);
+  say(msg);
 }
 
 function finishRoundSet(prefix) {
@@ -2519,7 +3668,7 @@ function finishRoundSet(prefix) {
 
   const msgEl = document.getElementById('celebrate-message');
   if (msgEl) {
-    msgEl.innerHTML = `恭喜完成 <strong>Lv.${lv}</strong> 全部 8 題挑戰！（累計過關 ${SAVE_DATA.levelClears[clearKey]} 次 🏅）<br/>目前擁有 <strong>🪙 ${SAVE_DATA.coins} 金幣</strong> 與 <strong>⭐ ${SAVE_DATA.totalStars} 顆星</strong>，快回寵物養成屋幫夥伴買大餐跟新造型吧！`;
+    msgEl.innerHTML = `You finished all ${state.totalRounds || 8} questions! (Wins: ${SAVE_DATA.levelClears[clearKey]} 🏅)<br/>You now have <strong>🪙 ${SAVE_DATA.coins} coins</strong> and <strong>⭐ ${SAVE_DATA.totalStars} stars</strong>. Go visit your pet!`;
   }
 
   const againBtn = document.getElementById('btn-play-again');
@@ -2534,13 +3683,11 @@ function finishRoundSet(prefix) {
   showScreen('celebrate');
   spawnConfetti(35);
   playSuccessJingle();
-  speakSequence([
-    { text: '太棒了！學霸關卡完成！快回寵物養成屋餵食你的小動物吧！', lang: 'zh-TW' },
-  ]);
+  say('You did it! Great job! Go feed your pet and buy fun hats!');
 }
 
 // ============================================================================
-// 📊 進度備份彈窗、安裝教學彈窗與家長設定彈窗
+// 📊 Progress Modal, Install Modal & Parent Settings Modal
 // ============================================================================
 function openProgressModal() {
   playClickTick();
@@ -2550,29 +3697,29 @@ function openProgressModal() {
 
   if (grid) {
     grid.innerHTML = `
-      <div class="progress-stat-box">
-        <div class="stat-num">⭐ ${SAVE_DATA.totalStars}</div>
-        <div class="stat-label">累積榮譽星星</div>
+      <div class="prog-stat-card">
+        Stars
+        <strong>⭐ ${SAVE_DATA.totalStars}</strong>
       </div>
-      <div class="progress-stat-box">
-        <div class="stat-num">🪙 ${SAVE_DATA.coins}</div>
-        <div class="stat-label">寵物養成金幣</div>
+      <div class="prog-stat-card">
+        Coins
+        <strong>🪙 ${SAVE_DATA.coins}</strong>
       </div>
-      <div class="progress-stat-box">
-        <div class="stat-num">🏅 ${totalClears} 次</div>
-        <div class="stat-label">關卡完賽次數</div>
+      <div class="prog-stat-card">
+        Levels Won
+        <strong>🏅 ${totalClears}</strong>
       </div>
-      <div class="progress-stat-box">
-        <div class="stat-num">✅ ${SAVE_DATA.totalCorrect || 0} 題</div>
-        <div class="stat-label">累計答對題數</div>
+      <div class="prog-stat-card">
+        Right Answers
+        <strong>✅ ${SAVE_DATA.totalCorrect || 0}</strong>
       </div>
-      <div class="progress-stat-box">
-        <div class="stat-num">🔥 ${SAVE_DATA.bestStreak || 0} 題</div>
-        <div class="stat-label">最高連對紀錄</div>
+      <div class="prog-stat-card">
+        Best Streak
+        <strong>🔥 ${SAVE_DATA.bestStreak || 0}</strong>
       </div>
-      <div class="progress-stat-box">
-        <div class="stat-num">🎁 ${unlockedStickers} / ${STICKERS.length}</div>
-        <div class="stat-label">已解鎖貼紙圖鑑</div>
+      <div class="prog-stat-card">
+        Stickers
+        <strong>🎁 ${unlockedStickers} / ${STICKERS.length}</strong>
       </div>
     `;
   }
@@ -2600,26 +3747,26 @@ function copySaveCode() {
     navigator.clipboard.writeText(codeBox.value).catch(() => {});
   }
   playSuccessJingle();
-  speakSequence([{ text: '已經複製跨裝置存檔碼囉！', lang: 'zh-TW' }]);
+  say('Backup code copied!');
 }
 
 function promptImportSaveCode() {
-  const raw = window.prompt('請貼上您的跨裝置進度引繼碼：');
+  const raw = window.prompt('Paste your backup code here:');
   if (!raw || !raw.trim()) return;
   try {
     const parsed = JSON.parse(decodeURIComponent(atob(raw.trim())));
     if (parsed && typeof parsed.coins === 'number') {
-      SAVE_DATA = { ...DEFAULT_SAVE, ...parsed };
+      SAVE_DATA = normalizeSave(parsed);
       saveProgress();
       updateTopCountersUI();
       renderPetSanctuary();
       openProgressModal();
       playSuccessJingle();
-      speakSequence([{ text: '進度還原成功！', lang: 'zh-TW' }]);
+      say('Your progress is back!');
     }
   } catch (e) {
     playTryAgainSound();
-    speakSequence([{ text: '引繼碼格式不正確喔！', lang: 'zh-TW' }]);
+    say('That code did not work.');
   }
 }
 
@@ -2669,10 +3816,7 @@ function setSpeedPreset(val) {
 function testVoicePreview() {
   const rate = parseFloat(document.getElementById('input-speech-rate').value) || 1.0;
   PET_CONFIG.speechRate = rate;
-  speakSequence([
-    { text: `嗨！我是 ${PET_CONFIG.corieName}，一起來挑戰國小學霸遊戲吧！`, lang: 'zh-TW' },
-    { text: `Hello! I am ${PET_CONFIG.duncanName}. Let's learn English together!`, lang: 'en-US' },
-  ]);
+  say(`Hello! I am ${PET_CONFIG.duncanName}, and this is ${PET_CONFIG.corieName}. Let's play and learn together!`);
 }
 
 function saveSettings() {
@@ -2684,9 +3828,7 @@ function saveSettings() {
   PET_CONFIG.ttsMode = document.getElementById('select-tts-mode').value || 'auto';
   PET_CONFIG.speechRate = parseFloat(document.getElementById('input-speech-rate').value) || 1.0;
 
-  const zhSel = document.getElementById('select-zh-voice');
   const enSel = document.getElementById('select-en-voice');
-  if (zhSel && zhSel.value) PET_CONFIG.zhVoiceURI = zhSel.value;
   if (enSel && enSel.value) PET_CONFIG.enVoiceURI = enSel.value;
 
   localStorage.setItem('pet_time_limit_mins', String(PET_CONFIG.timeLimitMinutes));
@@ -2696,7 +3838,6 @@ function saveSettings() {
   localStorage.setItem('pet_shannon_name', PET_CONFIG.shannonName);
   localStorage.setItem('pet_tts_mode', PET_CONFIG.ttsMode);
   localStorage.setItem('pet_speech_rate', String(PET_CONFIG.speechRate));
-  localStorage.setItem('pet_zh_voice', PET_CONFIG.zhVoiceURI);
   localStorage.setItem('pet_en_voice', PET_CONFIG.enVoiceURI);
 
   initSpeechVoices();
@@ -2705,11 +3846,11 @@ function saveSettings() {
   updateTimerUIAndCheckLock();
   closeSettingsModal();
   playSuccessJingle();
-  speakSequence([{ text: '家長設定已經儲存成功囉！', lang: 'zh-TW' }]);
+  say('Settings saved!');
 }
 
 // ============================================================================
-// 🚀 啟動應用程式
+// 🚀 Start App
 // ============================================================================
 function initApp() {
   applyPetNamesToDOM();

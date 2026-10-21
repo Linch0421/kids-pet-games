@@ -1,59 +1,97 @@
-# 🌈 快樂學習寵物學園 (6~12歲國小進階版) — `kids-pet-games`
+# 🐾 Pet Play School (kids-pet-games v9)
 
-- **最後更新日期**：2026-10-20 (v8 國小 6~12 歲進階版 + 寵物養成屋 + 進度存檔 + 20分鐘護眼鎖定)
-- **本機專案路徑**：`D:\kids-pet-games`
-- **常用網址**：
-  - **本機直接玩**：`D:\kids-pet-games\index.html`
-  - **GitHub 專案庫**：`https://github.com/Linch0421/kids-pet-games`
-  - **GitHub 快速上傳頁面**：`https://github.com/Linch0421/kids-pet-games/upload/main`
-  - **GitHub Pages 線上遊玩網址（手機/iPad）**：`https://linch0421.github.io/kids-pet-games/`
+- **Version**: `v9` (Age 5–6 Little Stars + Age 6–12 Big Stars + Expanded Pet House + English-Only Immersion)
+- **Local Path**: `D:\kids-pet-games`
+- **Main Files**: `index.html`, `style.css`, `app.js`, `manifest.json`, `sw.js`, `README.md`, `assets/`
 
 ---
 
-## 🌟 四大核心升級亮點 (v8)
+## 🌟 Quick Links
 
-### 1. 📚 全面提升至「6～12歲國小一至六年級」挑戰難度（15 大關卡）
-- **🐶 黑白邊境牧羊犬 `Duncan` — 國小英文學院（6 大關卡）**：
-  - **Lv.1 🕵️ 國小百大單字與英英定義謎題 (Word Detective)**：閱讀英文定義線索（如 *"A building where you can borrow and read many books"*）推理出科目、職業、自然科學與長單字（`Astronaut`, `Microscope`, `Camouflage`, `Dictionary`, `Planetarium` 等）。
-  - **Lv.2 🔄 克漏字發音填空＆反義/同義詞特訓**：雙字母自然發音填空與國小必背反義詞／同義詞對決（`Expensive ↔ Cheap`, `Ancient ↔ Modern`, `Borrow ↔ Lend`, `Giant = Huge`）。
-  - **Lv.3 ✍️ 英文句子重組與文法結構**：依正確英文文法順序點擊單字卡重組完整句子（如 *"My favorite subject is science."*、*"He is taller than his brother."*）。
-  - **Lv.4 🎈 幾何多邊形與進階色彩氣球 (`Pentagon` / `Hexagon` / `Octagon` / `Rhombus`)**：結合英文幾何定義線索（如 *"an 8-sided polygon like a stop sign"*）戳破指定多邊形氣球。
-  - **Lv.5 🃏 12 張中英釋義記憶翻牌**：6 對（12 張）蓋牌記憶挑戰，必須將「英文長單字卡」與對應的「中文意義卡」配對成功。
-  - **Lv.6 🚀 Rocket Girl 閱讀理解＆國小文法選擇**：內建單元切換列，閱讀英文短篇故事回答 `Why / Where / How / What` 閱讀理解題，以及過去式 (`cooked`)、比較級 (`heavier`)、未來式 (`will`)、祈使句文法選擇。
-
-- **🐱 橘貓 `Corie` — 國小數理學院（6 大關卡）**：
-  - **Lv.1 🧮 二～三位數進位加法與退位減法**：百位／十位／個位位值分解與心算挑戰。
-  - **Lv.2 ✖️ 九九乘法、整除除法＆雙邊算式比大小**：乘法 (`3~12 × 3~9`)、整除除法 (`÷`) 與左右雙算式計算比大小 (`7 × 8 [?] 29 + 25`)。
-  - **Lv.3 📐 四則運算（先乘除後加減）、未知數方程式＆兩步驟應用題**：含 `A + B × C`、`A × ? + B = C` 逆推代數及生活情境買東西找零應用題。
-  - **Lv.4 🛒 超級收銀員：百元鈔票湊錢＆找零錢特訓**：提供 `$100 鈔票`、`$50`、`$10`、`$5`、`$1` 硬幣，計算多件商品總價或「客人付百元鈔後的應找零金額」。
-  - **Lv.5 🚂 資優奧數數列與邏輯推理火車**：涵蓋等差數列、倒數遞減數列、`×2` 等比倍數數列、完全平方數列 (`n²`) 與費氏相加數列。
-  - **Lv.6 🍕 分數圓餅圖認知＆幾何長方形周長／面積**：判斷 `1/3, 2/3, 3/4, 3/8, 5/8` 塗色分數，以及計算長方形周長 `(長+寬)×2` 與面積 `長×寬 (cm²)`。
-
-- **🐟 比奇堡醜萌魚 `Shannon` — 國小時間與行程學院（3 大關卡）**：
-  - **Lv.1 🔍 精準 1 分鐘細刻度判讀＆24小時制換算**：60 小格分鐘刻度精準讀時（如 `7:23`、`10:48`）與下午 24 小時制換算（如 `下午 4:35 = 16:35`）。
-  - **Lv.2 ⏳ 跨小時經過時間與行程推算應用題**：火車發車、電影散場、練琴寫作業等經過時間推算（滿 60 分鐘自動向小時進位）。
-  - **Lv.3 🛠️ 親手撥針特訓（支援 ±1分 / ±5分 / ±1小時）**：微調時針與分針到指定精準時刻。
+| Purpose | Link |
+|---|---|
+| 🖥️ Play Locally | [index.html](file:///D:/kids-pet-games/index.html) |
+| 📱 Play Online (iPhone / iPad) | https://linch0421.github.io/kids-pet-games/ |
+| 📦 GitHub Repository | https://github.com/Linch0421/kids-pet-games |
+| ⬆️ Upload Updates to GitHub | https://github.com/Linch0421/kids-pet-games/upload/main |
 
 ---
 
-### 2. 🏡 活化獎勵系統：學霸寵物養成屋 (`#pet-sanctuary`)
-- 答對題目與過關可獲得 **金幣 (`🪙`)**（含連勝加成 `🔥 Streak Bonus`）與 **寵物經驗值 (`EXP`)**。
-- **5 隻可養成進化夥伴**：橘貓 `Corie`、邊牧 `Duncan`、醜萌魚 `Shannon`，以及可用金幣解鎖的隱藏神獸 **🐉 星光小龍 `Draco`** 與 **🦄 彩虹獨角獸 `Stella`**。
-- **3 階段成長進化**：隨等級提升從「🌱 幼年學徒」進化為「⭐ 進階學霸」與「👑 傳奇大師」。
-- **三大養成商店**：
-  - `🍖 餵食餐廳`（香濃鮮奶、鮭魚壽司、總匯披薩、皇家大餐）提升飽食度與經驗值
-  - `🎾 特訓陪玩`（飛盤、魔術方塊、天文望遠鏡、太空火箭體驗）提升心情與大量經驗值
-  - `👑 造型換裝`（學士帽、黃金皇冠、巫師帽、酷炫墨鏡、派對領結、榮譽披風等）穿戴在寵物身上！
+## 🚀 What's New in v9
+
+### 1. 🐣 Little Stars (Age 5–6 Easy Mode) & 🎓 Big Stars (Age 6–12 Mode)
+Switch between age tracks with one tap on the home screen!
+- **Total of 30 Stages**:
+  - **🐶 Duncan's English Fun**:
+    - *Little Stars (5–6)*:
+      - 🐣 Lv.1 ABC Letters & Pictures
+      - 🔤 Lv.2 First Sound (`C-A-T`)
+      - 🧩 Lv.3 Spell 3-Letter Words
+      - 🎈 Lv.4 Color & Shape Balloons (`circle`, `square`, `star`, etc.)
+      - 🃏 Lv.5 6-Card Picture Match (3 pairs)
+      - 🐮 Lv.6 Animal Sounds (`Moo!`, `Woof!`, `Meow!`)
+    - *Big Stars (6–12)*:
+      - 🌱 Lv.1 Word Clue Detective (simple English definitions)
+      - 🎧 Lv.2 Missing Letters & Opposites / Synonyms
+      - 🔤 Lv.3 Build a Sentence
+      - 🎈 Lv.4 Polygon & Color Balloons (`Pentagon`, `Hexagon`, `Octagon`, `Rhombus`)
+      - 🃏 Lv.5 12-Card Word & Picture Match (6 pairs)
+      - 🚀 Lv.6 Short Stories & Grammar (Rocket Girl reading comprehension)
+  - **🐱 Corie's Math Fun**:
+    - *Little Stars (5–6)*:
+      - 🍎 Lv.1 Count 1 to 10 (tap objects to count aloud)
+      - ➕ Lv.2 Picture Add & Take Away (within 10)
+      - ⚖️ Lv.3 Bigger or Smaller & Ten-Frame (make 10)
+      - 🛒 Lv.4 Little Toy Shop ($1 & $5 coins up to $10)
+      - 🚂 Lv.5 Pattern & Number Train
+      - 🍪 Lv.6 Share the Cookies Fairly
+    - *Big Stars (6–12)*:
+      - 🌱 Lv.1 Big Number Add & Subtract (place value)
+      - 🌟 Lv.2 Multiply, Divide & Compare (`>`, `=`, `<`)
+      - 🏆 Lv.3 Two-Step Math, Mystery Number & Shopping Stories
+      - 🛒 Lv.4 Big Store Cashier ($100 bills & customer change)
+      - 🚂 Lv.5 Super Number Train (doubling, squares, sequences)
+      - 🍕 Lv.6 Pizza Fractions & Rectangle Area / Perimeter
+  - **🐟 Shannon's Clock Fun**:
+    - *Little Stars (5–6)*:
+      - 🕐 Lv.1 O'clock & Half Past (`:00` and `:30`)
+      - ☀️ Lv.2 My Day (morning, lunch, bedtime routines)
+      - 🛠️ Lv.3 Move the Hands (easy steps)
+    - *Big Stars (6–12)*:
+      - 🌱 Lv.1 Exact 1-Minute Marks & 24-Hour Time
+      - 🌟 Lv.2 How Much Time Passed? (elapsed time stories)
+      - 🏆 Lv.3 Set the Clock to the Exact Minute
 
 ---
 
-### 3. 💾 完整儲存遊玩進度與跨裝置備份碼
-- 自動透過 `localStorage` (`kids_pet_games_save_v8`) 即時儲存：總星星、總金幣、各關卡通關次數徽章 (`🏅×N`)、各科連勝紀錄、寵物等級／飽食度／心情／已購造型裝備、以及 120 張貼紙收集進度。
-- 點擊頂部 **「💾 學習檔案」** 按鈕可檢視完整統計，並支援一鍵產生 **「跨裝置備份碼」**（可複製到手機或 iPad 貼上還原進度）。
+### 2. 🏡 Expanded Pet House (11 Pets & 6 Care Shops)
+- **11 Cute Companions**:
+  - 🐱 Corie (Cat), 🐶 Duncan (Dog), 🐟 Shannon (Fish)
+  - 🐲 Draco (Star Dragon), 🦄 Stella (Rainbow Unicorn)
+  - 🐰 Bobo (Bunny), 🐼 Pom Pom (Panda), 🐧 Pip (Penguin)
+  - 🦊 Foxy (Fox), 🦖 Rexy (Baby Dino), 🦉 Hoot (Wise Owl)
+- **6 Shop Categories**:
+  - 🍖 **Food**: Carrots, Apples, Chicken, Ice Cream, Sushi, Pizza, Steak, Cakes
+  - 🎾 **Play**: Balloons, Soccer, Frisbee, Puzzles, Chess, Skateboards, Space Trips
+  - 🛁 **Care**: Brush Teeth, Nap, Bubble Bath, Shampoo, Haircuts, Spa Days
+  - 🎩 **Hats**: Flowers, Sport Caps, Sun Hats, Bows, Wizard Hats, Gold Crowns
+  - 🧸 **Toys**: Lollipops, Umbrellas, Teddy Bears, Sunglasses, Guitars, Wands, Medals, Trophies
+  - 🏠 **Rooms**: Cozy Home, Flower Garden, Sunny Beach, Snow Land, Candy Land, Under the Sea, Outer Space, Royal Castle, Rainbow Sky
+- **Interactive Fun**:
+  - Tap your pet to make them bounce, spin, or wiggle with heart effects!
+  - Pets evolve and gain shiny visual auras as their level increases.
+  - 🎁 **Daily Gift**: Tap every day to collect free bonus coins!
 
 ---
 
-### 4. ⏳ 20 分鐘護眼鎖定計時器 (`#time-lock-overlay`)
-- 頂部即時顯示今日剩餘遊玩時間倒數（預設 **20 分鐘**，跨重整持續累計今日秒數）。
-- 時間歸零時自動彈出全螢幕 **「👀 護眼休息時間到囉！」** 鎖定畫面並停止語音。
-- 需由家長輸入 **家長密碼（預設 `1234`）** 或算出 **家長雙位數乘法驗證題**，才能延長 10 分鐘、20 分鐘或重置今日時間。家長亦可在右上角 `⚙️ 設定` 自由調整每日限時（10 / 15 / 20 / 30 / 45 / 60 分鐘或無限制）與密碼。
+### 3. 🔤 100% English Immersion
+- Replaced all Chinese UI text and spoken prompts with natural, simple, kid-friendly English.
+- Natural device English voice synthesis for instant listening practice.
+- Clear visual cues and picture hints so young kids can play independently.
+
+---
+
+### 4. 💾 Auto-Save & ⏳ Eye-Rest Screen Lock
+- Automatically persists stars, coins, pet levels, wardrobe, room settings, and 120 stickers in `localStorage`.
+- Includes exportable/importable backup code for cross-device progress sharing.
+- 20-minute daily eye-care timer with grown-up unlock PIN (default: `1234`) or math verification challenge.

@@ -2385,3 +2385,202 @@ body {
   gap: 8px;
   margin-bottom: 12px;
 }
+
+
+/* ==================== 🐣 / 🎓 Age Switcher & Pet House v9 Upgrades ==================== */
+.age-switcher {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  max-width: 640px;
+  margin: 0 auto 20px;
+}
+
+.age-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 22px;
+  border: 4px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  box-shadow: 0 6px 0 #cbd5e1;
+  font-family: inherit;
+  transition: transform 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.age-btn:active {
+  transform: translateY(3px);
+}
+
+.age-btn.active {
+  background: linear-gradient(135deg, #fef9c3 0%, #fde68a 100%);
+  border-color: #f59e0b;
+  color: #78350f;
+  box-shadow: 0 6px 0 #d97706;
+}
+
+.age-icon {
+  font-size: 2.1rem;
+  line-height: 1;
+}
+
+.age-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+}
+
+.age-text strong {
+  font-size: 1.12rem;
+  font-weight: 900;
+}
+
+.age-text small {
+  font-size: 0.84rem;
+  font-weight: 800;
+  opacity: 0.85;
+}
+
+.daily-gift-btn {
+  background: linear-gradient(135deg, #fbbf24, #f97316);
+  color: #ffffff;
+  border: 3px solid #ffffff;
+  padding: 7px 15px;
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #c2410c;
+  font-family: inherit;
+  animation: pulseMystery 1.3s infinite alternate;
+}
+
+.daily-gift-btn.opened {
+  background: #e2e8f0;
+  color: #64748b;
+  box-shadow: 0 3px 0 #cbd5e1;
+  animation: none;
+}
+
+.pet-switcher-pills {
+  margin-bottom: 12px;
+}
+
+.pet-switch-btn.locked {
+  background: #f8fafc;
+  border-style: dashed;
+  border-color: #cbd5e1;
+  color: #64748b;
+}
+
+.pet-room-deco {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.35rem;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.pet-hearts-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.float-heart {
+  position: absolute;
+  bottom: 40%;
+  font-size: 1.6rem;
+  animation: floatUpHeart 1.5s ease-out forwards;
+}
+
+@keyframes floatUpHeart {
+  0% { transform: translateY(0) scale(0.7); opacity: 1; }
+  100% { transform: translateY(-85px) scale(1.25); opacity: 0; }
+}
+
+.pet-anim-bounce {
+  animation: bounceCheer 0.65s ease;
+}
+
+.pet-anim-spin {
+  animation: petSpin360 0.7s ease;
+}
+
+.pet-anim-wiggle {
+  animation: shakeGentle 0.6s ease;
+}
+
+@keyframes petSpin360 {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.12); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+.pet-stage-box.aura-1 .pet-main-visual {
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.65);
+}
+
+.pet-stage-box.aura-2 .pet-main-visual {
+  box-shadow: 0 0 22px rgba(168, 85, 247, 0.75);
+}
+
+.pet-stage-box.aura-3 .pet-main-visual {
+  box-shadow: 0 0 26px rgba(245, 158, 11, 0.85);
+}
+
+.pet-stage-box.aura-4 .pet-main-visual {
+  box-shadow: 0 0 30px rgba(236, 72, 153, 0.9), 0 0 46px rgba(250, 204, 21, 0.8);
+}
+
+.pet-stats-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 680px) {
+  .pet-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .age-switcher {
+    grid-template-columns: 1fr;
+  }
+}
+
+.clean-fill {
+  background: linear-gradient(90deg, #38bdf8, #10b981);
+}
+
+.shop-effect {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.wp-badge {
+  display: inline-block;
+  background: #ffedd5;
+  color: #9a3412;
+  border: 2px solid #fdba74;
+  padding: 2px 12px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 900;
+  margin-bottom: 6px;
+}
+
+.wp-text {
+  font-size: 1.15rem;
+  color: #1e293b;
+  font-weight: 800;
+  line-height: 1.5;
+}
